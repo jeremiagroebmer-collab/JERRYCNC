@@ -99,7 +99,7 @@ save();current='orders';filter='';render();toast(added?added+' Testaufträge ang
 const stages=['Anfrage','Angebot','CAM offen','Bereit','In Fertigung','Qualitätsprüfung','Fertig','Verpacken','Versandbereit','Ausgeliefert'];
 const specialStatuses=['Wartet auf Material','Abgelehnt','Storniert'];
 const dateDE=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?String(v).slice(8,10)+'.'+String(v).slice(5,7)+'.'+String(v).slice(0,4):(v||'–');
-function nextOrderNumber(){const year=new Date().getFullYear();const nums=db.orders.map(o=>String(o.number||'').match(new RegExp('^CNC-'+year+'-(\\d+)
+function nextOrderNumber(){const year=new Date().getFullYear();const nums=db.orders.map(o=>String(o.number||'').match(new RegExp('^CNC-'+year+'-(\\d+)$'))).filter(Boolean).map(m=>Number(m[1]));return 'CNC-'+year+'-'+String(Math.max(0,...nums)+1).padStart(3,'0')}
 function stockMove(k,id){
 const x=db[k].find(v=>v.id===id);if(!x)return;
 const mode=prompt('Lagerbewegung: + für Zugang oder - für Entnahme','+');if(mode!=='+'&&mode!=='-')return;
