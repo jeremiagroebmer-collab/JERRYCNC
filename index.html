@@ -172,7 +172,7 @@ const x=db[k].find(v=>v.id===id);if(!x)return;
 const mode=prompt('Lagerbewegung: + für Zugang oder - für Entnahme','+');if(mode!=='+'&&mode!=='-')return;
 const raw=prompt('Menge ('+(x.unit||'Stück')+')', '1');if(raw===null)return;
 const qty=Number(raw.replace(',','.'));if(!Number.isFinite(qty)||qty<=0){alert('Bitte eine positive Menge eingeben.');return}
-if(mode==='-'&&qty>Number(x.qty)){alert('Nicht genügend Bestand.');return}
+if(x.qty===null||x.qty===undefined||x.qty===''){alert('Bestand unbekannt. Bitte zuerst eine Inventur durchführen.');return}if(mode==='-'&&qty>Number(x.qty)-Number(x.reserved||0)){alert('Nicht genügend frei verfügbarer Bestand.');return}
 const order=prompt('Auftragsnummer (optional)','');if(order===null)return;
 x.qty=Number((Number(x.qty)+(mode==='+'?qty:-qty)).toFixed(4));
 db.inventory.push({id:'movement-'+Date.now(),number:'LB-'+Date.now(),title:(mode==='+'?'Zugang: ':'Entnahme: ')+x.title,article:x.number||x.title,qty,unit:x.unit||'Stk.',type:mode==='+'?'Zugang':'Entnahme',order,date:new Date().toISOString().slice(0,10),notes:'Bestandsänderung: '+mode+qty});
@@ -180,7 +180,7 @@ save();render();toast('Bestand aktualisiert');
 }
 function reserveOrder(id){
 const o=db.orders.find(v=>v.id===id);if(!o)return;
-const options=db.materials.filter(m=>m.title&&Number(m.qty)>0);if(!options.length){alert('Keine Materialien mit positivem Bestand vorhanden.');return}
+const options=db.materials.filter(m=>m.title&&m.qty!==null&&m.qty!==undefined&&m.qty!==''&&Number(m.qty)-Number(m.reserved||0)>0);if(!options.length){alert('Keine Materialien mit positivem Bestand vorhanden.');return}
 const name=prompt('Materialbezeichnung genau wie im Lager:\n'+options.map(m=>m.title+' ('+m.qty+' '+(m.unit||'Stk.')+')').join('\n'),o.material||options[0].title);if(!name)return;
 const m=db.materials.find(v=>v.title.toLowerCase()===name.trim().toLowerCase());if(!m){alert('Material nicht gefunden.');return}
 const raw=prompt('Menge für diesen Auftrag reservieren ('+(m.unit||'Stk.')+')','1');if(raw===null)return;
@@ -193,7 +193,7 @@ save();render();toast('Material reserviert – noch nicht entnommen');
 function consumeReservation(id,index){
 const o=db.orders.find(v=>v.id===id);const r=o?.reservations?.[index];if(!r)return;
 const m=db.materials.find(v=>v.id===r.materialId);if(!m){alert('Material fehlt im Lager');return}
-if(Number(m.qty)<r.qty){alert('Nicht genügend Bestand für Entnahme');return}
+if(m.qty===null||m.qty===undefined||m.qty===''||Number(m.qty)<r.qty){alert('Nicht genügend bestätigter Bestand für Entnahme');return}
 if(!confirm(r.qty+' '+r.unit+' '+r.material+' wirklich für '+o.number+' entnehmen?'))return;
 m.qty=Number((Number(m.qty)-r.qty).toFixed(4));m.reserved=Math.max(0,Number(m.reserved||0)-r.qty);
 db.inventory.push({id:'consume-'+Date.now(),number:'LB-'+Date.now(),title:'Auftragsentnahme '+r.material,article:m.number||m.title,qty:r.qty,type:'Entnahme',order:o.number,date:new Date().toISOString().slice(0,10)});
@@ -232,15 +232,18 @@ function quoteCalc(o){
 const mat=db.materials.find(x=>x.id===o.quoteMaterialId),machine=db.machines.find(x=>x.id===o.quoteMachineId),q=Number(o.qty)||0,need=Number(o.quoteMaterialQty)||0,h=Number(o.quoteHours)||0;
 const rawRate=machine?(machineRate(machine)??(Number(machine.rate)>0?Number(machine.rate):null)):null;
 const matPrice=mat&&mat.cost!==null&&mat.cost!==undefined&&mat.cost!==''?Number(mat.cost):null;
-const matCost=matPrice===null?null:matPrice*need,mc=rawRate===null?null:rawRate*h;
+const matCost=!mat||o.quoteMaterialQty===null||o.quoteMaterialQty===undefined||o.quoteMaterialQty===''||matPrice===null?null:matPrice*need,mc=!machine||o.quoteHours===null||o.quoteHours===undefined||o.quoteHours===''||rawRate===null?null:rawRate*h;
 const tools=(Array.isArray(o.quoteTools)?o.quoteTools:[]).map(t=>{const x=db.tools.find(v=>v.id===t.id),qty=Number(t.qty)||0,unit=x&&x.cost!==null&&x.cost!==undefined&&x.cost!==''?Number(x.cost):null;return {x,qty,unit,cost:unit===null?null:unit*qty}});
 const toolCost=tools.every(t=>t.cost!==null)?tools.reduce((n,t)=>n+t.cost,0):null;
 const stock=mat&&mat.qty!==null&&mat.qty!==undefined&&mat.qty!==''?Number(mat.qty):null;
-const missing=stock===null?null:Math.max(0,need-stock);
+const reserved=mat?Number(mat.reserved)||0:0;
+const ownReserved=(o.reservations||[]).filter(x=>x.materialId===mat?.id).reduce((n,x)=>n+Number(x.qty||0),0);
+const free=stock===null?null:Math.max(0,stock-reserved+ownReserved);
+const missing=free===null?null:Math.max(0,need-free);
 const other=Number(o.otherCost)||0,setup=Number(o.setupHours)||0,setupCost=rawRate===null?null:setup*rawRate;
-const complete=matCost!==null&&mc!==null&&toolCost!==null&&setupCost!==null;
+const complete=matCost!==null&&mc!==null&&toolCost!==null&&setupCost!==null&&q>0;
 const total=complete?matCost+mc+toolCost+setupCost+other:null,revenue=q*Number(o.price||0);
-return {mat,machine,need,h,rawRate,matPrice,matCost,mc,tools,toolCost,stock,missing,total,revenue,setupCost,other};
+return {mat,machine,need,h,rawRate,matPrice,matCost,mc,tools,toolCost,stock,reserved,free,missing,total,revenue,setupCost,other};
 }
 function quotePlanner(o){
 const c=quoteCalc(o),fmt=v=>v===null?'Preis fehlt':money(v);
@@ -253,7 +256,7 @@ c.tools.map(t=>'<div class="tms-item"><div><b>'+esc(t.x?.title||'Werkzeug fehlt'
 '<div class="item"><span><b>Geplante Kosten</b></span><b>'+fmt(c.total)+'</b></div>'+
 '<div class="item"><span>Auftragswert ('+esc(o.qty||0)+' × '+money(Number(o.price)||0)+')</span><b>'+money(c.revenue)+'</b></div>'+
 '<div class="item"><span>Deckungsbeitrag vor weiteren Kosten</span><b>'+(c.total===null?'Noch nicht berechenbar':money(c.revenue-c.total))+'</b></div>'+
-'<h3>Materiallager</h3><p>Benötigt: <b>'+esc(c.need)+'</b> · Vorhanden: <b>'+esc(c.stock??'unbekannt')+'</b> · Nachzubestellen: <b>'+esc(c.missing??'nicht berechenbar')+'</b></p>'+
+'<h3>Materiallager</h3><p>Benötigt: <b>'+esc(c.need)+'</b> · Lagerbestand: <b>'+esc(c.stock??'unbekannt')+'</b> · Frei für diesen Auftrag: <b>'+esc(c.free??'unbekannt')+'</b> · Nachzubestellen: <b>'+esc(c.missing??'nicht berechenbar')+'</b></p>'+
 (c.missing>0?'<p class="tms-warn">Materialbedarf übersteigt den aktuellen Bestand.</p><button class="secondary" data-quote-purchase="'+esc(o.id)+'">Fehlmenge als Einkaufsanfrage anlegen</button>':'')+
 '<p class="muted small">Nur Kalkulation, keine automatische Reservierung oder Bestellung. Nicht enthalten: Ausschuss, Rüst-/Personalzeit außerhalb des Maschinensatzes, Versand, Steuern und sonstige Gemeinkosten. Fehlende Preise werden nicht als 0 geschätzt.</p></div>';
 }
