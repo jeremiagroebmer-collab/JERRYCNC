@@ -17,3 +17,5 @@ assert.ok(T.missing({...er,system:''}).some(x=>x.includes('Aufnahmesystem')));as
 console.log('PASS: flexible names/search, ISO/material groups, ER/shrink/hydro/shaft/plate/spindle mismatches, missing data, complete chains and mounted lengths.');
 
 assert.equal(T.suitability({...cutter,isoGroups:'',suitableMaterials:'Stahl'},{title:'Edelstahl'}),'no');assert.equal(T.suitability({...cutter,isoGroups:'',suitableMaterials:'Stahl, Edelstahl'},{title:'Edelstahl'}),'yes');
+
+assert.equal(T.candidate(db,a,er).ok,false,'Repeated component must not merge into an invalid multi-part connection');
