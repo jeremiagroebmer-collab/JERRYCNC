@@ -33,3 +33,13 @@ Das Scan-Menü im Kopfbereich bietet Kamera, QR-Bildimport, eingefügten Link un
 Material und Werkzeuge bieten Zugang/Entnahme mit optionalem Auftragsbezug, Bestandsprüfung und Buchungsverlauf. Werkzeugbewegungen speichern die Werkzeug-ID. Maschinen zeigen offene Arbeitsgänge und zugeordnete Baugruppen. PDM bietet Revision, Freigabestatus, HTTPS-Zeichnungslink und lokale PDF-/Bilddateien. Die QR-Links zeigen den aktuellen Datensatz, keine eingefrorene Zeichnungsrevision. Andere Geräte benötigen weiterhin denselben Datenstand; lokale Dateien werden nicht synchronisiert.
 
 Geprüft: erzeugtes QR-Bild über den Bildimport erkannt, Datensatzlink aufgelöst, fremde Links abgewiesen, Materialentnahme samt Verlauf, lokale Dateiablage und Anzeige, Druckansicht und mobile Oberfläche. Die physische iPhone-Kamera ist in dieser Testumgebung nicht überprüfbar.
+
+## Automatische Fertigungsunterlagen
+
+Unter Büro oder Fertigung → „Unterlagen & Briefkopf“ lassen sich App-Name, eigene Firma, Kontakt und allgemeine Hinweise einstellen. Die Kundenfirma und Auftragsdaten kommen aus dem Auftrag. Änderungen erzeugen automatisch aktuelle PDF-Dateien im lokalen Dokumentenspeicher; über „Herunterladen“ können sie separat gespeichert werden.
+
+Arbeitsplan → QR zum Arbeitsgangblatt → Maschine, Zeichnungen, Material, Werkzeugliste und Anleitungen. Werkzeugbaugruppen erhalten zusätzlich Komponentenblätter mit einem QR pro Einzelteil. Unter „Unterlagen zuordnen“ am Arbeitsgang können die verknüpften Unterlagen ausdrücklich gewählt und die Reihenfolge festgelegt werden. Fehlende Angaben werden sichtbar gekennzeichnet; Schnittdaten werden nur aus vorhandenen Einträgen übernommen.
+
+Die Codes öffnen die App und erzeugen dort die aktuelle PDF. Bereits heruntergeladene oder gedruckte Dateien bleiben ein fester Stand mit Erstellungsdatum. Andere Geräte benötigen denselben Datenbestand; lokale Zeichnungsanhänge werden weiterhin nicht synchronisiert. Generierte PDFs können aus den gesicherten Datensätzen neu aufgebaut werden. Es werden keine Fertigungsdaten an einen PDF-Dienst gesendet.
+
+`node tests/pdf.test.cjs` prüft alle sechs Dokumenttypen, Verknüpfungen, ausdrückliche leere Zuordnungen, Aktualisierung und mehrseitige Ausgabe. Die Test-PDFs enthalten ausschließlich gekennzeichnete Testdaten. Zusätzlich wurden 23 gerenderte QR-Codes wieder dekodiert und mit ihren Zieladressen verglichen. jsPDF, QR-Generator und eingebettete Schrift einschließlich Lizenzen liegen unter `vendor`.

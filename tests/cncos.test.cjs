@@ -49,3 +49,5 @@ sandbox.actionSubmit(movement(2));assert.equal(a.getDB().materials[0].qty,8);ass
 a.stockMove('tools','tool','remove');assert.throws(()=>sandbox.actionSubmit(movement(4)),/Nicht genügend/);sandbox.actionSubmit(movement(1));assert.equal(a.getDB().tools[0].qty,4);assert.equal(a.getDB().inventory.at(-1).toolId,'tool');
 assert.match(a.recordPage('materials','mat'),/Bestand direkt buchen/);assert.match(a.recordPage('tools','tool'),/Schnittwerte/);assert.match(a.recordPage('tools','tool'),/QR-Etikett/);assert.match(a.scanPage(),/QR-Foto öffnen/);assert.match(a.scanFind('Fräser'),/tool/);
 console.log('PASS: QR routes, foreign-link rejection, scan menu, record actions, stock reservations and tool movement IDs.');
+
+assert.equal(a.parseRecordCode('#pdf=step:ag-1').pdfKind,'step');assert.equal(a.parseRecordCode('#pdf=bad:ag-1'),null);assert.equal(a.parseRecordCode('https://evil.example/#pdf=step:ag-1'),null);
