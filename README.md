@@ -43,3 +43,9 @@ Arbeitsplan → QR zum Arbeitsgangblatt → Maschine, Zeichnungen, Material, Wer
 Die Codes öffnen die App und erzeugen dort die aktuelle PDF. Bereits heruntergeladene oder gedruckte Dateien bleiben ein fester Stand mit Erstellungsdatum. Andere Geräte benötigen denselben Datenbestand; lokale Zeichnungsanhänge werden weiterhin nicht synchronisiert. Generierte PDFs können aus den gesicherten Datensätzen neu aufgebaut werden. Es werden keine Fertigungsdaten an einen PDF-Dienst gesendet.
 
 `node tests/pdf.test.cjs` prüft alle sechs Dokumenttypen, Verknüpfungen, ausdrückliche leere Zuordnungen, Aktualisierung und mehrseitige Ausgabe. Die Test-PDFs enthalten ausschließlich gekennzeichnete Testdaten. Zusätzlich wurden 23 gerenderte QR-Codes wieder dekodiert und mit ihren Zieladressen verglichen. jsPDF, QR-Generator und eingebettete Schrift einschließlich Lizenzen liegen unter `vendor`.
+
+## Werkzeugmontage nach Kategorie und QR
+
+Neue und bisher unnummerierte Datensätze erhalten automatisch eine interne Nummer (z. B. WZ-00001, WG-00001). Vorhandene Nummern und QR-Ziele bleiben erhalten. Bezeichnung sowie Bauteilart und Unterkategorie am Einzelteil sind Pflichtfelder (*); Aufnahme, Maße, Schnittwerte und weitere Angaben sind optional.
+
+In der Baugruppe nach Kategorie, Unterkategorie, Aufnahme oder Text filtern, eine genaue Nummer/QR-Adresse eingeben oder den QR-Code per Kamera/Bild scannen. Der Treffer wird zunächst ausgewählt. Erst Menge und „Komponente zuordnen“ buchen die Verwendung. Unbekannter oder unzureichender Bestand verhindert die Zuordnung. Kategorien sind Suchhilfen und keine automatische technische Kompatibilitätsfreigabe.

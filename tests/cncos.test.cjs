@@ -5,7 +5,7 @@ const storage=new Map([['cncos_demo_cleanup_v1','1']]);const elements=new Map();
 const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',style:{},append(){},insertAdjacentHTML(){},querySelectorAll(){return []}});return elements.get(id)};
 const sandbox={console,Date,Intl,URL,Blob,structuredClone,crypto:require('node:crypto').webcrypto,setTimeout(){},clearTimeout(){},alert(){},confirm(){return false},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},document:{getElementById:element,addEventListener(){}},window:{addEventListener(){}},location:{hash:'',href:'https://example.com/'}};
 vm.createContext(sandbox);
-const boot=source.slice(0,source.indexOf('// Workspace enhancements share'))+`globalThis.testAPI={keys,defs,parseRecordCode,recordQrUrl,recordScanActions,recordQrPanel,scanPage,scanFind,stockMove,quoteCalc,stockWarnings,knownNumber,machineRate,matchesOrderFilter,nextStatus,validateBackup,orderReadiness,tmsFree,setDB(data){db=Object.fromEntries(keys.map(k=>[k,data[k]||[]]))},getDB(){return db},dashboard,ordersPage,orderDossier,analyticsPage,dataPage,productionSchedule,searchEverywhere,modulePage,recordPage,areaPage,setTab(t){orderTab=t},receivePurchase,createPlanFromQuote,reserveOrder,testActions(){render=()=>{};toast=()=>{};openAction=(title,html,submit)=>{globalThis.actionSubmit=submit}}};})();`;
+const boot=source.slice(0,source.indexOf('// Workspace enhancements share'))+`globalThis.testAPI={nextRecordNumber,ensureRecordNumbers,componentCandidates,findComponent,addAssemblyComponent,keys,defs,parseRecordCode,recordQrUrl,recordScanActions,recordQrPanel,scanPage,scanFind,stockMove,quoteCalc,stockWarnings,knownNumber,machineRate,matchesOrderFilter,nextStatus,validateBackup,orderReadiness,tmsFree,setDB(data){db=Object.fromEntries(keys.map(k=>[k,data[k]||[]]))},getDB(){return db},dashboard,ordersPage,orderDossier,analyticsPage,dataPage,productionSchedule,searchEverywhere,modulePage,recordPage,areaPage,setTab(t){orderTab=t},receivePurchase,createPlanFromQuote,reserveOrder,testActions(){render=()=>{};toast=()=>{};openAction=(title,html,submit)=>{globalThis.actionSubmit=submit}}};})();`;
 vm.runInContext(boot,sandbox);const a=sandbox.testAPI;
 const mat={id:'m',title:'Aluminium',number:'MAT-1',qty:20,reserved:0,cost:5,unit:'Stk.'};const machine={id:'machine',title:'Fräse',rate:60};const order={id:'o',number:'CNC-1',title:'Platte',customer:'Test',status:'Anfrage',qty:10,quoteMaterialId:'m',quoteMaterialQty:10,quoteMachineId:'machine',quoteHours:2,setupHours:.5,quoteMarkup:20};
 a.setDB({materials:[mat],machines:[machine],orders:[order]});
@@ -38,8 +38,8 @@ a.setDB({orders:[order],machines:[machine]});a.createPlanFromQuote('o');sandbox.
 console.log('PASS: calculations, incomplete data, reservations, consumption, tool allocations, workflow filters, backup validation, all order tabs, empty states, escaping, partial receipts and duplicate-plan prevention.');
 
 // QR routes must never navigate to foreign sites or perform mutations.
-for(const k of ['orders','machines','tools','materials','pdm','toolassemblies']){const id='part:with spaces/ä';assert.equal(a.parseRecordCode(a.recordQrUrl(k,id)).id,id);assert.equal(a.parseRecordCode(a.recordQrUrl(k,id)).k,k)}
-for(const input of ['https://evil.example/#record=tools:x','javascript:alert(1)','#record=customers:x','#record=tools:%ZZ','https://example.com/other/#record=tools:x','#record=tools:'])assert.equal(a.parseRecordCode(input),null);
+for(const k of a.keys){const id='part:with spaces/ä';assert.equal(a.parseRecordCode(a.recordQrUrl(k,id)).id,id);assert.equal(a.parseRecordCode(a.recordQrUrl(k,id)).k,k)}
+for(const input of ['https://evil.example/#record=tools:x','javascript:alert(1)','#record=unknown:x','#record=tools:%ZZ','https://example.com/other/#record=tools:x','#record=tools:'])assert.equal(a.parseRecordCode(input),null);
 assert.equal(a.parseRecordCode('#order=OLD-1').number,'OLD-1');
 a.setDB({materials:[{id:'mat',title:'Alu',qty:10,reserved:4}],tools:[{id:'tool',title:'Fräser',qty:5}],toolassemblies:[{id:'ass',components:[{id:'tool',qty:2}]}]});
 a.testActions();a.stockMove('materials','mat','remove');
@@ -51,3 +51,12 @@ assert.match(a.recordPage('materials','mat'),/Bestand direkt buchen/);assert.mat
 console.log('PASS: QR routes, foreign-link rejection, scan menu, record actions, stock reservations and tool movement IDs.');
 
 assert.equal(a.parseRecordCode('#pdf=step:ag-1').pdfKind,'step');assert.equal(a.parseRecordCode('#pdf=bad:ag-1'),null);assert.equal(a.parseRecordCode('https://evil.example/#pdf=step:ag-1'),null);
+
+// Component selection and stock constraints; legacy numbers and QR IDs remain stable.
+a.setDB({tools:[{id:'holder',number:'WZ-00001',title:'Halter',componentType:'Halter',subtype:'Schrumpffutter',interface:'HSK-A40',qty:2},{id:'cutter',title:'Fräser',componentType:'Schneidwerkzeug',subtype:'Fräser',qty:1}],machines:[{id:'machine',title:'Fräse'}],toolassemblies:[{id:'assembly',title:'Montage'}]});
+assert.equal(a.ensureRecordNumbers(),true);assert.equal(a.ensureRecordNumbers(),false);assert.equal(a.getDB().tools[0].number,'WZ-00001');assert.equal(a.getDB().tools[1].number,'WZ-00002');assert.ok(a.getDB().machines[0].number);
+assert.equal(a.componentCandidates('Halter','Schrumpffutter','HSK-A40').length,1);assert.equal(a.componentCandidates('Halter','Bohrer').length,0);
+assert.equal(a.findComponent('wz-00001').id,'holder');assert.equal(a.findComponent(a.recordQrUrl('tools','holder')).id,'holder');assert.throws(()=>a.findComponent(a.recordQrUrl('machines','machine')));assert.throws(()=>a.findComponent('https://evil.example/#record=tools:holder'));
+const assembly=a.getDB().toolassemblies[0];a.addAssemblyComponent(assembly,'holder',1);assert.equal(a.tmsFree(a.getDB().tools[0]),1);assert.throws(()=>a.addAssemblyComponent(assembly,'holder',2));assert.throws(()=>a.addAssemblyComponent(assembly,'holder',0.5));a.addAssemblyComponent(assembly,'holder',1);assert.equal(assembly.components.length,1);assert.equal(assembly.components[0].qty,2);
+a.getDB().tools[1].qty=null;assert.throws(()=>a.addAssemblyComponent(assembly,'cutter',1));
+console.log('PASS: automatic numbers, preserved legacy IDs, category/interface filters, number/QR lookup and guarded component allocation.');
