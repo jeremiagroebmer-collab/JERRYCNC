@@ -48,4 +48,20 @@ Die Codes öffnen die App und erzeugen dort die aktuelle PDF. Bereits herunterge
 
 Neue und bisher unnummerierte Datensätze erhalten automatisch eine interne Nummer (z. B. WZ-00001, WG-00001). Vorhandene Nummern und QR-Ziele bleiben erhalten. Bezeichnung sowie Bauteilart und Unterkategorie am Einzelteil sind Pflichtfelder (*); Aufnahme, Maße, Schnittwerte und weitere Angaben sind optional.
 
-In der Baugruppe nach Kategorie, Unterkategorie, Aufnahme oder Text filtern, eine genaue Nummer/QR-Adresse eingeben oder den QR-Code per Kamera/Bild scannen. Der Treffer wird zunächst ausgewählt. Erst Menge und „Komponente zuordnen“ buchen die Verwendung. Unbekannter oder unzureichender Bestand verhindert die Zuordnung. Kategorien sind Suchhilfen und keine automatische technische Kompatibilitätsfreigabe.
+In der Baugruppe nach Kategorie, Unterkategorie, Aufnahme oder Text filtern, eine genaue Nummer/QR-Adresse eingeben oder den QR-Code per Kamera/Bild scannen. Der Treffer wird zunächst ausgewählt. Erst Menge und „Komponente zuordnen“ buchen die Verwendung. Unbekannter oder unzureichender Bestand verhindert die Zuordnung. Kategorien dienen als Suchfilter; die zusätzliche Anschlussprüfung ist unten beschrieben.
+
+## Bezeichnung, Materialeignung und Anschlussprüfung
+
+Unter Werkzeuge → „Schreibweise einstellen“ bzw. Einstellungen → „Werkzeugbezeichnungen“ werden die Reihenfolge der Namensbausteine und die Durchmesser-Schreibweise festgelegt. Neue Werkzeuge erhalten einen Vorschlag; manuell bearbeitete Namen werden nicht überschrieben. Die Suche normalisiert Ø/Durchmesser, Umlaute und Wortreihenfolge.
+
+Schneidwerkzeuge und Wendeschneidplatten führen Materialeignung, Sorte/Beschichtung und optionale ISO-Gruppen P/M/K/N/S/H. Nichtschneidende Komponenten sind materialunabhängig. Materialstammdaten erhalten eine ausdrückliche ISO-Gruppe; gängige ausgeschriebene Werkstoffgruppen werden erkannt, unbekannte Bezeichnungen bleiben offen. Im Auftrag erscheinen passende Werkzeuge zuerst, fehlende Angaben getrennt und ungeeignete Werkzeuge eingeklappt mit Bestätigung bei Auswahl und Übernahme. Stahl wird nicht als Edelstahl behandelt.
+
+Baugruppen werden als geordnete Anschlusskette ab der gewählten Maschine geprüft. Werkzeugrollen und getrennte Ein-/Ausgangsdaten verhindern nicht passende ER-Typen, Spannzangen in direkten Schaftaufnahmen, falsche Durchmesser/Schafttypen, falsche Plattenkennungen und abweichende Spindelanschlüsse. Die Auswahl zeigt standardmäßig nur passende Teile; „Auch nicht passende zeigen“ zeigt gesperrte Einträge mit Gründen. Nummer und QR unterliegen derselben Prüfung. Ein Teil pro Anschluss, mit Ausnahme der angegebenen Plattensitze. Entfernen erfolgt vom Kettenende aus.
+
+Bestandsdaten ohne Anschlussangaben bleiben unverändert erhalten. Sie werden als „Kompatibilität nicht geprüft“ markiert; neue Montagezuordnungen verlangen vollständige Daten. Änderungen an Maschine/Komponenten führen zur erneuten Prüfung. Es wird keine Passung aus einer alten Bezeichnung oder einem QR-Code geraten.
+
+Die berechnete Gesamtlänge summiert **montierte axiale Längenbeiträge** ab der Spindel-Bezugsebene, nicht die ungekürzten Bauteillängen. Bei fehlenden Angaben wird nur eine Teilsumme angezeigt. Die vermessene Länge bleibt separat. PDFs enthalten Prüfstatus, Materialeignung und Sorte/Beschichtung.
+
+Prüfumfang: eingetragene Anschlussarten/-kennungen, Spannbereiche, Schafttypen und Plattensitze. Dies ist keine Geometrie-/Kollisionssimulation und keine Herstellerfreigabe für Drehzahl, Einspannlänge, Toleranz oder Belastung. Anschlussdaten nach Herstellerunterlagen erfassen.
+
+Prüfungen: `node tests/tooling.test.cjs`, `node tests/cncos.test.cjs`, `node tests/pdf.test.cjs`. Browserprüfung mit gekennzeichneten lokalen Testdaten: Schreibweise gespeichert, 12-mm-Fräser erfasst, bestehender Halter ergänzt, Maschinenanschluss gewählt, falsche Folgekomponente gesperrt, passende Kette mit 105 mm aufgebaut und Materialwechsel Aluminium/Stahl geprüft.
