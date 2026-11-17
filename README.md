@@ -23,3 +23,13 @@ Die vorhandene Supabase-Anbindung unterstützt nach Einrichtung einen manuellen 
 `node tests/cncos.test.cjs` prüft Kalkulation, fehlende Werte, Reservierungen, Materialverbrauch, Teil-Wareneingänge, doppelte Arbeitsgänge, Sicherungsvalidierung und das Rendern der Hauptansichten. Browserprüfungen ergänzen dies für mobile Darstellung, Dialoge, Timer und QR-Code.
 
 Die mobile Vorschau in `docs/cncos-mobile.jpg` zeigt ausschließlich Testdaten.
+
+## Werkstatt-QR
+
+Jede Maschine, jedes Material, Werkzeug, jede Werkzeugbaugruppe und jeder PDM-Datensatz erhält automatisch einen QR-Link über seine stabile ID. Aufträge behalten ihre bisherigen QR-Links. Etiketten lassen sich aus dem Datensatz drucken; Nummer und Bezeichnung bleiben lesbar.
+
+Das Scan-Menü im Kopfbereich bietet Kamera, QR-Bildimport, eingefügten Link und Suche nach Nummer/Bezeichnung. Der Decoder jsQR 1.4.0 liegt mit Lizenz unter `vendor`; Bilddaten werden lokal verarbeitet. Die Kamera benötigt HTTPS bzw. localhost und eine Browserfreigabe. Sie wird bei Treffer, Navigation oder Hintergrundwechsel gestoppt. Ein Scan öffnet nur den Datensatz; Lagerbewegungen werden ausdrücklich bestätigt.
+
+Material und Werkzeuge bieten Zugang/Entnahme mit optionalem Auftragsbezug, Bestandsprüfung und Buchungsverlauf. Werkzeugbewegungen speichern die Werkzeug-ID. Maschinen zeigen offene Arbeitsgänge und zugeordnete Baugruppen. PDM bietet Revision, Freigabestatus, HTTPS-Zeichnungslink und lokale PDF-/Bilddateien. Die QR-Links zeigen den aktuellen Datensatz, keine eingefrorene Zeichnungsrevision. Andere Geräte benötigen weiterhin denselben Datenstand; lokale Dateien werden nicht synchronisiert.
+
+Geprüft: erzeugtes QR-Bild über den Bildimport erkannt, Datensatzlink aufgelöst, fremde Links abgewiesen, Materialentnahme samt Verlauf, lokale Dateiablage und Anzeige, Druckansicht und mobile Oberfläche. Die physische iPhone-Kamera ist in dieser Testumgebung nicht überprüfbar.
