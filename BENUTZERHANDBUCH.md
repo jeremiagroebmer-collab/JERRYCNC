@@ -447,3 +447,41 @@ Sichert Datensätze und ermöglicht den eingerichteten manuellen Cloud-Abgleich.
 4. Benötigte lokale Anhänge auf Gerät B separat hinterlegen oder HTTPS-Dateilinks verwenden.
 
 **Hinweis:** Cloud benötigt eingerichteten Server und berechtigten Zugang. Kein automatischer Hintergrundabgleich; lokale Anhänge sind weder im JSON-Backup noch im Cloud-Datensatz enthalten.
+
+## Fachrichtung wechseln: CNC-Fertigung und 3D-Druck
+
+**Weg:** Fachrichtung wechseln (oben oder in der Seitenleiste)
+
+Eine App mit getrennten Datenbereichen.
+
+1. Fachrichtung wechseln öffnen und CNC-Fertigung oder 3D-Druck wählen.
+2. Neue Aufträge, Maschinen, Werkzeuge, Material und Einstellungen werden im aktiven Bereich gespeichert. Der aktive Bereich steht im Kopf der App.
+3. Vor einem Wechsel die laufende Zeiterfassung stoppen.
+4. Zurückwechseln, um die bisherigen Einträge wiederzusehen.
+
+**Hinweis:** Vorhandene Daten sind zunächst CNC-Fertigung zugeordnet. Sicherung, Wiederherstellung und Cloud-Abgleich enthalten beide Bereiche gemeinsam. Es sind keine getrennten Benutzerkonten.
+
+## Eigene Fotos und Bereichsbilder hinzufügen
+
+**Weg:** Datensatz → Eigenes Bild oder Bereich → Eigenes Bereichsbild
+
+Ergänzt ein kleines Vorschaubild anstelle der Standardillustration.
+
+1. Maschine, Werkzeug, Aufnahme, Material oder einen anderen Datensatz öffnen.
+2. Unter Eigenes Bild ein JPG, PNG oder WebP bis 8 MB auswählen. Das Bild wird automatisch verkleinert und gespeichert.
+3. Zum Austausch ein neues Bild wählen; Foto entfernen stellt die Standardillustration wieder her.
+4. Für ein ganzes Menü Eigenes Bereichsbild aufklappen und dort ein Bild auswählen.
+
+**Hinweis:** Diese verkleinerten Vorschaubilder sind im JSON-Backup und Cloud-Datensatz enthalten. Dateien unter Datei hinzufügen bleiben dagegen separate lokale Anhänge.
+
+## Vorhandene Maschine oder Lagerartikel einer Fachrichtung zuordnen
+
+**Weg:** Bestand → Datensatz → Fachrichtung ändern
+
+Verschiebt einen unverknüpften Eintrag ohne Bestand, Bild oder ID zu ändern.
+
+1. Maschine, Material oder Werkzeug öffnen und Fachrichtung ändern wählen.
+2. Zielbereich und Eintrag prüfen und Verschieben bestätigen.
+3. In die andere Fachrichtung wechseln, um den Eintrag dort weiterzuverwenden.
+
+**Hinweis:** Verknüpfte oder reservierte Einträge werden gesperrt, damit Aufträge und Baugruppen nicht beschädigt werden. Bei gleichen Nummern oder IDs im Ziel wird nicht überschrieben. Alte QR-Links werden anhand der Datensatz-ID aufgelöst.

@@ -84,4 +84,10 @@ Die Hauptnavigation folgt Tätigkeiten: Aufträge, Bestand, Planung & Arbeit, Da
 
 Maschinen unter Bestand zeigen und bearbeiten nur Stammdaten. Das bestehende Kostenmodell derselben Maschine wird separat unter Kosten & Auswertung → Maschinenkosten & Stundensätze gepflegt. Querverweise zu Planung und Wartung bleiben erhalten; es werden keine Maschinenkopien oder neuen Datenspeicher angelegt.
 
-`app-guide.js` enthält die Bereichsstruktur und 35 durchsuchbare Anleitungen mit Weg, einzelnen Schritten, Ergebnis und Grenzen der Funktion. `BENUTZERHANDBUCH.md` ist die herunterladbare Gesamtfassung. Änderungen an Funktionen müssen in beiden Fassungen nachvollzogen werden. Die Hilfe ist in der App unter Hilfe & Anleitungen verfügbar, zum Beispiel über „Datei anlegen“, „Werkzeug erstellen“ oder „Werkzeug zusammenbauen“.
+`app-guide.js` enthält die Bereichsstruktur und 38 durchsuchbare Anleitungen mit Weg, einzelnen Schritten, Ergebnis und Grenzen der Funktion. `BENUTZERHANDBUCH.md` ist die herunterladbare Gesamtfassung. Änderungen an Funktionen müssen in beiden Fassungen nachvollzogen werden. Die Hilfe ist in der App unter Hilfe & Anleitungen verfügbar, zum Beispiel über „Datei anlegen“, „Werkzeug erstellen“ oder „Werkzeug zusammenbauen“.
+
+### Fachrichtungen und eigene Bilder
+
+Oben unter Fachrichtung zwischen CNC-Fertigung und 3D-Druck wechseln. Bestände, Aufträge und Einstellungen sind getrennt; vorhandene Daten bleiben zunächst unter CNC-Fertigung. Unverknüpfte Maschinen und Lagerartikel können im Datensatz verschoben werden. Sicherungen und Cloud-Snapshots enthalten beide Bereiche. QR-Links tragen die Fachrichtung; ältere Links werden anhand des Datensatzes aufgelöst.
+
+Datensätze und Bereichsseiten unterstützen eigene JPEG-, PNG- und WebP-Bilder (bis 8 MB), die auf maximal 640 Pixel verkleinert und mit den Daten gesichert werden. Ohne eigenes Foto erscheinen passende Illustrationen.
