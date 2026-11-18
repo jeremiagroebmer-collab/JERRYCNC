@@ -77,3 +77,11 @@ Komplettwerkzeuge lassen sich direkt einer Auftrags-Werkzeugliste und optional e
 Material bietet Metall/Rohmaterial, 3D-Druckmaterial und Hilfsmittel. Druckmaterial führt tatsächliche Restmenge in kg, separate ganze Rollenzahl und optional Nenngewicht je Rolle. Eine kg-Entnahme verändert die Rollenzahl nur bei ausdrücklicher Eingabe. Die zusätzlich angefragten Schreibweisen BC, BVA, ABS Plus und DPU stehen unverändert zur Auswahl; Hilfsmittel umfassen Isopropanol, Bremsenreiniger und Nitro.
 
 Zusätzliche Prüfung: `node tests/inventory.test.cjs` (Profilableitung, passende/unpassende Kombinationen, Altbestand, Rollenbuchungen und Komponenten-QR in zugewiesenen PDFs). Browserprüfung: Fräser 12-mm-Schaft/10-mm-Schneide gespeichert, HSK-Schrumpffutter separat gespeichert, ABS Plus mit 2,5 kg/3 Rollen erfasst, 0,25 kg entnommen ohne Rollenzahländerung, Baugruppe Auftrag und Arbeitsgang zugewiesen. `docs/cncos-simple-inventory.jpg` zeigt die Eingabemaske mit lokalen Testdaten.
+
+## Navigation und Hilfe
+
+Die Hauptnavigation folgt Tätigkeiten: Aufträge, Bestand, Planung & Arbeit, Dateien & Wissen, Kontakte & Einkauf, Kosten & Auswertung sowie Einstellungen & Daten. Rollen schränken die Navigation nicht ein. Pfadnavigation und „Wie geht das?“ führen zum zuständigen Bereich bzw. zur Hilfe. Mobile Nutzer erreichen weitere Bereiche über Menü.
+
+Maschinen unter Bestand zeigen und bearbeiten nur Stammdaten. Das bestehende Kostenmodell derselben Maschine wird separat unter Kosten & Auswertung → Maschinenkosten & Stundensätze gepflegt. Querverweise zu Planung und Wartung bleiben erhalten; es werden keine Maschinenkopien oder neuen Datenspeicher angelegt.
+
+`app-guide.js` enthält die Bereichsstruktur und 35 durchsuchbare Anleitungen mit Weg, einzelnen Schritten, Ergebnis und Grenzen der Funktion. `BENUTZERHANDBUCH.md` ist die herunterladbare Gesamtfassung. Änderungen an Funktionen müssen in beiden Fassungen nachvollzogen werden. Die Hilfe ist in der App unter Hilfe & Anleitungen verfügbar, zum Beispiel über „Datei anlegen“, „Werkzeug erstellen“ oder „Werkzeug zusammenbauen“.
