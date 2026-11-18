@@ -65,3 +65,15 @@ Die berechnete Gesamtlänge summiert **montierte axiale Längenbeiträge** ab de
 Prüfumfang: eingetragene Anschlussarten/-kennungen, Spannbereiche, Schafttypen und Plattensitze. Dies ist keine Geometrie-/Kollisionssimulation und keine Herstellerfreigabe für Drehzahl, Einspannlänge, Toleranz oder Belastung. Anschlussdaten nach Herstellerunterlagen erfassen.
 
 Prüfungen: `node tests/tooling.test.cjs`, `node tests/cncos.test.cjs`, `node tests/pdf.test.cjs`. Browserprüfung mit gekennzeichneten lokalen Testdaten: Schreibweise gespeichert, 12-mm-Fräser erfasst, bestehender Halter ergänzt, Maschinenanschluss gewählt, falsche Folgekomponente gesperrt, passende Kette mit 105 mm aufgebaut und Materialwechsel Aluminium/Stahl geprüft.
+
+## Bestand nach Werkstattablauf (18.11.2026)
+
+Unter **Bestand** werden Bearbeitungswerkzeuge, Aufnahmen/Zubehör und Mess-/Handwerkzeuge getrennt geöffnet. Es bleiben drei Werkzeugansichten: Lagerteile, Komplettwerkzeuge und Einsatzorte. Die Art des Lagerteils bestimmt die Eingabefelder; Pflichtfelder stehen zuerst. Ein Schaftfräser hat Schaft- und Schneidendurchmesser, aber keine Spindelaufnahme. HSK/SK/BT/Capto stehen beim Futter. Standardprofile übersetzen die wenigen Eingaben in die bestehenden Anschlussdaten. Sonderteile können mit noch unvollständigen Daten als Bestand gespeichert werden; ihre Montage bleibt bis zur Ergänzung gesperrt. Bestehende IDs, QR-Links, Daten und Baugruppen bleiben erhalten.
+
+Maße/Hersteller, Lagerdaten, Materialeignung/Schnittwerte und Montagemaße sind getrennte optionale Gruppen. Gesamtlänge des Einzelteils und montierter axialer Längenbeitrag bleiben ausdrücklich getrennt. STEP/STP/STL, PDF und Bilder können am Lagerteil lokal hinterlegt und wieder heruntergeladen werden (maximal 15 MB; keine Simulation/Cloud-Dateiablage).
+
+Komplettwerkzeuge lassen sich direkt einer Auftrags-Werkzeugliste und optional einem Arbeitsgang zuweisen, auch mehreren Aufträgen. Die PDF-Werkzeugliste enthält die Baugruppe und QR-Zeilen aller Komponenten; bestehende Arbeitsplan-Verknüpfungen bleiben bestehen.
+
+Material bietet Metall/Rohmaterial, 3D-Druckmaterial und Hilfsmittel. Druckmaterial führt tatsächliche Restmenge in kg, separate ganze Rollenzahl und optional Nenngewicht je Rolle. Eine kg-Entnahme verändert die Rollenzahl nur bei ausdrücklicher Eingabe. Die zusätzlich angefragten Schreibweisen BC, BVA, ABS Plus und DPU stehen unverändert zur Auswahl; Hilfsmittel umfassen Isopropanol, Bremsenreiniger und Nitro.
+
+Zusätzliche Prüfung: `node tests/inventory.test.cjs` (Profilableitung, passende/unpassende Kombinationen, Altbestand, Rollenbuchungen und Komponenten-QR in zugewiesenen PDFs). Browserprüfung: Fräser 12-mm-Schaft/10-mm-Schneide gespeichert, HSK-Schrumpffutter separat gespeichert, ABS Plus mit 2,5 kg/3 Rollen erfasst, 0,25 kg entnommen ohne Rollenzahländerung, Baugruppe Auftrag und Arbeitsgang zugewiesen. `docs/cncos-simple-inventory.jpg` zeigt die Eingabemaske mit lokalen Testdaten.

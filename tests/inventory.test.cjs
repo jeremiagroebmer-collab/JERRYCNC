@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),S=require('../inventory-model.js'),T=require('../tooling.js'),P=require('../pdf-engine.js');
+const cutter=S.normalize({toolKind:'Schaftfräser',stockGroup:'cutting',shaftDiameter:12,diameter:10,shaftType:'glatt',interface:'HSK-A63'});
+assert.equal(cutter.interface,'');assert.equal(cutter.inSize,'12');assert.deepEqual(T.missing(cutter),[]);
+const holder=S.normalize({toolKind:'Schrumpffutter',stockGroup:'holders',interface:'HSK-A63',minDiameter:12});
+assert.equal(holder.inSize,'HSK-A63');assert.equal(holder.maxDiameter,12);assert(T.fit(holder,cutter).ok);
+assert(!T.fit({...holder,minDiameter:10,maxDiameter:10},cutter).ok);
+const er=S.normalize({toolKind:'Spannzangenfutter',stockGroup:'holders',interface:'SK40',outSize:'ER32'}),collet=S.normalize({toolKind:'Spannzange',stockGroup:'holders',interface:'ER32',minDiameter:11,maxDiameter:12});
+assert(T.fit(er,collet).ok);assert(T.fit(collet,cutter).ok);assert(!T.fit(holder,collet).ok);
+const gauge=S.normalize({toolKind:'Messschieber',stockGroup:'general',interface:'SK40'});assert.equal(gauge.interface,'');assert.equal(gauge.suitableMaterials,'Alle Materialien');
+assert.equal(S.group({componentType:'Halter'}),'holders');assert.equal(S.kind({componentType:'Wendeplatte'}),'Wendeschneidplatte');
+assert.equal(S.stockRolls({rolls:4},'',true),4);assert.equal(S.stockRolls({rolls:4},1,true),3);assert.throws(()=>S.stockRolls({rolls:4},5,true));assert.throws(()=>S.stockRolls({rolls:null},1,false));assert.throws(()=>S.stockRolls({rolls:4},0.5,true));
+for(const name of ['BC','BVA','ABS Plus','DPU'])assert(S.polymers.includes(name));for(const name of ['Isopropanol','Bremsenreiniger','Nitro'])assert(S.supplies.includes(name));
+const db={orders:[{id:'o',number:'A1',assemblyIds:['a']}],tools:[{...cutter,id:'t',number:'WZ1',title:'Fräser'}],toolassemblies:[{id:'a',title:'Komplettwerkzeug',components:[{id:'t',qty:1}]}]};
+const pdf=P.model(db,'tools','o','https://example.com/');assert(pdf.rows.some(r=>r.url.includes('tools%3At')||r.url.includes('tools:t')));assert(pdf.rows.some(r=>r.title.includes('Komplettwerkzeug')));
+console.log('PASS: simple cutting/holder profiles, compatible assembly, legacy grouping, independent rolls, requested catalogues and assigned component QR PDFs.');

@@ -2,8 +2,8 @@
 (function(root){'use strict';
 const groups={P:'Stahl',M:'Edelstahl',K:'Guss',N:'Nichteisen / Aluminium',S:'Titan / Superlegierungen',H:'Hartstoffe'};
 const roles=['Maschinenanschluss','Aufnahme/Futter','Spannmittel','Verlängerung','Schneidwerkzeug','Plattenhalter','Wendeschneidplatte','Zubehör','Messmittel'];
-const kinds=['Maschinenkegel','ER-Spannsystem','Zylinderschaft','Plattenaufnahme','Fräsdorn','Zubehöranschluss'];
-const systems=['Spannzangenfutter','Schrumpffutter','Hydrodehnspannfutter','Weldon','Fräsdorn','Plattenhalter','Spannzange','Reduzierhülse','Verlängerung','Adapter','Zubehör'];
+const kinds=['Maschinenkegel','ER-Spannsystem','Zylinderschaft','Plattenaufnahme','Fräsdorn','Vierkantschaft','Zubehöranschluss'];
+const systems=['Spannzangenfutter','Schrumpffutter','Hydrodehnspannfutter','Weldon','Fräsdorn','Plattenhalter','Spannzange','Reduzierhülse','Verlängerung','Adapter','Bohrfutter','Zubehör'];
 const num=v=>v!==''&&v!==null&&v!==undefined&&Number.isFinite(Number(v))?Number(v):null;
 const norm=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss').replace(/durchmesser|[ø⌀]/g,' ').replace(/(\d),(\d)/g,'$1.$2').replace(/[^a-z0-9.]+/g,' ').trim();
 const exact=v=>String(v||'').toUpperCase().replace(/[\s-]/g,'');
