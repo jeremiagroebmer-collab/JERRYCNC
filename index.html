@@ -290,7 +290,7 @@ return '<div class="tms-setup"><h2>Verknüpfte Fertigungsdaten</h2><p class="mut
 '<p class="muted small">Ein Einkaufsentwurf ist keine Bestellung. Eine Arbeitsgangvorlage wird nur auf Knopfdruck angelegt.</p></div>';
 }
 function orderDossier(o){
-const tabs=[['overview','Übersicht'],['quote','Kalkulation'],['steps','Fertigung'],['docs','Material & Werkzeuge'],['drawing','Dateien & QR'],['cost','Zeiten & Kosten']];
+const tabs=[['overview','Übersicht'],['quote','Kalkulation'],['steps','Fertigung'],['docs','Material & Werkzeuge'],['drawing','Zeichnung & Dateien'],['cost','Zeiten & Kosten']];
 const c=quoteCalc(o),checks=orderReadiness(o),times=db.time.filter(t=>t.order===o.number),steps=db.planning.filter(p=>p.order===o.number);
 const target=nextStatus(o),stageIndex=o.status==='Bezahlt'?stages.length:stages.indexOf(o.status),checkCount=checks.filter(x=>x.ok).length;
 const detail=(label,value)=>'<div><span class="muted small">'+label+'</span><b>'+esc(value??'Noch offen')+'</b></div>';
