@@ -84,7 +84,7 @@ Die Hauptnavigation folgt Tätigkeiten: Aufträge, Bestand, Planung & Arbeit, Da
 
 Maschinen unter Bestand zeigen und bearbeiten nur Stammdaten. Das bestehende Kostenmodell derselben Maschine wird separat unter Kosten & Auswertung → Maschinenkosten & Stundensätze gepflegt. Querverweise zu Planung und Wartung bleiben erhalten; es werden keine Maschinenkopien oder neuen Datenspeicher angelegt.
 
-`app-guide.js` enthält die Bereichsstruktur und 41 durchsuchbare Anleitungen mit Weg, einzelnen Schritten, Ergebnis und Grenzen der Funktion. `BENUTZERHANDBUCH.md` ist die herunterladbare Gesamtfassung. Änderungen an Funktionen müssen in beiden Fassungen nachvollzogen werden. Die Hilfe ist in der App unter Hilfe & Anleitungen verfügbar, zum Beispiel über „Datei anlegen“, „Werkzeug erstellen“ oder „Werkzeug zusammenbauen“.
+`app-guide.js` enthält die Bereichsstruktur und 42 durchsuchbare Anleitungen mit Weg, einzelnen Schritten, Ergebnis und Grenzen der Funktion. `BENUTZERHANDBUCH.md` ist die herunterladbare Gesamtfassung. Änderungen an Funktionen müssen in beiden Fassungen nachvollzogen werden. Die Hilfe ist in der App unter Hilfe & Anleitungen verfügbar, zum Beispiel über „Datei anlegen“, „Werkzeug erstellen“ oder „Werkzeug zusammenbauen“.
 
 ### Fachrichtungen und eigene Bilder
 
@@ -99,3 +99,9 @@ Neue Aufträge nutzen einen gemeinsamen Arbeitsplan von der ersten Schätzung bi
 Arbeitsgang-Zeiten speichern ihren Kostensatz und ihre Kosten. Ein vollständiges Ist-Ergebnis benötigt alle abgeschlossenen Arbeitsgänge und erfasste Material-/Werkzeug-/Zusatzkosten. Die Priorität ist eine transparente Näherung (8 h/Werktag, längster Restpfad), keine Kapazitäts- oder Lieferterminzusage. NC-Dateien sind lokale Anhänge.
 
 `node tests/workflow.test.cjs` prüft Stück-/Loszeiten, parallele Vorarbeiten, Kreisfehler, NC-Freigabe, getrennte Bedienkosten, Ist-Vollständigkeit und Priorisierung.
+
+## Übungsbereich
+
+`practice.js` definiert acht Übungen, Beispieldaten, Fortschrittsprüfungen und rein flüchtige Speicheradapter. `?practice=full` startet den kompletten Auftrag mit 16 Schritten in den normalen App-Masken. Einzelübungen erhalten nur ihre benötigten Voraussetzungen. App-Speicher und Dateien werden im Übungsmodus weder aus localStorage/IndexedDB gelesen noch dorthin geschrieben. Cloud-Initialisierung und Abgleich sind gesperrt. Beenden, Neuladen und Schließen verwerfen den Übungsstand; BFCache-Rückkehr startet neu. Exporte außerhalb der App können nicht automatisch gelöscht werden.
+
+Prüfung: `node tests/practice.test.cjs` testet Datentrennung mit absichtlich gesperrten Produktionsspeichern, Dateibereinigung, Voraussetzungen und Schrittprüfungen.

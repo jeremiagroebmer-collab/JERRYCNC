@@ -527,3 +527,17 @@ Ein Programm bleibt mit seinem Arbeitsschritt und dessen Nachfolgern verbunden.
 4. Die Maschine erbt Programme ihrer Vorgänger. Sie wird erst bereit, wenn Vorarbeiten abgeschlossen und die zugeordneten Programme freigegeben sind.
 
 **Hinweis:** NC-Dateien werden nicht erzeugt, simuliert oder an Maschinen übertragen. Uploads sind gerätelokal; JSON und Cloud enthalten nur Dateiverweise.
+
+## Ausprobieren: Übungen und kompletter Testauftrag
+
+Lerne mit vorgegebenen Beispieldaten in einem getrennten Übungsbestand.
+
+**Weg:** Menü → Ausprobieren & lernen
+
+1. Ausprobieren & lernen im Seitenmenü oder unter Hilfe & Anleitungen öffnen. Am Handy: Menü oder Hilfe.
+2. Einzelübung wählen oder Gesamter Auftrag starten. Benötigte Grundlagen werden bei Einzelübungen bereitgestellt.
+3. Passende Maske öffnen. Die Beispieldaten selbst eintippen oder mit Beispieldaten eintragen übernehmen; anschließend bewusst speichern.
+4. Prüfen & weiter kontrolliert deine gespeicherten Angaben. Beim kompletten Auftrag folgen Maschine, Fräser, Halter, Material, Zusammenbau, Anfrage, Zeichnung, Arbeitsplan, Werkzeugliste, Angebot, Zusage, Fertigung, Ist-Kosten und PDF.
+5. Fertig oder Beenden wählen. Der Übungsbestand wird verworfen und dein echter Datenbestand wieder geöffnet. Jede Übung kann wiederholt werden.
+
+Auch Neuladen oder Schließen verwirft den Fortschritt. Cloud ist gesperrt; Übungsdateien liegen nur im Arbeitsspeicher. Selbst heruntergeladene Dateien bleiben erhalten. Übungs-QRs sind keine dauerhaften Etiketten.
