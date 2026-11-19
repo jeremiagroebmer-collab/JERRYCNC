@@ -1,6 +1,6 @@
-# CNC OS – Anleitung und Funktionsübersicht
+# CNC OS · Benutzerhandbuch
 
-Stand: 18.11.2026. Über Hilfe & Anleitungen in der App nach Tätigkeiten suchen.
+Suche nach einer Aufgabe, zum Beispiel „Werkzeug zusammenbauen“ oder „Groben Arbeitsplan“.
 
 ## Erster Auftrag: der komplette Ablauf
 
@@ -8,12 +8,13 @@ Stand: 18.11.2026. Über Hilfe & Anleitungen in der App nach Tätigkeiten suchen
 
 Von der Kundenanfrage bis zur Lieferung in einer Auftragsakte.
 
-1. Aufträge öffnen und eine neue Anfrage mit Kunde, Teil und Stückzahl anlegen.
-2. Im Auftrag unter Zeichnung & Dateien die Zeichnung hinterlegen.
-3. Unter Kalkulation vorhandenes Material, Maschine, Werkzeugbedarf, Mengen und Zeiten wählen. Fehlende Stammdaten unter Bestand ergänzen.
-4. Preis prüfen und den Auftragsstatus passend setzen. Unter Fertigung Arbeitsgänge anlegen und Maschine sowie Unterlagen zuordnen.
-5. Material reservieren und tatsächliche Entnahmen buchen. Komplettwerkzeuge zusammenstellen und der Werkzeugliste zuordnen.
-6. Zeiten erfassen, Prüfung dokumentieren und Status bis Fertig, Versandbereit, Ausgeliefert und gegebenenfalls Bezahlt weiterführen.
+1. Neue Anfrage mit Kunde, Teil, Stückzahl und Termin anlegen. Danach öffnet sich Zeichnung & Dateien.
+2. Zeichnung hinterlegen und Weiter: grober Arbeitsplan wählen.
+3. Arbeitsgänge erfassen: Maschine oder Arbeitsplatz, Rüstzeit einmal pro Los, Bearbeitungszeit pro Stück oder für das Los. CAM und manuelle Programmierung sind eigene Arten.
+4. Unter Kalkulation & Angebot Material, Werkzeugverbrauch und Zusatzkosten ergänzen. Preis speichern und Angebot festhalten. Der Angebotsstand bleibt unverändert.
+5. Nach Kundenantwort Kunde hat angenommen oder Nicht angenommen wählen. Bei Annahme denselben Plan verfeinern, Abhängigkeiten und NC-Programme ergänzen und freigeben.
+6. Bereite Schritte stempeln, stoppen und fertigmelden. Vorarbeiten geben Folgeschritte automatisch frei. Verpacken und Versand abschließen.
+7. Unter Zeiten & Kosten tatsächliche Material-, Werkzeug- und Zusatzkosten eintragen. Angebot, aktuellen Plan und Ist vergleichen.
 
 **Hinweis:** Die App versendet keine Angebote, Rechnungen oder Pakete automatisch.
 
@@ -38,9 +39,9 @@ Die Navigation folgt Aufgaben, nicht deiner Rolle.
 
 Legt eine Auftragsakte mit eindeutiger Nummer an.
 
-1. Neue Anfrage öffnen. Bezeichnung, Kunde, Stückzahl und bei Bedarf Termin erfassen.
-2. Speichern. Den Auftrag aus der Liste öffnen.
-3. Die weiteren Angaben über Übersicht, Kalkulation, Fertigung, Material & Werkzeuge sowie Zeichnung & Dateien ergänzen.
+1. Neue Anfrage öffnen. Bezeichnung, Kunde, Stückzahl und Termin erfassen.
+2. Anlegen: Die Akte öffnet Zeichnung & Dateien. Zeichnung hinzufügen.
+3. Weiter: grober Arbeitsplan wählen. Danach Kalkulation & Angebot; die Übersicht zeigt immer den nächsten Schritt.
 
 **Hinweis:** Die erzeugte Nummer identifiziert den Auftrag; sein QR-Link bleibt über die interne ID stabil.
 
@@ -50,22 +51,23 @@ Legt eine Auftragsakte mit eindeutiger Nummer an.
 
 Filter helfen beim Finden; der Status zeigt den aktuellen Arbeitsstand.
 
-1. Nach Firma, Auftragsnummer und Status filtern oder den Suchbegriff eingeben.
-2. Auftrag öffnen und unter Übersicht „Status wählen“ verwenden.
-3. Nur den tatsächlich erreichten Status setzen; bei Bedarf zurücksetzen.
+1. Aufträge nach Firma, Nummer oder Status filtern.
+2. Im neuen Ablauf zeigt die Übersicht den nächsten Schritt: Angebot festhalten, Kundenannahme oder Ablehnung und Plan freigeben.
+3. Nach Freigabe direkt am Arbeitsgang Zeit buchen und Arbeitsgang fertig wählen. Versand ist der letzte Schritt.
+4. Bestehende Aufträge können über Geführten Auftragsablauf verwenden umgestellt werden. Ohne Umstellung behalten sie ihre bisherigen Statusfunktionen.
 
 **Hinweis:** Ein Statuswechsel bucht weder Material noch Geld automatisch.
 
 ## Auftrag kalkulieren und Preis festlegen
 
-**Weg:** Aufträge → Auftrag → Kalkulation
+**Weg:** Aufträge → Auftrag → Grober Arbeitsplan → Kalkulation & Angebot
 
 Berechnet geplante Kosten aus den erfassten Mengen und Sätzen.
 
-1. Materialartikel, Materialmenge und Maschine wählen.
-2. Bearbeitungs- und Rüstzeit, Werkzeugbedarf und weitere Kosten ergänzen.
-3. Aufschlag und Preis prüfen, Kalkulation speichern und gegebenenfalls Preis übernehmen.
-4. Bei Fehlmengen eine Einkaufsanfrage oder aus der Kalkulation einen Arbeitsgang erstellen.
+1. Zuerst alle Arbeitsgänge mit Zeiten und Sätzen im groben Plan erfassen. Die Arbeitskosten werden daraus summiert.
+2. Material und Gesamtbedarf wählen oder Kein Materialverbrauch ausdrücklich bestätigen. Werkzeugverbrauch und weitere Kosten ergänzen.
+3. Kalkulation speichern. Aufschlag und Stückpreis prüfen, gegebenenfalls Vorschlag übernehmen.
+4. Angebot festhalten speichert Kosten, Preis, Menge und Arbeitsplan unverändert. Der Auftrag wartet auf die Kundenantwort.
 
 **Hinweis:** Leer bedeutet unbekannt, nicht null Euro. Die Vorschau ist eine Planung, kein nachgewiesener Ist-Gewinn.
 
@@ -138,11 +140,11 @@ Verwaltet allgemeine Werkzeuge getrennt von Montagekomponenten.
 
 Verbindet vorhandene Lagerteile zu einem wiederverwendbaren Komplettwerkzeug.
 
-1. Komplettwerkzeug anlegen, speichern und öffnen.
-2. Unter Aufbau ab der Maschine die Maschine mit erfasstem Spindelanschluss wählen.
-3. Die interne Nummer oder den QR-Link der ersten Komponente eingeben, oder QR-Code scannen. Alternativ aus der Liste auswählen.
-4. Menge prüfen und „Komponente zuordnen“ wählen. Danach passende Spannmittel, Verlängerungen und Schneidwerkzeug der Reihe nach hinzufügen.
-5. Vermessene Länge, Offset, Lagerort und Status über Bearbeiten ergänzen.
+1. Komplettwerkzeug anlegen. Nummer und QR-Code entstehen automatisch.
+2. Maschine mit Spindelanschluss wählen. Vorhandene Teile werden als Karten angezeigt.
+3. Passende Bestandskarte antippen, interne Nummer eingeben und Direkt einfügen wählen oder QR-Code scannen. Jede dieser Aktionen fügt das Teil direkt hinzu.
+4. Aufnahme, passende Verlängerungen oder Spannmittel und Schneidwerkzeug der Reihe nach hinzufügen. Nur technisch passende Kombinationen und freier Bestand werden zugelassen.
+5. Name entsteht aus den Komponenten. Über Name & Messwerte bearbeiten anpassen; Zur Werkzeugliste hinzufügen ordnet die Baugruppe zu.
 
 **Hinweis:** Die Auswahl prüft hinterlegte Anschlüsse und freien Bestand. Entfernen erfolgt vom Kettenende. Es findet keine Kollisionssimulation statt.
 
@@ -485,3 +487,43 @@ Verschiebt einen unverknüpften Eintrag ohne Bestand, Bild oder ID zu ändern.
 3. In die andere Fachrichtung wechseln, um den Eintrag dort weiterzuverwenden.
 
 **Hinweis:** Verknüpfte oder reservierte Einträge werden gesperrt, damit Aufträge und Baugruppen nicht beschädigt werden. Bei gleichen Nummern oder IDs im Ziel wird nicht überschrieben. Alte QR-Links werden anhand der Datensatz-ID aufgelöst.
+
+## Groben Arbeitsplan und parallele Arbeitsschritte erstellen
+
+**Weg:** Auftrag → Grober Arbeitsplan
+
+Ein Arbeitsplan für Kalkulation und Fertigung.
+
+1. Vorlage nutzen oder Arbeitsschritt hinzufügen.
+2. Rüstminuten gelten einmal je Los. Bearbeitungsminuten gelten wahlweise pro Stück oder je Los.
+3. Unter Wartet auf diese Vorarbeiten Vorgänger auswählen. Säge und CAM ohne Vorgänger starten parallel; Fräsen wartet auf beide.
+4. Satz aus Maschine übernehmen oder bei manuellen Arbeitsplätzen eingeben. Getrennte Maschinen- und Bedienkosten nur bei entsprechend bereinigtem Maschinensatz verwenden.
+5. Nach Kundenannahme Details ergänzen. Versand als letzten Schritt über Vorgänger mit allen übrigen Schritten verbinden. Plan freigeben.
+
+**Hinweis:** Ein Kreis oder fehlender Vorgänger wird abgelehnt. Die Priorisierung nimmt 8 Stunden pro Werktag an und ist keine vollständige Kapazitätsplanung.
+
+## Arbeitsgang stempeln und Ist-Kosten vergleichen
+
+**Weg:** Auftrag → Fertigung / Zeiten & Kosten
+
+Stempelzeiten tragen den Arbeitsgang und den Kostensatz der Buchung.
+
+1. Am bereiten Arbeitsgang Zeit starten oder Zeit nachtragen wählen.
+2. Laufende Zeit stoppen. Arbeitsgang fertig meldet den Schritt abgeschlossen und gibt abhängige Schritte frei. Bei getrennter Abrechnung Maschinen- und Bedienzeit separat buchen.
+3. Nach Versand unter Zeiten & Kosten tatsächliche Material-, Werkzeug- und sonstige Kosten erfassen; wenn nichts angefallen ist, 0 eintragen.
+4. Ergebnis und Kostenabweichung zum festgehaltenen Angebot prüfen. Zeitkorrekturen ändern die Kosten mit.
+
+**Hinweis:** Fehlende oder unzugeordnete Buchungen verhindern ein vollständiges Ist-Ergebnis. Nicht erfasste Gemeinkosten und Steuern sind nicht enthalten.
+
+## NC-Programm am Arbeitsgang hinterlegen
+
+**Weg:** Auftrag → Arbeitsplan → Arbeitsschritt → + NC-Programm
+
+Ein Programm bleibt mit seinem Arbeitsschritt und dessen Nachfolgern verbunden.
+
+1. Am Programmier-Arbeitsgang + NC-Programm auswählen. Der Auftrag und der Arbeitsschritt werden vorbelegt.
+2. Programmnummer, Revision und Status pflegen; im Programmdatensatz NC-Datei hochladen oder Dateilink hinterlegen.
+3. Bei der Maschine NC-Freigabe vor Maschinenstart erforderlich aktivieren.
+4. Die Maschine erbt Programme ihrer Vorgänger. Sie wird erst bereit, wenn Vorarbeiten abgeschlossen und die zugeordneten Programme freigegeben sind.
+
+**Hinweis:** NC-Dateien werden nicht erzeugt, simuliert oder an Maschinen übertragen. Uploads sind gerätelokal; JSON und Cloud enthalten nur Dateiverweise.

@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),w=require('../workflow.js');
+const o={id:'o',number:'O1',qty:10,status:'Bestätigt',productionReleased:false,due:'2026-12-09'};
+const step=(id,runMin,dependsOn=[])=>({id,orderId:'o',order:'O1',setupMin:0,runMin,timeBasis:'lot',rateOverride:60,status:'Geplant',dependsOn});
+const saw=step('saw',60),cam=step('cam',120),mill={...step('mill',10,['saw','cam']),setupMin:30,timeBasis:'piece',requiresProgram:true},pack=step('pack',20,['mill']),ship=step('ship',10,['pack']);
+const db={planning:[saw,cam,mill,pack,ship],machines:[],time:[],cam:[{id:'nc',order:'O1',stepId:'cam',status:'Freigegeben'}]};
+assert.equal(w.hours(mill,o),130/60);assert.equal(w.estimate(db,o).total,340);assert.ok(Math.abs(w.remaining(db,o).hours-280/60)<1e-9);assert.ok(Math.abs(w.remaining(db,o).effort-340/60)<1e-9);
+assert.equal(w.state(db,o,saw),'Noch nicht freigegeben');o.productionReleased=true;assert.equal(w.state(db,o,saw),'Zu erledigen');assert.equal(w.state(db,o,cam),'Zu erledigen');assert.equal(w.state(db,o,mill),'Wartet auf Vorarbeiten');saw.status='Abgeschlossen';cam.status='Abgeschlossen';assert.equal(w.state(db,o,mill),'Zu erledigen');db.cam[0].status='Simulation';assert.equal(w.state(db,o,mill),'Wartet auf NC-Freigabe');assert.deepEqual(w.programIds(db,o,mill),['nc']);
+assert.throws(()=>w.validate([step('a',1,['b']),step('b',1,['a'])]),/Kreis/);assert.throws(()=>w.validate([step('a',1,['missing'])]),/fehlt/);
+assert.equal(w.hours({...mill,runMin:null},o),null);assert.equal(w.estimate({...db,planning:[{...saw,rateOverride:null}]},o).total,null);
+const split={...saw,pricingMode:'split',laborMin:30,laborRate:40};assert.equal(w.estimate({...db,planning:[split]},o).total,80);
+assert.equal(w.actual(db,o).total,null);db.planning.forEach(p=>{p.status='Abgeschlossen';db.time.push({order:'O1',stepId:p.id,hours:1,costAmount:60})});Object.assign(o,{actualMaterial:50,actualTools:0,actualOther:10});assert.equal(w.actual(db,o).total,360);db.time.push({order:'O1',hours:1});assert.equal(w.actual(db,o).total,null);
+const urgent={...o,id:'u',number:'U',due:'2026-12-09'},easy={...o,id:'e',number:'E',due:'2026-12-02'};const schedules={planning:[{...step('long',180*60),orderId:'u',order:'U'},{...step('short',10),orderId:'e',order:'E'}]};assert.ok(w.priority(schedules,urgent,'2026-11-18').slack<w.priority(schedules,easy,'2026-11-18').slack,'Large unfinished later order outranks nearly completed earlier order');
+console.log('PASS: one plan, per-piece/setup/lot costs, split labor, parallel dependencies, NC gates, cycle rejection, actual cost completeness and remaining-work priority.');

@@ -3,9 +3,9 @@ const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
 const source=html.match(/<script>([\s\S]*?)<\/script>/)[1];new vm.Script(source);
 const storage=new Map([['cncos_demo_cleanup_v1','1']]);const elements=new Map();
 const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',style:{},append(){},insertAdjacentHTML(){},querySelectorAll(){return []}});return elements.get(id)};
-const sandbox={CncDisciplines:require('../disciplines.js'),CncGuide:require('../app-guide.js'),CncStock:require('../inventory-model.js'),CncTooling:require('../tooling.js'),console,Date,Intl,URL,Blob,structuredClone,crypto:require('node:crypto').webcrypto,setTimeout(){},clearTimeout(){},alert(){},confirm(){return false},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},document:{getElementById:element,addEventListener(){}},window:{addEventListener(){}},location:{hash:'',href:'https://example.com/'}};
+const sandbox={CncWorkflow:require('../workflow.js'),CncDisciplines:require('../disciplines.js'),CncGuide:require('../app-guide.js'),CncStock:require('../inventory-model.js'),CncTooling:require('../tooling.js'),console,Date,Intl,URL,Blob,structuredClone,crypto:require('node:crypto').webcrypto,setTimeout(){},clearTimeout(){},alert(){},confirm(){return false},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},document:{getElementById:element,addEventListener(){}},window:{addEventListener(){}},location:{hash:'',href:'https://example.com/'}};
 vm.createContext(sandbox);
-const boot=source.slice(0,source.indexOf('// Workspace enhancements share'))+`globalThis.testAPI={codeScope,discipline,visualPanel,thumbnail,navigationHome,helpPage,helpResults,machineCostsPage,parentAreas,destinationName,nextRecordNumber,ensureRecordNumbers,componentCandidates,findComponent,addAssemblyComponent,keys,defs,parseRecordCode,recordQrUrl,recordScanActions,recordQrPanel,scanPage,scanFind,stockMove,quoteCalc,stockWarnings,knownNumber,machineRate,matchesOrderFilter,nextStatus,validateBackup,orderReadiness,tmsFree,setDB(data){db=Object.fromEntries(keys.map(k=>[k,data[k]||[]]))},getDB(){return db},dashboard,ordersPage,orderDossier,analyticsPage,dataPage,productionSchedule,searchEverywhere,modulePage,recordPage,areaPage,setTab(t){orderTab=t},receivePurchase,createPlanFromQuote,reserveOrder,testActions(){render=()=>{};toast=()=>{};openAction=(title,html,submit)=>{globalThis.actionSubmit=submit}}};})();`;
+const boot=source.slice(0,source.indexOf('// Workspace enhancements share'))+`globalThis.testAPI={wfAction,wfCosts,wfEditTime,wfStepForm,codeScope,discipline,visualPanel,thumbnail,navigationHome,helpPage,helpResults,machineCostsPage,parentAreas,destinationName,nextRecordNumber,ensureRecordNumbers,componentCandidates,findComponent,addAssemblyComponent,keys,defs,parseRecordCode,recordQrUrl,recordScanActions,recordQrPanel,scanPage,scanFind,stockMove,quoteCalc,stockWarnings,knownNumber,machineRate,matchesOrderFilter,nextStatus,validateBackup,orderReadiness,tmsFree,setDB(data){db=Object.fromEntries(keys.map(k=>[k,data[k]||[]]))},getDB(){return db},dashboard,ordersPage,orderDossier,analyticsPage,dataPage,productionSchedule,searchEverywhere,modulePage,recordPage,areaPage,setTab(t){orderTab=t},receivePurchase,createPlanFromQuote,reserveOrder,testActions(){render=()=>{};toast=()=>{};openAction=(title,html,submit)=>{globalThis.actionSubmit=submit}}};})();`;
 vm.runInContext(boot,sandbox);const a=sandbox.testAPI;
 const mat={id:'m',title:'Aluminium',number:'MAT-1',qty:20,reserved:0,cost:5,unit:'Stk.'};const machine={id:'machine',title:'Fräse',rate:60};const order={id:'o',number:'CNC-1',title:'Platte',customer:'Test',status:'Anfrage',qty:10,quoteMaterialId:'m',quoteMaterialQty:10,quoteMachineId:'machine',quoteHours:2,setupHours:.5,quoteMarkup:20};
 a.setDB({materials:[mat],machines:[machine],orders:[order]});
@@ -81,3 +81,18 @@ assert.equal(D.safePhoto('javascript:alert(1)'), '');assert.equal(D.safePhoto('d
 assert.throws(()=>a.validateBackup({...oldData,_discipline:'other'}));assert.throws(()=>a.validateBackup({...oldData,_disciplines:{printing:{...oldData,_disciplines:{cnc:oldData}}}}));
 assert(a.recordQrUrl('machines','old-machine').includes('fachrichtung=cnc'));
 console.log('PASS: separate disciplines, legacy data, combined backup, photos, old and scoped QR routing.');
+
+// Guided release is blocked until acceptance; parallel predecessors gate production.
+a.testActions();
+const guided={id:'wf',number:'WF-1',title:'Guided',qty:10,status:'Angebot',workflowVersion:1,noMaterial:true,offerSnapshot:{revenue:200,cost:100,price:20}};
+const mk=(id,kind,dependsOn=[])=>({id,orderId:'wf',order:'WF-1',title:kind,kind,setupMin:0,runMin:10,timeBasis:'lot',rateOverride:60,status:'Geplant',dependsOn});
+const saw=mk('saw','Sägen'),cam=mk('cam','CAM-Programmierung'),mill=mk('mill','Fräsen',['saw','cam']),ship=mk('ship','Versand',['mill']);
+a.setDB({orders:[guided],planning:[saw,cam,mill,ship]});
+assert.throws(()=>a.wfAction('release','wf'),/Kundenannahme/);a.wfAction('accept','wf');a.wfAction('release','wf');assert.equal(guided.productionReleased,true);
+assert.throws(()=>a.wfAction('finish','mill'),/Vorgänger/);
+for(const p of [saw,cam,mill,ship]){a.getDB().time.push({id:'t-'+p.id,order:'WF-1',stepId:p.id,hours:1,hourlyRate:60,costAmount:60});a.wfAction('finish',p.id)}
+assert.equal(guided.status,'Ausgeliefert');assert.equal(guided.offerSnapshot.revenue,200);assert.equal(a.getDB().planning.length,4);
+a.wfEditTime('t-saw');sandbox.actionSubmit({elements:{hours:{value:'2'},employee:{value:'QA'}}});assert.equal(a.getDB().time[0].costAmount,120);
+assert.match(a.wfCosts(guided),/Noch offen/);
+for(const tab of ['overview','plan','quote','steps','drawing','cost']){a.setTab(tab);assert.ok(!a.orderDossier(guided).includes('NaN'))}
+console.log('PASS: guided acceptance, release, predecessor gate, completion, frozen offer, time correction and guided screens.');

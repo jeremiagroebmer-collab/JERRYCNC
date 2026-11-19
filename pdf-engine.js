@@ -1,6 +1,7 @@
 /* CNC OS workshop PDFs. Pure models and renderer shared by browser and tests. */
 (function(root){
 'use strict';
+const workflow=root.CncWorkflow||(typeof require==='function'?require('./workflow.js'):null);
 const tooling=root.CncTooling||(typeof require==='function'?require('./tooling.js'):null);
 const kinds={workplan:'Arbeitsplan',step:'Arbeitsgangblatt',tools:'Werkzeugliste','step-tools':'Werkzeuge zum Arbeitsgang',assembly:'Werkzeugbaugruppe',instruction:'Arbeitsanleitung'};
 const collections={workplan:'orders',step:'planning',tools:'orders','step-tools':'planning',assembly:'toolassemblies',instruction:'knowledge'};
@@ -23,12 +24,13 @@ if(kind==='workplan'){
 add('Auftrag & aktuelle Daten',['Status: '+text(o.status),'Material: '+text(list(db.materials).find(m=>m.id===o.quoteMaterialId)?.title||o.material),'Maschine aus Kalkulation: '+text(o.machine)],url(base,'orders',o.id),'AUFTRAG ÖFFNEN');
 const steps=list(db.planning).filter(s=>o.number&&s.order===o.number).sort((a,b)=>(Number(a.sequence)||0)-(Number(b.sequence)||0)||String(a.date||'').localeCompare(String(b.date||''))||String(a.number||'').localeCompare(String(b.number||'')));
 if(!steps.length)add('Arbeitsgänge fehlen',['Im Auftrag unter Fertigung einen Arbeitsgang anlegen.']);
-steps.forEach((s,i)=>{const c=stepContext(db,s);add(String(i+1).padStart(2,'0')+' · '+text(s.title),['Maschine: '+text(c.machine?.title||s.machine),'Termin: '+dateText(s.date)+' · Planzeit: '+text(s.hours)+' h · Status: '+text(s.status),'Material: '+(c.materials.map(m=>m.title).join(', ')||'Nicht zugeordnet'),'QR öffnet das Arbeitsgang-PDF mit Zeichnungen, Werkzeugen und Anleitungen.'],url(base,'step',s.id,true),'ARBEITSGANG-PDF')});
+steps.forEach((s,i)=>{const c=stepContext(db,s);add(String(i+1).padStart(2,'0')+' · '+text(s.title),['Maschine: '+text(c.machine?.title||s.machine),'Termin: '+dateText(s.date)+' · Planzeit: '+text(s.hours)+' h · Status: '+text(o.workflowVersion&&workflow?workflow.state(db,o,s):s.status),'Material: '+(c.materials.map(m=>m.title).join(', ')||'Nicht zugeordnet'),'QR öffnet das Arbeitsgang-PDF mit Zeichnungen, Werkzeugen und Anleitungen.'],url(base,'step',s.id,true),'ARBEITSGANG-PDF')});
 add('Werkzeugliste zum Auftrag',['Kalkulierter Werkzeugbedarf und auftragsbezogene Baugruppen. Komponenten pro Baugruppe werden separat ausgewiesen.'],url(base,'tools',o.id,true),'WERKZEUGLISTE-PDF');
 list(db.pdm).filter(d=>o.partNumber&&d.number===o.partNumber).forEach(drawing);
 }
 if(kind==='step'){
-const c=context;doc.meta.push(['Arbeitsgang',text(x.number)],['Maschine',text(c.machine?.title||x.machine)]);
+const c=context;if(c.order?.workflowVersion&&workflow){add('Arbeitsstand',[workflow.state(db,c.order,x),'Rüsten: '+text(x.setupMin)+' min · Bearbeiten: '+text(x.runMin)+' min '+(x.timeBasis==='piece'?'pro Stück':'je Los'),'Vorgänger: '+list(x.dependsOn).map(id=>list(db.planning).find(p=>p.id===id)?.title||'Fehlt').join(', ')]);workflow.programIds(db,c.order,x).forEach(id=>{const nc=list(db.cam).find(p=>p.id===id);if(nc)record('cam',nc,['Revision: '+text(nc.revision),'Freigabe: '+text(nc.status),'QR öffnet NC-Datensatz und hinterlegte Dateien.']);else add('Programmverknüpfung fehlt',[id])});}
+doc.meta.push(['Arbeitsgang',text(x.number)],['Maschine',text(c.machine?.title||x.machine)]);
 if(!c.order)add('Auftragszuordnung fehlt',['Auftragsnummer des Arbeitsgangs prüfen.']);
 if(x.notes)add('Hinweise zum Arbeitsgang',[x.notes]);
 if(c.machine)record('machines',c.machine,['Steuerung: '+text(c.machine.type),'Status: '+text(c.machine.status),'Arbeitsgang: '+text(x.title)+' · Planzeit: '+text(x.hours)+' h']);else add('Maschine nicht eindeutig zugeordnet',['Maschine im Arbeitsgang auswählen. Ein Name allein muss eindeutig sein.']);
