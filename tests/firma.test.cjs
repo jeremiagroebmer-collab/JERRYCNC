@@ -39,3 +39,13 @@ assert.equal(F.nextDue({date:'2026-03-10',repeat:'Einmalig',lastDone:'2026-03-11
 const dd=F.deadlines({deadlines:[{title:'X',date:'2026-03-10',repeat:'Monatlich',lastDone:'2026-03-10'}]},'2026-05-20',60);
 assert.equal(dd[0].level,'over');
 console.log('firma 2 ok');
+// Runde 3
+assert.equal(F.wageMissing({finance:[{type:'Ausgabe',title:'Miete',repeat:'Monatlich'}]}),true);
+assert.equal(F.wageMissing({finance:[{type:'Ausgabe',title:'Unternehmerlohn',repeat:'Monatlich'}]}),false);
+assert.equal(F.noVat({finance:[{type:'Ausgabe',amount:10},{type:'Ausgabe',amount:10,vat:0},{type:'Einnahme',amount:5}]}),1);
+assert.equal(F.openPayables({finance:[{type:'Ausgabe',amount:100,vat:19,status:'Offen'}]}),119);
+const debt={debts:[{balance:1000,payment:100,endDate:'2026-12-31'}]};
+assert.equal(F.debtRates(debt,'2026-12'),100);assert.equal(F.debtRates(debt,'2027-01'),0);
+assert.deepEqual(F.forecast(debt,'2026-11-20',1000,3).map(r=>r.end),[900,800,800]);
+assert.equal(F.deadlines({deadlines:[{title:'A',date:'2026-12-02',repeat:'Einmalig'}]},'2026-11-20',60)[0].level,'soon');
+console.log('firma 3 ok');
