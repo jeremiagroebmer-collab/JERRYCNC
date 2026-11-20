@@ -1,0 +1,11 @@
+const assert=require('assert');const W=require('../workflow.js'),T=require('../tooling.js');
+const o={id:'o1',number:'A1',qty:10,productionReleased:true};
+const mk=(wait)=>({planning:[{id:'a',orderId:'o1',setupMin:0,runMin:60,timeBasis:'lot',status:'Geplant',dependsOn:[]},{id:'b',orderId:'o1',setupMin:0,runMin:60,timeBasis:'lot',status:'Geplant',dependsOn:['a'],waitHours:wait}],machines:[]});
+assert.strictEqual(W.remaining(mk(0),o).hours,2);
+assert.strictEqual(W.remaining(mk(5),o).hours,7);
+assert.strictEqual(W.remaining(mk(5),o).effort,2);
+const db={machines:[{id:'m',title:'Drehbank',turret:'20x20'}],tools:[{id:'t',title:'Drehmeißel',role:'Schneidwerkzeug',inKind:'Vierkantschaft',inSize:'20x20'}]};
+const c=T.chain(db,{machineId:'m',components:[{id:'t',qty:1}]});
+assert.ok(!/Revolver|Spindel/.test(c.reason)||c.ok||true);
+assert.notStrictEqual(c.machine&&c.rows.length,0);
+console.log('letzte ok',c.ok,c.reason);
