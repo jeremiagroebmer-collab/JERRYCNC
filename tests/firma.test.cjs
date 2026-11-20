@@ -23,3 +23,19 @@ assert.equal(F.nextDue(db.deadlines[0],'2026-11-20'),'2027-02-10');assert.equal(
 assert.equal(F.backupAge(null,'2026-11-20'),null);assert.equal(F.backupAge('2026-11-10T08:00:00Z','2026-11-20'),10);
 assert.equal(F.addMonths('2026-12',2),'2027-02');
 console.log('firma ok');
+// Prüfer-Befunde
+const L={finance:[{type:'Einnahme',amount:10000,vat:19,date:'2026-11-05',status:'Bezahlt'}]};
+assert.equal(F.vatReserve(L,'2026-11-20'),1900);
+assert.equal(F.vatReserve(L,'2027-01-05'),1900);    // Vorquartal bis zur Voranmeldung (10.1.)
+assert.equal(F.vatReserve(L,'2027-01-20'),0);
+const fut={finance:[{type:'Einnahme',amount:1000,vat:19,date:'2026-11-05',status:'Bezahlt'},{type:'Ausgabe',amount:1000,vat:19,date:'2026-12-01',status:'Geplant',repeat:'Monatlich'}]};
+assert.equal(F.vatReserve(fut,'2026-11-20'),190);   // künftige Vorlagen zählen nicht
+const dup={finance:[{type:'Ausgabe',title:'Miete',amount:500,vat:0,date:'2026-09-01',repeat:'Monatlich'},{type:'Ausgabe',title:' miete ',amount:500,vat:0,date:'2026-11-03',status:'Bezahlt'}]};
+assert.equal(F.flows(dup,'2026-11','paid').outNet,500);            // nicht doppelt
+assert.equal(F.gross({type:'Ausgabe',amount:100}),100);assert.equal(F.gross({type:'Einnahme',amount:100}),119);
+assert.equal(F.nextDue({date:'2026-01-31',repeat:'Monatlich'},'2026-02-10'),'2026-02-28');
+assert.equal(F.nextDue({date:'2026-03-10',repeat:'Monatlich',lastDone:'2026-03-10'},'2026-05-20'),'2026-04-10'); // verpasst = überfällig
+assert.equal(F.nextDue({date:'2026-03-10',repeat:'Einmalig',lastDone:'2026-03-11'},'2026-05-20'),null);
+const dd=F.deadlines({deadlines:[{title:'X',date:'2026-03-10',repeat:'Monatlich',lastDone:'2026-03-10'}]},'2026-05-20',60);
+assert.equal(dd[0].level,'over');
+console.log('firma 2 ok');
