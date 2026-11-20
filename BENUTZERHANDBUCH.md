@@ -25,10 +25,10 @@ Von der Kundenanfrage bis zur Lieferung in einer Auftragsakte.
 Die Navigation folgt Aufgaben, nicht deiner Rolle.
 
 1. Aufträge: alles zu einem Kundenauftrag, einschließlich Kalkulation, Unterlagen und Status.
-2. Bestand: vorhandene Maschinen, Werkzeuge, Material und Lagerbewegungen.
-3. Planung & Arbeit: Arbeitsgänge, Zeiterfassung, Prüfungen und Wartung.
-4. Dateien & Wissen: Zeichnungen, Programme, Arbeitsanleitungen und erzeugte PDFs.
-5. Kontakte & Einkauf: Kunden, Lieferanten und Bestellungen. Kosten & Auswertung: Stundensätze, Buchungen, Finanzierung und Kennzahlen.
+2. Lager & Werkzeug: vorhandene Maschinen, Werkzeuge, Material und Lagerbewegungen.
+3. Arbeit & Termine: Arbeitsgänge, Zeiterfassung, Prüfungen und Wartung.
+4. Zeichnungen & Programme: Zeichnungen, Programme, Arbeitsanleitungen und erzeugte PDFs.
+5. Kunden & Einkauf: Kunden, Lieferanten und Bestellungen. Geld & Firma: Stundensätze, Buchungen, Finanzierung und Kennzahlen.
 6. Einstellungen & Daten: Mitarbeiter, Einstellungen, Sicherung und Cloud. Über die Pfadnavigation gelangst du zurück zum zuständigen Bereich.
 
 **Hinweis:** Querverweise öffnen denselben Datensatz. Es wird keine Kopie angelegt. Mitarbeiterrollen sind Angaben im Personalstamm, keine Zugriffsrechte.
@@ -86,7 +86,7 @@ Hinterlegt eine vorhandene Datei in der Auftragsakte.
 
 ## Zeichnung oder Bauteil verwalten
 
-**Weg:** Dateien & Wissen → Zeichnungen & Bauteile
+**Weg:** Zeichnungen & Programme → Zeichnungen & Bauteile
 
 Verwaltet Bezeichnung, Zeichnungsnummer, Revision, Freigabe und einen Dateilink.
 
@@ -98,7 +98,7 @@ Verwaltet Bezeichnung, Zeichnungsnummer, Revision, Freigabe und einen Dateilink.
 
 ## Werkzeug erstellen
 
-**Weg:** Bestand → Bearbeitungswerkzeuge
+**Weg:** Lager & Werkzeug → Bearbeitungswerkzeuge
 
 Erfasst ein wiederverwendbares Lagerteil, etwa einen Schaftfräser, Bohrer oder eine Platte.
 
@@ -111,7 +111,7 @@ Erfasst ein wiederverwendbares Lagerteil, etwa einen Schaftfräser, Bohrer oder 
 
 ## Halter, Spannzange oder Verlängerung anlegen
 
-**Weg:** Bestand → Aufnahmen & Zubehör
+**Weg:** Lager & Werkzeug → Aufnahmen & Zubehör
 
 Erfasst die Komponenten zwischen Maschine und Schneidwerkzeug.
 
@@ -124,7 +124,7 @@ Erfasst die Komponenten zwischen Maschine und Schneidwerkzeug.
 
 ## Messmittel und Handwerkzeug erfassen
 
-**Weg:** Bestand → Mess- und Handwerkzeuge
+**Weg:** Lager & Werkzeug → Mess- und Handwerkzeuge
 
 Verwaltet allgemeine Werkzeuge getrennt von Montagekomponenten.
 
@@ -136,7 +136,7 @@ Verwaltet allgemeine Werkzeuge getrennt von Montagekomponenten.
 
 ## Werkzeug zusammenbauen
 
-**Weg:** Bestand → Komplettwerkzeuge zusammenstellen
+**Weg:** Lager & Werkzeug → Komplettwerkzeuge zusammenstellen
 
 Verbindet vorhandene Lagerteile zu einem wiederverwendbaren Komplettwerkzeug.
 
@@ -150,7 +150,7 @@ Verbindet vorhandene Lagerteile zu einem wiederverwendbaren Komplettwerkzeug.
 
 ## Werkzeugliste für Auftrag und Maschine erstellen
 
-**Weg:** Bestand → Komplettwerkzeuge → Baugruppe
+**Weg:** Lager & Werkzeug → Komplettwerkzeuge → Baugruppe
 
 Übernimmt die Baugruppe mit ihren Komponenten in die Fertigungsunterlagen.
 
@@ -163,7 +163,7 @@ Verbindet vorhandene Lagerteile zu einem wiederverwendbaren Komplettwerkzeug.
 
 ## Materialeignung und Schnittwerte pflegen
 
-**Weg:** Bestand → Bearbeitungswerkzeuge → Bearbeiten
+**Weg:** Lager & Werkzeug → Bearbeitungswerkzeuge → Bearbeiten
 
 Speichert Herstellerangaben und eigene Erfahrungen getrennt.
 
@@ -176,7 +176,7 @@ Speichert Herstellerangaben und eigene Erfahrungen getrennt.
 
 ## 3D-Modell am Werkzeug hinterlegen
 
-**Weg:** Bestand → Lagerteil → Herstellerdaten & 3D-Dateien
+**Weg:** Lager & Werkzeug → Lagerteil → Herstellerdaten & 3D-Dateien
 
 Speichert Herstellerdateien zum späteren Herunterladen für CAM.
 
@@ -188,7 +188,7 @@ Speichert Herstellerdateien zum späteren Herunterladen für CAM.
 
 ## Material anlegen
 
-**Weg:** Bestand → Metall & Rohmaterial
+**Weg:** Lager & Werkzeug → Metall & Rohmaterial
 
 Erfasst Material, Einheit, Bestand und Lagerplatz.
 
@@ -200,7 +200,7 @@ Erfasst Material, Einheit, Bestand und Lagerplatz.
 
 ## Filament: Rollen und Kilogramm verwalten
 
-**Weg:** Bestand → 3D-Druckmaterial
+**Weg:** Lager & Werkzeug → 3D-Druckmaterial
 
 Verwaltet tatsächliche Restmenge und physische Rollenzahl getrennt.
 
@@ -213,7 +213,7 @@ Verwaltet tatsächliche Restmenge und physische Rollenzahl getrennt.
 
 ## Hilfsmittel verwalten
 
-**Weg:** Bestand → Hilfsmittel
+**Weg:** Lager & Werkzeug → Hilfsmittel
 
 Verwaltet Reiniger und Verbrauchsmittel als Lagerartikel.
 
@@ -225,7 +225,7 @@ Verwaltet Reiniger und Verbrauchsmittel als Lagerartikel.
 
 ## Bestand zu- oder abbuchen
 
-**Weg:** Bestand → Artikel → Zugang / Entnahme
+**Weg:** Lager & Werkzeug → Artikel → Zugang / Entnahme
 
 Verändert den Bestand und schreibt eine Lagerbewegung.
 
@@ -251,7 +251,7 @@ Hält Material für einen Auftrag frei, ohne es bereits zu verbrauchen.
 
 ## Maschine anlegen oder bearbeiten
 
-**Weg:** Bestand → Maschinen
+**Weg:** Lager & Werkzeug → Maschinen
 
 Pflegt ausschließlich den Maschinenstamm: Name, Steuerung, Spindel und Status.
 
@@ -260,11 +260,11 @@ Pflegt ausschließlich den Maschinenstamm: Name, Steuerung, Spindel und Status.
 3. Speichern; Nummer und QR-Etikett stehen am Datensatz bereit.
 4. Für Kosten, Planung oder Wartung die entsprechend beschrifteten Querverweise verwenden.
 
-**Hinweis:** Stundensätze werden unter Kosten & Auswertung bearbeitet; Aufträge und Wartungen haben eigene Bereiche.
+**Hinweis:** Stundensätze werden unter Geld & Firma bearbeitet; Aufträge und Wartungen haben eigene Bereiche.
 
 ## Maschinenstundensatz berechnen
 
-**Weg:** Kosten & Auswertung → Maschinenkosten & Stundensätze
+**Weg:** Geld & Firma → Maschinenkosten & Stundensätze
 
 Pflegt das Kostenmodell derselben Maschine, ohne einen zweiten Maschinenstamm anzulegen.
 
@@ -277,7 +277,7 @@ Pflegt das Kostenmodell derselben Maschine, ohne einen zweiten Maschinenstamm an
 
 ## Arbeitsgang planen und Unterlagen zuordnen
 
-**Weg:** Planung & Arbeit → Arbeitsgänge & Termine
+**Weg:** Arbeit & Termine → Arbeitsgänge & Termine
 
 Verbindet Auftrag, Maschine, Termin und geplante Dauer.
 
@@ -290,7 +290,7 @@ Verbindet Auftrag, Maschine, Termin und geplante Dauer.
 
 ## NC-Programm verwalten
 
-**Weg:** Dateien & Wissen → NC-Programme
+**Weg:** Zeichnungen & Programme → NC-Programme
 
 Dokumentiert Programm, Revision, Freigabestatus und Dateiverweis.
 
@@ -302,7 +302,7 @@ Dokumentiert Programm, Revision, Freigabestatus und Dateiverweis.
 
 ## Zeit erfassen und korrigieren
 
-**Weg:** Planung & Arbeit → Zeit starten / stoppen
+**Weg:** Arbeit & Termine → Zeit starten / stoppen
 
 Ordnet erfasste Arbeitszeit Mitarbeiter, Tätigkeit und Auftrag zu.
 
@@ -315,7 +315,7 @@ Ordnet erfasste Arbeitszeit Mitarbeiter, Tätigkeit und Auftrag zu.
 
 ## Prüfung dokumentieren
 
-**Weg:** Planung & Arbeit → Prüfungen & Ergebnisse
+**Weg:** Arbeit & Termine → Prüfungen & Ergebnisse
 
 Dokumentiert Prüfergebnis, Auftragsbezug und Hinweise.
 
@@ -327,7 +327,7 @@ Dokumentiert Prüfergebnis, Auftragsbezug und Hinweise.
 
 ## Wartung oder Reparatur planen
 
-**Weg:** Planung & Arbeit → Wartung & Reparaturen
+**Weg:** Arbeit & Termine → Wartung & Reparaturen
 
 Dokumentiert Maßnahmen, Fälligkeit, Maschine, Kosten und Status.
 
@@ -339,7 +339,7 @@ Dokumentiert Maßnahmen, Fälligkeit, Maschine, Kosten und Status.
 
 ## Arbeitsanleitung schreiben
 
-**Weg:** Dateien & Wissen → Arbeitsanleitungen
+**Weg:** Zeichnungen & Programme → Arbeitsanleitungen
 
 Speichert eigene Rüsthinweise und Checklisten.
 
@@ -352,7 +352,7 @@ Speichert eigene Rüsthinweise und Checklisten.
 
 ## PDF erstellen, herunterladen und Briefkopf ändern
 
-**Weg:** Dateien & Wissen → PDF-Unterlagen
+**Weg:** Zeichnungen & Programme → PDF-Unterlagen
 
 Erzeugt Arbeitspläne, Arbeitsgangblätter, Werkzeuglisten, Baugruppenblätter und Anleitungen aus den gespeicherten Daten.
 
@@ -378,7 +378,7 @@ Erzeugt Arbeitspläne, Arbeitsgangblätter, Werkzeuglisten, Baugruppenblätter u
 
 ## Kunden und Lieferanten anlegen
 
-**Weg:** Kontakte & Einkauf
+**Weg:** Kunden & Einkauf
 
 Hinterlegt Firmen, Ansprechpartner und Kontaktdaten.
 
@@ -390,7 +390,7 @@ Hinterlegt Firmen, Ansprechpartner und Kontaktdaten.
 
 ## Bestellen und Wareneingang buchen
 
-**Weg:** Kontakte & Einkauf → Bestellungen & Wareneingang
+**Weg:** Kunden & Einkauf → Bestellungen & Wareneingang
 
 Verknüpft Beschaffung mit Lieferant, Auftrag und Materialartikel.
 
@@ -403,7 +403,7 @@ Verknüpft Beschaffung mit Lieferant, Auftrag und Materialartikel.
 
 ## Einnahmen, Ausgaben und Finanzierung erfassen
 
-**Weg:** Kosten & Auswertung
+**Weg:** Geld & Firma
 
 Dokumentiert betriebliche Geldbeträge und Finanzierungsangaben.
 
@@ -415,7 +415,7 @@ Dokumentiert betriebliche Geldbeträge und Finanzierungsangaben.
 
 ## Kennzahlen und Auftragskosten ansehen
 
-**Weg:** Kosten & Auswertung → Auftragsauswertung
+**Weg:** Geld & Firma → Auftragsauswertung
 
 Zeigt Kennzahlen aus vorhandenen Aufträgen, Preisen, Planwerten und Zeitbuchungen.
 
@@ -478,7 +478,7 @@ Ergänzt ein kleines Vorschaubild anstelle der Standardillustration.
 
 ## Vorhandene Maschine oder Lagerartikel einer Fachrichtung zuordnen
 
-**Weg:** Bestand → Datensatz → Fachrichtung ändern
+**Weg:** Lager & Werkzeug → Datensatz → Fachrichtung ändern
 
 Verschiebt einen unverknüpften Eintrag ohne Bestand, Bild oder ID zu ändern.
 
