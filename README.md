@@ -80,9 +80,9 @@ Zusätzliche Prüfung: `node tests/inventory.test.cjs` (Profilableitung, passend
 
 ## Navigation und Hilfe
 
-Die Hauptnavigation folgt Tätigkeiten: Aufträge, Bestand, Planung & Arbeit, Dateien & Wissen, Kontakte & Einkauf, Kosten & Auswertung sowie Einstellungen & Daten. Rollen schränken die Navigation nicht ein. Pfadnavigation und „Wie geht das?“ führen zum zuständigen Bereich bzw. zur Hilfe. Mobile Nutzer erreichen weitere Bereiche über Menü.
+Die Hauptnavigation folgt Tätigkeiten: Aufträge, Bestand, Arbeit & Termine, Zeichnungen & Programme, Kunden & Einkauf, Geld & Firma sowie Einstellungen & Daten. Rollen schränken die Navigation nicht ein. Pfadnavigation und „Wie geht das?“ führen zum zuständigen Bereich bzw. zur Hilfe. Mobile Nutzer erreichen weitere Bereiche über Menü.
 
-Maschinen unter Bestand zeigen und bearbeiten nur Stammdaten. Das bestehende Kostenmodell derselben Maschine wird separat unter Kosten & Auswertung → Maschinenkosten & Stundensätze gepflegt. Querverweise zu Planung und Wartung bleiben erhalten; es werden keine Maschinenkopien oder neuen Datenspeicher angelegt.
+Maschinen unter Bestand zeigen und bearbeiten nur Stammdaten. Das bestehende Kostenmodell derselben Maschine wird separat unter Geld & Firma → Maschinenkosten & Stundensätze gepflegt. Querverweise zu Planung und Wartung bleiben erhalten; es werden keine Maschinenkopien oder neuen Datenspeicher angelegt.
 
 `app-guide.js` enthält die Bereichsstruktur und 42 durchsuchbare Anleitungen mit Weg, einzelnen Schritten, Ergebnis und Grenzen der Funktion. `BENUTZERHANDBUCH.md` ist die herunterladbare Gesamtfassung. Änderungen an Funktionen müssen in beiden Fassungen nachvollzogen werden. Die Hilfe ist in der App unter Hilfe & Anleitungen verfügbar, zum Beispiel über „Datei anlegen“, „Werkzeug erstellen“ oder „Werkzeug zusammenbauen“.
 

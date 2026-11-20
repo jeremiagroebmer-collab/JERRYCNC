@@ -64,7 +64,7 @@ a.getDB().tools[1].qty=null;assert.throws(()=>a.addAssemblyComponent(assembly,'c
 console.log('PASS: automatic numbers, preserved legacy IDs, category/interface filters, number/QR lookup and guarded component allocation.');
 // Navigation is task-based and all help destinations resolve without role filters.
 const guide=require('../app-guide.js');
-const routes=new Set([...a.keys,'home','all','disciplines','resources','production','files','office','costs','admin','help','clock','documents','machinecost','analytics','company','data','scan']);
+const routes=new Set([...a.keys,'home','all','disciplines','resources','production','files','office','costs','admin','help','clock','documents','machinecost','analytics','company','account','data','scan']);
 for(const area of Object.values(guide.areas))for(const [,items] of area.groups)for(const key of items)assert(routes.has(key),key);
 for(const entry of guide.articles){assert(routes.has(entry.nav),entry.id);assert(entry.steps.length>1);}
 for(const [q,id] of [['Datei anlegen','file'],['Werkzeug erstellen','tool'],['Werkzeug zusammenbauen','assembly'],['Teamcenter','drawing'],['Rollen Kilogramm','printing'],['Stundensatz','rate']])assert(guide.search(q).some(x=>x.id===id),q);

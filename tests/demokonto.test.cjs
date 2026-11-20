@@ -7,7 +7,7 @@ const real=store;for(const [n,f] of Object.entries({getItem:k=>Object.prototype.
 const elements=new Map();const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',style:{},append(){},insertAdjacentHTML(){},querySelectorAll(){return []}});return elements.get(id)};
 const sandbox={CncDemoData:require('../demo-data.js'),CncFirma:require('../firma.js'),CncPractice:require('../practice.js'),CncWorkflow:require('../workflow.js'),CncDisciplines:require('../disciplines.js'),CncGuide:require('../app-guide.js'),CncStock:require('../inventory-model.js'),CncTooling:require('../tooling.js'),console,Date,Intl,URL,Blob,structuredClone,crypto:require('node:crypto').webcrypto,setTimeout(){},clearTimeout(){},alert(){},confirm(){return false},localStorage:real,document:{getElementById:element,addEventListener(){}},window:{addEventListener(){}},location:{hash:'',href:url},history:{replaceState(){}}};
 vm.createContext(sandbox);
-const code=source.slice(0,source.indexOf('// Workspace enhancements share'))+"globalThis.testAPI={getDB(){return db},keys,companyPage,dashboard,ordersPage,analyticsPage,dataPage,recordPage,modulePage,orderDossier,quoteCalc,setTab(t){orderTab=t}};})();";
+const code=source.slice(0,source.indexOf('// Workspace enhancements share'))+"globalThis.testAPI={getDB(){return db},keys,accountPage,companyPage,dashboard,ordersPage,analyticsPage,dataPage,recordPage,modulePage,orderDossier,quoteCalc,setTab(t){orderTab=t}};})();";
 vm.runInContext(code,sandbox);return {a:sandbox.testAPI,store,sandbox}}
 // 1) Demo-Konto: eigener Speicher, echte Daten unberührt
 const real={cncos_v03:JSON.stringify({orders:[{id:'real1',number:'ECHT-1',title:'Echter Auftrag'}]})};
@@ -24,6 +24,9 @@ for(const tab of ['overview','plan','cost','docs','quote','history']){d.a.setTab
 const calc=db.orders.filter(o=>o.status==='Angebot'||o.status==='In Fertigung').map(o=>d.a.quoteCalc(o));assert.ok(calc.length>=2&&calc.every(c=>c.total!==null),'Demo-Kalkulation vollständig');
 // 3) Zweiter Start: nichts wird erneut überschrieben
 const again=boot('https://example.com/?demo=1',d.store);assert.equal(again.a.getDB().orders.length,db.orders.length);
+assert.ok(d.a.accountPage().includes('im Demo-Konto')&&d.a.accountPage().includes('Zurück zum echten Konto'));assert.ok(d.a.dashboard().includes('Häufige Aufgaben'));
 // 4) Ohne ?demo: echter Speicher, keine Demo-Daten
 const r=boot('https://example.com/',real);assert.equal(r.a.getDB().orders[0].number,'ECHT-1');assert.ok(!Object.keys(real).some(k=>k.startsWith('demo:')));
 console.log('PASS: Demo-Konto getrennt, rendert alle Bereiche');
+const rp=boot('https://example.com/',real).a.accountPage();assert.ok(rp.includes('im echten Konto')&&rp.includes('Zum Demo-Konto wechseln')&&!rp.includes('Zurück zum echten Konto'));
+console.log('PASS: Account-Seite');
