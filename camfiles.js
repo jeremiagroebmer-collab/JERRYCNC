@@ -29,10 +29,12 @@ function fromXml(text){
   if(t.no||t.name)out.push(t)}
  return out;
 }
+// Fusion-Werkzeugbibliothek (JSON): nach Beschreibung des Formats, noch nicht mit einer echten Datei geprüft
+function fromJson(text){let j;try{j=JSON.parse(text)}catch{return []}const arr=Array.isArray(j)?j:Array.isArray(j.data)?j.data:Array.isArray(j.tools)?j.tools:[];const v=x=>x===undefined||x===null?'':String(x);return arr.filter(t=>t&&typeof t==='object').map(t=>{const g=t.geometry||{},pp=t['post-process']||{};return {no:v(pp.number??t.number??t.tool_number),name:v(t.description||t.name),diameter:v(g.DC??t.diameter),length:v(g.OAL??g.LB??t.length),flutes:v(g.NOF),holder:v(t.holder&&(t.holder.description||t.holder.name)),note:v(t.type)}}).filter(t=>t.no||t.name)}
 function parseToolList(text,fileName=''){
  const raw=String(text||'');
  const isXml=/\.xml$/i.test(fileName)||/^\s*<\?xml|^\s*<[a-z]/i.test(raw);
- const tools=isXml?fromXml(raw):fromCsv(raw);
+ const isJson=/\.(json|tools)$/i.test(fileName)||/^\s*[\[{]/.test(raw);const tools=isJson?fromJson(raw):isXml?fromXml(raw):fromCsv(raw);
  return tools.slice(0,500);
 }
 function sheetModel(profile,order,tools,today){return {profile,order,tools,today}}
