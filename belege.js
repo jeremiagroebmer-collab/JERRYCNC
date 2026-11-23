@@ -11,9 +11,9 @@ function diffDays(a,b){return Math.round((new Date(a+'T12:00:00Z')-new Date(b+'T
 const kinds={angebot:'Angebot',bestaetigung:'Auftragsbestätigung',lieferschein:'Lieferschein',rechnung:'Rechnung',mahnung:'Mahnung'};
 
 function profile(db){
- const p={company:'',contact:'',taxId:'',iban:'',bank:'',payDays:'14',smallBiz:'Nein',...list(db.settings).find(x=>x.id==='cncos-document-profile')?.documentProfile};
+ const p={company:'',contact:'',taxId:'',iban:'',bank:'',payDays:'14',smallBiz:'Nein',skontoPct:'0',skontoDays:'7',...list(db.settings).find(x=>x.id==='cncos-document-profile')?.documentProfile};
  if(p.company==='Eigene Firma noch nicht eingetragen')p.company='';
- const d=Math.round(Number(p.payDays));p.payDays=Number.isFinite(d)&&d>=0&&d<=365?d:14;
+ const d=Math.round(Number(p.payDays));p.payDays=Number.isFinite(d)&&d>=0&&d<=365?d:14;const sp=Number(String(p.skontoPct).replace(',','.')),sd=Math.round(Number(p.skontoDays));p.skontoPct=Number.isFinite(sp)&&sp>0&&sp<=20?sp:0;p.skontoDays=Number.isFinite(sd)&&sd>0&&sd<=90?sd:7;
  return p;
 }
 // Pflichtangaben einer Rechnung; fehlt etwas, fragt die App einmal danach.
@@ -35,18 +35,24 @@ function positions(o){
 const vatRate=p=>String(p.smallBiz)==='Ja'?0:19;
 const isInvoice=f=>f&&f.docKind==='Rechnung'&&f.type==='Einnahme';
 const invoicesFor=(db,o)=>list(db.finance).filter(f=>isInvoice(f)&&f.invoiceFor===o.id&&f.status!=='Storniert');
+const deposits=(db,o)=>invoicesFor(db,o).filter(f=>f.deposit);
+const finalInvoice=(db,o)=>invoicesFor(db,o).find(f=>!f.deposit);
 function nextInvoiceNumber(db,today){
  const y=today.slice(0,4),re=new RegExp('^RE-'+y+'-(\\d+)$');
  const n=list(db.finance).reduce((m,f)=>{const x=re.exec(String(f.number||''));return x?Math.max(m,Number(x[1])):m},0);
  return 'RE-'+y+'-'+String(n+1).padStart(3,'0');
 }
 // Legt die Rechnung als Einnahme in den Finanzen an. Fällig am Zahlungsziel; die Vorschau rechnet damit.
-function createInvoice(db,o,today,id){
+function createInvoice(db,o,today,id,opts={}){
  const p=profile(db),pos=positions(o);
  if(!pos.length)throw Error('Stückzahl und Preis im Auftrag fehlen. Zuerst kalkulieren oder den Preis eintragen.');
- if(invoicesFor(db,o).length)throw Error('Für diesen Auftrag gibt es schon eine Rechnung.');
- const net=r2(pos.reduce((s,x)=>s+x.total,0)),due=addDays(today,p.payDays);
- const f={id:id||('fin-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),number:nextInvoiceNumber(db,today),title:'Rechnung '+(o.number||'')+' · '+(o.customer||'ohne Kunde'),type:'Einnahme',amount:net,date:due,status:'Offen',category:'Rechnung',vat:String(vatRate(p)),repeat:'Einmalig',docKind:'Rechnung',invoiceFor:o.id,invoiceDate:today,order:o.number||''};
+ if(finalInvoice(db,o))throw Error('Für diesen Auftrag gibt es schon eine Rechnung.');
+ const total=r2(pos.reduce((s,x)=>s+x.total,0)),due=addDays(today,p.payDays),deps=deposits(db,o);
+ let net=total,extra={},title='Rechnung '+(o.number||'')+' · '+(o.customer||'ohne Kunde');
+ if(opts.deposit){const pct=Number(opts.deposit);if(!(pct>0&&pct<=90))throw Error('Anzahlung zwischen 1 und 90 Prozent wählen.');net=r2(total*pct/100);extra={deposit:true,depositPct:pct};title='Anzahlung '+pct+' % · '+(o.number||'')+' · '+(o.customer||'ohne Kunde')}
+ else if(deps.length){const paid=r2(deps.reduce((s,d)=>s+Number(d.amount),0));net=r2(total-paid);if(net<0)throw Error('Die Anzahlungen sind höher als der Auftragswert.');extra={fullNet:total,deductions:deps.map(d=>({number:d.number,net:Number(d.amount)}))}}
+ if(p.skontoPct>0&&!opts.deposit){extra.skontoPct=p.skontoPct;extra.skontoUntil=addDays(today,p.skontoDays)}
+ const f={id:id||('fin-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),number:nextInvoiceNumber(db,today),title,type:'Einnahme',amount:net,date:due,status:'Offen',category:'Rechnung',vat:String(vatRate(p)),repeat:'Einmalig',docKind:'Rechnung',invoiceFor:o.id,invoiceDate:today,order:o.number||'',...extra};
  db.finance=list(db.finance);db.finance.push(f);return f;
 }
 function markPaid(db,f,today){if(!isInvoice(f))throw Error('Keine Rechnung.');f.status='Bezahlt';f.dueDate=f.dueDate||f.date;f.date=today;f.paidAt=today;
@@ -69,15 +75,16 @@ function model(db,kind,orderId,opts={}){
  if(kind==='bestaetigung'){m.number='AB-'+(o.number||o.id);m.intro='vielen Dank für Ihren Auftrag. Wir bestätigen ihn wie folgt:';m.outro=['Liefertermin: '+lieferung+'.','Zahlungsziel: '+p.payDays+' Tage netto.'];m.meta=[['Auftragsbestätigung Nr.',m.number],['Datum',dateDE(today)],['Liefertermin',lieferung]]}
  if(kind==='lieferschein'){m.number='LS-'+(o.number||o.id);m.showPrices=false;m.intro='wir liefern Ihnen folgende Ware:';m.outro=['Bitte prüfen Sie die Lieferung sofort auf Menge und Schäden und melden Sie Abweichungen umgehend.'];m.meta=[['Lieferschein Nr.',m.number],['Lieferdatum',dateDE(today)]]}
  if(kind==='rechnung'||kind==='mahnung'){
-  const f=invoicesFor(db,o)[0];
+  const all=invoicesFor(db,o),f=(opts.invoiceId&&all.find(x=>x.id===opts.invoiceId))||(kind==='mahnung'?(all.find(x=>reminderLevel(x,today)>0)||all[0]):(finalInvoice(db,o)||all[0]));
   if(!f){if(kind==='mahnung')throw Error('Für diesen Auftrag gibt es noch keine Rechnung.');}
-  if(f){m.rate=Number(f.vat)||0;m.net=r2(Number(f.amount));m.vat=r2(m.net*m.rate/100);m.gross=r2(m.net+m.vat);if(m.positions.length===1&&r2(m.positions[0].total)!==m.net){const q=m.positions[0].qty;m.positions=[{...m.positions[0],total:m.net,price:r2(m.net/q)}]}}
+  if(f){m.rate=Number(f.vat)||0;m.net=r2(Number(f.amount));m.vat=r2(m.net*m.rate/100);m.gross=r2(m.net+m.vat);if(f.deposit){const q=1;m.positions=[{pos:1,title:'Anzahlung '+f.depositPct+' % auf Auftrag '+(o.number||'')+' ('+(o.title||'')+')',qty:q,unit:'psch.',price:m.net,total:m.net}];m.title='Anzahlungsrechnung'}else if(f.deductions){m.fullNet=Number(f.fullNet);m.deductions=f.deductions}else if(m.positions.length===1&&r2(m.positions[0].total)!==m.net){const q=m.positions[0].qty;m.positions=[{...m.positions[0],total:m.net,price:r2(m.net/q)}]}}
   const invNo=f?f.number:opts.number||nextInvoiceNumber(db,today),invDate=f?.invoiceDate||today,due=f?(f.dueDate||f.date):addDays(today,p.payDays);
   if(kind==='rechnung'){
-   m.number=invNo;m.date=invDate;m.dueDate=due;m.intro='für die erbrachte Lieferung berechnen wir Ihnen:';
+   m.number=invNo;m.date=invDate;m.dueDate=due;m.intro=f?.deposit?'für den oben genannten Auftrag berechnen wir Ihnen folgende Anzahlung:':'für die erbrachte Lieferung berechnen wir Ihnen:';
    m.outro=['Bitte überweisen Sie den Betrag bis '+dateDE(due)+' unter Angabe der Rechnungsnummer '+invNo+'.'];
+   if(f?.skontoPct>0&&f.skontoUntil)m.outro.push('Bei Zahlung bis '+dateDE(f.skontoUntil)+' gewähren wir '+String(f.skontoPct).replace('.',',')+' % Skonto. Zahlbetrag dann: '+eur(r2(m.gross*(1-f.skontoPct/100)))+'.');
    if(m.rate===0)m.outro.push('Kein Ausweis von Umsatzsteuer, da Kleinunternehmer nach § 19 UStG.');
-   m.outro.push('Das Lieferdatum entspricht dem Rechnungsdatum, sofern nicht anders angegeben.');
+   if(!f?.deposit)m.outro.push('Das Lieferdatum entspricht dem Rechnungsdatum, sofern nicht anders angegeben.');
    m.meta=[['Rechnung Nr.',invNo],['Rechnungsdatum',dateDE(invDate)],['Fällig am',dateDE(due)]];
   }else{
    const lv=Math.min(3,Math.max(1,Number(opts.level)||reminderLevel(f,today)||1));
@@ -129,7 +136,7 @@ function render(m,options){
   for(const r of m.positions){const t=wrap(r.title,m.showPrices?88:140,10);need(t.length*5+3);font(10);pdf.text(String(r.pos),cols.pos+1,y);pdf.text(t,cols.txt,y);
    if(m.showPrices){pdf.text(String(r.qty).replace('.',',')+' '+r.unit,cols.qty,y,{align:'right'});pdf.text(eur(r.price),cols.price,y,{align:'right'});pdf.text(eur(r.total),cols.tot,y,{align:'right'})}else pdf.text(String(r.qty).replace('.',',')+' '+r.unit,cols.qty,y,{align:'right'});
    y+=t.length*5+2;pdf.setDrawColor(214,225,226);pdf.line(15,y-1,195,y-1);y+=3}
-  if(m.showPrices){need(26);font(10);pdf.text('Summe netto',150,y,{align:'right'});pdf.text(eur(m.net),195,y,{align:'right'});y+=6;
+  if(m.showPrices){need(26+(m.deductions?6*(m.deductions.length+1):0));font(10);if(m.deductions){pdf.text('Summe netto',150,y,{align:'right'});pdf.text(eur(m.fullNet),195,y,{align:'right'});y+=6;for(const d of m.deductions){pdf.text('abzgl. Anzahlung '+clean(d.number),150,y,{align:'right'});pdf.text(eur(-d.net),195,y,{align:'right'});y+=6}pdf.text('Noch zu zahlen netto',150,y,{align:'right'});pdf.text(eur(m.net),195,y,{align:'right'});y+=6}else{pdf.text('Summe netto',150,y,{align:'right'});pdf.text(eur(m.net),195,y,{align:'right'});y+=6}
    pdf.text(m.rate?'Umsatzsteuer '+m.rate+' %':'Umsatzsteuer',150,y,{align:'right'});pdf.text(eur(m.vat),195,y,{align:'right'});y+=6;
    font(11,true);pdf.text('Gesamtbetrag',150,y,{align:'right'});pdf.text(eur(m.gross),195,y,{align:'right'});y+=10}
  }
@@ -142,6 +149,29 @@ function render(m,options){
  pdf.setProperties({title:m.title+' '+m.number,author:p.company,creator:'CNC OS'});
  return {pdf,name:(m.title+'_'+m.number).replace(/[^A-Za-z0-9ÄÖÜäöüß._-]+/g,'_').slice(0,120)+'.pdf'};
 }
-const api={kinds,levelName,profile,missing,customer,positions,invoicesFor,nextInvoiceNumber,createInvoice,markPaid,reminderLevel,overdueInvoices,model,render,addDays,eur,dateDE};
+// Monatsübersicht-PDF: lines aus CncFirma.monthLines, open = offene Rechnungen
+function monthReport(lines,p,key,open,options){
+ const {jsPDF,fonts}=options,pdf=new jsPDF({unit:'mm',format:'a4',compress:true});
+ if(fonts){pdf.addFileToVFS('CncRegular.ttf',fonts.regular);pdf.addFont('CncRegular.ttf','Cnc','normal');pdf.addFileToVFS('CncBold.ttf',fonts.bold);pdf.addFont('CncBold.ttf','Cnc','bold')}
+ const face=fonts?'Cnc':'helvetica',clean=s=>String(s??'').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/[\u2010-\u2015]/g,'-'),font=(sz=9,bold=false,c=[36,51,58])=>{pdf.setFont(face,bold?'bold':'normal');pdf.setFontSize(sz);pdf.setTextColor(...c)};
+ let y=18;const head=()=>{pdf.setFillColor(22,108,101);pdf.rect(0,0,210,4,'F');font(14,true);pdf.text(clean(p.company||'Firma'),15,y);y+=7;font(12,true,[22,108,101]);const mn=new Date(key+'-15T12:00:00Z').toLocaleDateString('de-DE',{month:'long',year:'numeric',timeZone:'UTC'});pdf.text('Monatsübersicht '+mn,15,y);y+=8};
+ head();
+ const cols=[15,33,100,135,157,178];const th=()=>{pdf.setFillColor(237,244,244);pdf.rect(15,y-4,180,6,'F');font(8,true);['Datum','Text','Art','Netto','USt','Brutto'].forEach((t,i)=>pdf.text(t,i>=3?cols[i]+16:cols[i],y,i>=3?{align:'right'}:undefined));y+=6};
+ const nextPage=()=>{pdf.addPage();y=18;head();th()};
+ th();let inN=0,inV=0,outN=0,outV=0;
+ for(const l of lines){if(y>272)nextPage();font(8);pdf.text(dateDE(l.date).slice(0,6)+l.date.slice(2,4),cols[0],y);pdf.text(clean((l.number?l.number+' ':'')+l.title).slice(0,48),cols[1],y);pdf.text(l.type==='Einnahme'?'Einnahme':'Ausgabe',cols[2],y);const sg=l.type==='Einnahme'?1:-1;pdf.text(eur(sg*l.net),cols[3]+16,y,{align:'right'});pdf.text(eur(sg*l.vat),cols[4]+16,y,{align:'right'});pdf.text(eur(sg*l.gross),cols[5]+16,y,{align:'right'});y+=5;
+  if(l.type==='Einnahme'){inN+=l.net;inV+=l.vat}else{outN+=l.net;outV+=l.vat}}
+ if(!lines.length){font(9);pdf.text('Keine Buchungen in diesem Monat.',15,y);y+=6}
+ if(y>245)nextPage();y+=8;pdf.setDrawColor(214,225,226);pdf.line(15,y-5,195,y-5);font(9,true);
+ const row=(t,v)=>{pdf.text(t,15,y);pdf.text(eur(v),195,y,{align:'right'});y+=6};
+ row('Einnahmen netto',r2(inN));row('Ausgaben netto',r2(outN));row('Ergebnis netto (Gewinn)',r2(inN-outN));row('Umsatzsteuer aus Einnahmen',r2(inV));row('Vorsteuer aus Ausgaben',r2(outV));row('Umsatzsteuer-Zahllast des Monats',r2(inV-outV));
+ y+=4;font(9,true);pdf.text('Offene Rechnungen an Kunden',15,y);y+=6;font(8);
+ if(!open.length){pdf.text('Keine offenen Rechnungen.',15,y);y+=5}
+ for(const o of open){if(y>275)nextPage();pdf.text(clean((o.number||'')+' '+(o.title||'')).slice(0,70),15,y);pdf.text('fällig '+dateDE(o.dueDate||o.date),135,y);pdf.text(eur(o.gross),195,y,{align:'right'});y+=5}
+ font(7,false,[86,101,111]);pdf.text('Erstellt mit CNC OS. Zusammenstellung der erfassten Buchungen, keine Steuererklärung.',15,287);
+ pdf.setProperties({title:'Monatsübersicht '+key,author:p.company,creator:'CNC OS'});
+ return {pdf,name:'Monatsuebersicht_'+key+'.pdf'};
+}
+const api={monthReport,deposits,finalInvoice,kinds,levelName,profile,missing,customer,positions,invoicesFor,nextInvoiceNumber,createInvoice,markPaid,reminderLevel,overdueInvoices,model,render,addDays,eur,dateDE};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.CncBelege=api;
 })(typeof window!=='undefined'?window:globalThis);

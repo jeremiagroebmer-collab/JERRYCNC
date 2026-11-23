@@ -49,3 +49,13 @@ assert.equal(F.debtRates(debt,'2026-12'),100);assert.equal(F.debtRates(debt,'202
 assert.deepEqual(F.forecast(debt,'2026-11-20',1000,3).map(r=>r.end),[900,800,800]);
 assert.equal(F.deadlines({deadlines:[{title:'A',date:'2026-12-02',repeat:'Einmalig'}]},'2026-11-20',60)[0].level,'soon');
 console.log('firma 3 ok');
+{const w=F.weekly(db,'2026-11-20',1000,10);assert.equal(w.length,10);
+ const all=w.flatMap(r=>r.items);assert.ok(all.some(e=>e.label==='Kreditraten'));assert.ok(all.some(e=>e.label==='Umsatzsteuer'&&Math.round(e.amt)===-532));
+ assert.ok(w.find(r=>r.from<='2026-12-10'&&r.to>='2026-12-10').items.some(e=>e.amt===2380));
+ assert.equal(F.weekly(db,'2026-11-20',null,2)[1].end,null);
+ console.log('PASS: Wochenvorschau.');}
+{const L=F.monthLines(db,'2026-11');assert.ok(L.some(l=>l.type==='Einnahme'&&l.net===1000&&l.vat===190));assert.ok(L.some(l=>l.status==='regelmäßig'&&l.net===500));
+ const B=require('../belege.js'),{jsPDF}=require('../vendor/jspdf-4.2.1.min.js'),fonts=require('../vendor/pdf-fonts.js');
+ const {pdf}=B.monthReport(L,{company:'X GmbH'},'2026-11',[{number:'RE-1',title:'T',date:'2026-12-01',gross:100}],{jsPDF,fonts});assert.ok(pdf.getNumberOfPages()>=1);
+ const many=Array.from({length:120},(_,i)=>({date:'2026-11-05',title:'Posten '+i,type:'Ausgabe',net:10,vat:0,gross:10,status:'bezahlt'}));assert.ok(B.monthReport(many,{company:'X'},'2026-11',[],{jsPDF,fonts}).pdf.getNumberOfPages()>=3);
+ console.log('PASS: Monatsübersicht.');}

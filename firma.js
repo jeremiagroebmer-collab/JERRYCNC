@@ -34,6 +34,42 @@ function backupAge(iso,today){if(!iso)return null;const t=new Date(iso);if(!Numb
 const wageMissing=db=>!(db.finance||[]).some(f=>recurring(f)&&!isIncome(f)&&/lohn|gehalt|entnahme|unternehmerlohn/i.test(String(f.title||'')));
 const noVat=db=>(db.finance||[]).filter(f=>num(f.vat)===null&&f.type==='Ausgabe'&&net(f)>0).length;
 const openPayables=db=>(db.finance||[]).filter(f=>f.type==='Ausgabe'&&f.status==='Offen'&&!recurring(f)).reduce((s,f)=>s+gross(f),0);
-const api={wageMissing,noVat,openPayables,num,ym,addMonths,recurring,net,vatOf,gross,flows,fixedPerMonth,debtRates,debtTotal,vatReserve,balance,forecast,breakEven,nextDue,deadlines,backupAge};
+// Wochenvorschau: einzelne Ereignisse mit Datum, Wochen ab heute. Kreditraten gelten zum Monatsersten, Umsatzsteuer am 10.
+function weekly(db,today,start,weeks=10){
+ const day0=new Date(today+'T12:00:00Z'),iso=d=>d.toISOString().slice(0,10),end=new Date(day0);end.setUTCDate(end.getUTCDate()+weeks*7-1);const last=iso(end);
+ const ev=[],cur=ym(today),temps=(db.finance||[]).filter(recurring);
+ const same=(a,b)=>a.type===b.type&&String(a.title||'').trim()!==''&&String(a.title).trim().toLowerCase()===String(b.title||'').trim().toLowerCase();
+ const push=(date,amt,label)=>{if(date>last||!amt)return;ev.push({date:date<today?today:date,amt,label})};
+ for(let k=cur;k<=ym(last);k=addMonths(k,1)){
+  for(const f of db.finance||[]){
+   if(recurring(f)){if(!occurs(f,k))continue;const d=clampDay(k,String(f.date).slice(8,10));if(d>=today)push(d,isIncome(f)?gross(f):-gross(f),f.title||'Regelmäßig');continue}
+   if(f.status==='Bezahlt'||!/^\d{4}-\d{2}-\d{2}$/.test(String(f.date||'')))continue;
+   if(ym(f.date)!==k&&!(k===cur&&f.date<today))continue;
+   if(temps.some(t=>same(t,f)&&occurs(t,ym(f.date))))continue;
+   push(f.date,isIncome(f)?gross(f):-gross(f),f.title||'Buchung');
+  }
+  const rate=debtRates(db,k);if(rate>0){const d=k+'-01';if(d>=today)push(d,-rate,'Kreditraten')}
+  const vat=vatDue(db,k,cur,today);if(vat>0){const d=k+'-10';if(d>=today)push(d,-vat,'Umsatzsteuer')}
+ }
+ const rows=[];let bal=start;
+ for(let i=0;i<weeks;i++){const from=new Date(day0);from.setUTCDate(from.getUTCDate()+i*7);const to=new Date(from);to.setUTCDate(to.getUTCDate()+6);const a=iso(from),b=iso(to);
+  const items=ev.filter(e=>e.date>=a&&e.date<=b),inflow=items.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0),outflow=-items.filter(e=>e.amt<0).reduce((s,e)=>s+e.amt,0);
+  bal=bal===null?null:bal+inflow-outflow;rows.push({from:a,to:b,inflow,outflow,end:bal,items})}
+ return rows;
+}
+// Alle Buchungen eines Monats für den Steuerberater (bezahlt + regelmäßige Vorlagen)
+function monthLines(db,key){
+ const temps=(db.finance||[]).filter(recurring),out=[];
+ const same=(a,b)=>a.type===b.type&&String(a.title||'').trim()!==''&&String(a.title).trim().toLowerCase()===String(b.title||'').trim().toLowerCase();
+ for(const x of db.finance||[]){
+  let line=null;
+  if(recurring(x)){if(occurs(x,key))line={date:clampDay(key,String(x.date).slice(8,10)),status:'regelmäßig'}}
+  else if(ym(x.date)===key&&x.status==='Bezahlt'&&!temps.some(t=>same(t,x)&&occurs(t,key)))line={date:x.date,status:'bezahlt'};
+  if(!line)continue;
+  out.push({...line,number:x.number||'',title:x.title||'',type:x.type,net:net(x),vat:vatOf(x),gross:gross(x),rate:vatRate(x)});
+ }
+ return out.sort((a,b)=>a.date.localeCompare(b.date));
+}
+const api={monthLines,weekly,wageMissing,noVat,openPayables,num,ym,addMonths,recurring,net,vatOf,gross,flows,fixedPerMonth,debtRates,debtTotal,vatReserve,balance,forecast,breakEven,nextDue,deadlines,backupAge};
 if(typeof module!=='undefined')module.exports=api;root.CncFirma=api;
 })(typeof window!=='undefined'?window:globalThis);

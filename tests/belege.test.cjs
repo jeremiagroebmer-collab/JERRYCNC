@@ -29,3 +29,12 @@ const s=mk();s.orders[0].offerSnapshot={qty:5,price:40,revenue:200};s.orders[0].
 const g=mk();const gf=B.createInvoice(g,g.orders[0],'2026-11-23');g.orders[0].price=99;assert.equal(B.model(g,'rechnung','o1',{today:'2026-11-23'}).net,255);
 fs.mkdirSync('/tmp/cncos-pdf-qa',{recursive:true});const {pdf}=B.render(inv,{jsPDF,fonts});fs.writeFileSync('/tmp/cncos-pdf-qa/rechnung.pdf',Buffer.from(pdf.output('arraybuffer')));
 console.log('PASS: Belege, Rechnungsnummern, Fälligkeit, Mahnstufen, Bezahlt, Kleinunternehmer.');
+{const d=mk();d.settings[0].documentProfile.skontoPct='2';
+ const a=B.createInvoice(d,d.orders[0],'2026-11-23','a',{deposit:30});assert.equal(a.amount,76.5);assert.equal(a.deposit,true);assert.equal(a.skontoPct,undefined);
+ assert.throws(()=>B.createInvoice(d,d.orders[0],'2026-11-23','x',{deposit:95}),/Anzahlung/);
+ const b=B.createInvoice(d,d.orders[0],'2026-12-20','b');assert.equal(b.amount,178.5);assert.equal(b.fullNet,255);assert.equal(b.deductions[0].net,76.5);assert.equal(b.skontoPct,2);assert.equal(b.skontoUntil,'2026-12-27');
+ const ma=B.model(d,'rechnung','o1',{today:'2026-12-20'});assert.equal(ma.number,b.number);assert.equal(ma.net,178.5);assert.equal(ma.gross,212.42);assert.ok(ma.outro.some(x=>x.includes('Skonto')));
+ const an=B.model(d,'rechnung','o1',{today:'2026-12-20',invoiceId:'a'});assert.equal(an.title,'Anzahlungsrechnung');assert.equal(an.gross,91.04);
+ B.render(ma,{jsPDF,fonts});B.render(an,{jsPDF,fonts});
+ const late=B.model(d,'mahnung','o1',{today:'2027-03-01',invoiceId:'a'});assert.equal(late.level,3);
+ console.log('PASS: Anzahlung, Schlussrechnung mit Abzug, Skonto.')}
