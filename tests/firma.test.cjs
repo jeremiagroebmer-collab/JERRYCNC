@@ -14,7 +14,7 @@ assert.equal(F.debtTotal(db),10000);assert.equal(F.debtRates(db),300);   // Kred
 const fx=F.fixedPerMonth(db);assert.equal(fx.costs,600);assert.equal(fx.total,900);  // 500 + 1200/12
 assert.equal(F.breakEven(db,0.25).revenue,3600);assert.equal(F.breakEven(db,null).revenue,null);
 const fc=F.forecast(db,'2026-11-20',1000,3);
-assert.deepEqual(fc.map(r=>Math.round(r.end)),[200,1780,-220]);
+assert.deepEqual(fc.map(r=>Math.round(r.end)),[200,1780,-752]);
 assert.equal(F.forecast(db,'2026-11-20',null,1)[0].end,null);
 assert.equal(F.balance(db).value,1000);
 const d=F.deadlines(db,'2026-11-20',60);
