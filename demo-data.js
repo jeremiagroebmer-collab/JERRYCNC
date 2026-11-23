@@ -32,9 +32,9 @@ const alu=add('materials','MAT',{title:'DEMO Aluminium 6082 Platte 100×60×20',
 const steel=add('materials','MAT',{title:'DEMO Stahl C45 Rund Ø40',materialCategory:'metal',materialGroup:'P',grade:'C45',dimensions:'Ø40×1000',qty:12,reserved:0,min:4,cost:21,location:'DEMO Regal M2',unit:'Stk.'});
 const inox=add('materials','MAT',{title:'DEMO Edelstahl 1.4301 Rund Ø25',materialCategory:'metal',materialGroup:'M',grade:'1.4301',dimensions:'Ø25×1000',qty:3,reserved:0,min:4,cost:34,location:'DEMO Regal M2',unit:'Stk.'});
 add('materials','MAT',{title:'DEMO Kühlschmierstoff 20 l',materialCategory:'supplies',qty:2,min:1,cost:89,location:'DEMO Regal H1',unit:'Kanister'});
-const cu1=add('customers','KD',{title:'DEMO TechMotion GmbH',contact:'Frau Beispiel',email:'demo@example.invalid',phone:'000 000',notes:'Fiktiver Kunde.'});
-const cu2=add('customers','KD',{title:'DEMO Hofmann Maschinenbau',contact:'Herr Muster',email:'demo2@example.invalid',phone:'000 001',notes:'Fiktiver Kunde.'});
-const cu3=add('customers','KD',{title:'DEMO Kleinserie AG',contact:'Frau Test',email:'demo3@example.invalid',phone:'000 002',notes:'Fiktiver Kunde.'});
+const cu1=add('customers','KD',{title:'DEMO TechMotion GmbH',contact:'Frau Beispiel',address:'Musterweg 1\n00000 Beispielstadt',email:'demo@example.invalid',phone:'000 000',notes:'Fiktiver Kunde.'});
+const cu2=add('customers','KD',{title:'DEMO Hofmann Maschinenbau',contact:'Herr Muster',address:'Musterweg 2\n00000 Beispielstadt',email:'demo2@example.invalid',phone:'000 001',notes:'Fiktiver Kunde.'});
+const cu3=add('customers','KD',{title:'DEMO Kleinserie AG',contact:'Frau Test',address:'Musterweg 3\n00000 Beispielstadt',email:'demo3@example.invalid',phone:'000 002',notes:'Fiktiver Kunde.'});
 const su1=add('suppliers','LF',{title:'DEMO Metallhandel Nord',contact:'Einkauf',email:'lieferant@example.invalid',lead:3,notes:'Fiktiv.'});
 add('suppliers','LF',{title:'DEMO Werkzeughandel Süd',contact:'Verkauf',email:'werkzeug@example.invalid',lead:5,notes:'Fiktiv.'});
 add('employees','PE',{title:'DEMO Mitarbeiter A',role:'Zerspaner',hourly:28,notes:'Fiktiv.'});
@@ -99,7 +99,7 @@ add('deadlines','FR',{title:'DEMO Umsatzsteuer-Voranmeldung',date:day(5),repeat:
 add('deadlines','FR',{title:'DEMO Versicherung prüfen',date:day(-2),repeat:'Einmalig',notes:'Absichtlich überfällig, um die Warnung zu zeigen.'});
 add('deadlines','FR',{title:'DEMO Maschinenprüfung',date:day(40),repeat:'Jährlich',notes:'Fiktiv.'});
 db.settings.push({id:'demo-set-1',number:'EI-D001',title:'Kontostand',value:'6400',notes:today,createdAt:iso(-1)});
-db.settings.push({id:'cncos-document-profile',title:'Demo-Dokumentprofil',documentProfile:{appName:'CNC OS · DEMO',company:'Demo-Firma · keine echten Firmendaten',generalNote:'Nur Beispieldaten. Nicht zur Fertigung oder Abrechnung verwenden.'}});
+db.settings.push({id:'cncos-document-profile',title:'Demo-Dokumentprofil',documentProfile:{appName:'CNC OS · DEMO',company:'Demo-Firma · keine echten Firmendaten',contact:'Demostraße 1\n00000 Demostadt',taxId:'DEMO-000',iban:'DE00 0000 0000 0000 0000 00',payDays:'14',smallBiz:'Nein',generalNote:'Nur Beispieldaten. Nicht zur Fertigung oder Abrechnung verwenden.'}});
 return db}
 const api={build};if(typeof module!=='undefined')module.exports=api;root.CncDemoData=api;
 })(typeof window!=='undefined'?window:globalThis);
