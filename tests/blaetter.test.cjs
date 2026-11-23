@@ -20,3 +20,8 @@ assert.deepEqual(B.locations(db).map(l=>l.name+':'+l.count),['Regal A:2','Regal 
 assert.equal(B.atLocation(db,'REGAL A').length,2);
 assert.equal(B.locFromCode('https://x/y/?a=1#loc='+encodeURIComponent('Regal Ä/3')),'Regal Ä/3');assert.equal(B.locFromCode('#record=a:b'),null);assert.equal(B.locFromCode('#loc='),null);
 console.log('blaetter ok');
+{const d={orders:[{id:'o1',number:'N1'}],planning:[{id:'a',orderId:'o1',title:'Fräsen',hours:2,sequence:0},{id:'b',order:'N1',title:'Prüfen',hours:1,sequence:1},{id:'c',orderId:'o1',title:'Pack',hours:null,sequence:2}],time:[{stepId:'a',hours:1.5},{stepId:'a',hours:1},{stepId:'x',hours:9}],
+ tools:[{id:'t1',title:'Fräser',life:100,usedMin:85},{id:'t2',title:'Bohrer',life:50,usedMin:50},{id:'t3',title:'Neu',life:100,usedMin:10},{id:'t4',title:'Ohne',usedMin:5}]};
+ const r=B.planVsActual(d,d.orders[0]);assert.equal(r.length,3);assert.equal(r[0].actual,2.5);assert.equal(r[0].diff,0.5);assert.equal(r[0].level,'over');assert.equal(r[1].actual,null);assert.equal(r[1].level,'none');assert.equal(r[2].plan,null);
+ const w=B.toolWear(d);assert.deepEqual(w.map(x=>x.id+x.pct+x.level),['t2100over','t185soon']);}
+console.log('plan/ist ok');

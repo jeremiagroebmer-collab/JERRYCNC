@@ -87,6 +87,16 @@ function locFromCode(raw){const t=String(raw||'').trim();const i=t.indexOf('#loc
 function locations(db){const seen=new Map();for(const m of list(db.materials)){const l=String(m.location||'').trim();if(!l||/^noch nicht erfasst$/i.test(l))continue;const k=l.toLowerCase(),e=seen.get(k)||{name:l,count:0};e.count++;seen.set(k,e)}return [...seen.values()].sort((a,b)=>a.name.localeCompare(b.name,'de'))}
 function atLocation(db,name){const n=String(name||'').trim().toLowerCase();return list(db.materials).filter(m=>String(m.location||'').trim().toLowerCase()===n)}
 
-const api={sheetModel,render,copyOrder,remnant,nextRemnantNumber,locCode,locFromCode,locations,atLocation};
+// Plan gegen Ist je Arbeitsgang: geplante Stunden (Feld hours) gegen gebuchte Zeit (time.stepId).
+function planVsActual(db,o){
+ const rows=forOrder(db.planning,o).slice().sort((a,c)=>(num(a.sequence)||0)-(num(c.sequence)||0)).map(p=>{const plan=num(p.hours),act=list(db.time).filter(t=>t.stepId===p.id).reduce((s,t)=>s+(num(t.hours)||0),0),booked=list(db.time).some(t=>t.stepId===p.id);return {id:p.id,title:p.title||'',plan,actual:booked?Math.round(act*100)/100:null,diff:plan!==null&&booked?Math.round((act-plan)*100)/100:null,level:plan>0&&booked?(act>plan*1.2?'over':act>plan?'soon':'ok'):'none'}});
+ return rows;
+}
+// Werkzeuge, deren Standzeit (life, min) fast aufgebraucht ist (usedMin = bisher gelaufen).
+function toolWear(db,from=0.8){
+ return list(db.tools).map(t=>({t,life:num(t.life),used:num(t.usedMin)})).filter(x=>x.life>0&&x.used!==null&&x.used>=0&&x.used/x.life>=from).map(x=>({id:x.t.id,title:x.t.title||x.t.number||'Werkzeug',life:x.life,used:x.used,pct:Math.round(x.used/x.life*100),level:x.used>=x.life?'over':'soon'})).sort((a,c)=>c.pct-a.pct);
+}
+
+const api={planVsActual,toolWear,sheetModel,render,copyOrder,remnant,nextRemnantNumber,locCode,locFromCode,locations,atLocation};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.CncBlaetter=api;
 })(typeof window!=='undefined'?window:globalThis);
