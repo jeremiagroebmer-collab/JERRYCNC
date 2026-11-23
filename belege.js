@@ -11,7 +11,7 @@ function diffDays(a,b){return Math.round((new Date(a+'T12:00:00Z')-new Date(b+'T
 const kinds={angebot:'Angebot',bestaetigung:'Auftragsbestätigung',lieferschein:'Lieferschein',rechnung:'Rechnung',mahnung:'Mahnung'};
 
 function profile(db){
- const p={company:'',contact:'',taxId:'',iban:'',bank:'',payDays:'14',smallBiz:'Nein',skontoPct:'0',skontoDays:'7',...list(db.settings).find(x=>x.id==='cncos-document-profile')?.documentProfile};
+ const p={company:'',contact:'',taxId:'',iban:'',bank:'',payDays:'14',smallBiz:'Nein',skontoPct:'0',skontoDays:'7',vatStd:'19',...list(db.settings).find(x=>x.id==='cncos-document-profile')?.documentProfile};
  if(p.company==='Eigene Firma noch nicht eingetragen')p.company='';
  const d=Math.round(Number(p.payDays));p.payDays=Number.isFinite(d)&&d>=0&&d<=365?d:14;const sp=Number(String(p.skontoPct).replace(',','.')),sd=Math.round(Number(p.skontoDays));p.skontoPct=Number.isFinite(sp)&&sp>0&&sp<=20?sp:0;p.skontoDays=Number.isFinite(sd)&&sd>0&&sd<=90?sd:7;
  return p;
@@ -32,7 +32,7 @@ function positions(o){
  const title=[o.title,o.partNumber?('Zeichnung '+o.partNumber+(o.revision?' Rev. '+o.revision:'')):''].filter(Boolean).join(' · ')||'Fertigungsauftrag '+o.number;
  return [{pos:1,title,qty,unit:'Stk',price:unit,total}];
 }
-const vatRate=p=>String(p.smallBiz)==='Ja'?0:19;
+const vatRate=p=>{if(String(p.smallBiz)==='Ja')return 0;const v=Number(p.vatStd);return Number.isFinite(v)&&v>=0&&v<=30?v:19};
 const isInvoice=f=>f&&f.docKind==='Rechnung'&&f.type==='Einnahme';
 const invoicesFor=(db,o)=>list(db.finance).filter(f=>isInvoice(f)&&f.invoiceFor===o.id&&f.status!=='Storniert');
 const deposits=(db,o)=>invoicesFor(db,o).filter(f=>f.deposit);
@@ -83,7 +83,7 @@ function model(db,kind,orderId,opts={}){
    m.number=invNo;m.date=invDate;m.dueDate=due;m.intro=f?.deposit?'für den oben genannten Auftrag berechnen wir Ihnen folgende Anzahlung:':'für die erbrachte Lieferung berechnen wir Ihnen:';
    m.outro=['Bitte überweisen Sie den Betrag bis '+dateDE(due)+' unter Angabe der Rechnungsnummer '+invNo+'.'];
    if(f?.skontoPct>0&&f.skontoUntil)m.outro.push('Bei Zahlung bis '+dateDE(f.skontoUntil)+' gewähren wir '+String(f.skontoPct).replace('.',',')+' % Skonto. Zahlbetrag dann: '+eur(r2(m.gross*(1-f.skontoPct/100)))+'.');
-   if(m.rate===0)m.outro.push('Kein Ausweis von Umsatzsteuer, da Kleinunternehmer nach § 19 UStG.');
+   if(m.rate===0)m.outro.push('Keine Umsatzsteuer ausgewiesen (Kleinunternehmerregelung).');
    if(!f?.deposit)m.outro.push('Das Lieferdatum entspricht dem Rechnungsdatum, sofern nicht anders angegeben.');
    m.meta=[['Rechnung Nr.',invNo],['Rechnungsdatum',dateDE(invDate)],['Fällig am',dateDE(due)]];
   }else{
