@@ -13,6 +13,7 @@ const mat={id:'m',title:'Aluminium',number:'MAT-1',qty:20,reserved:0,cost:5,unit
 a.setDB({materials:[mat],machines:[machine],orders:[order]});
 let q=a.quoteCalc(order);assert.equal(q.total,200);assert.equal(q.suggested,24);assert.equal(q.revenue,null);assert.equal(q.missing,0);
 assert.equal(a.quoteCalc({...order,quoteMaterialQty:null}).total,null);assert.equal(a.quoteCalc({...order,quoteMachineId:'missing'}).total,null);assert.equal(a.quoteCalc({...order,quoteTools:[{id:'missing',qty:1}]}).total,null);
+{const r=a.quoteCalc({...order,quoteRisk:10});assert.equal(r.total,220);assert.equal(r.riskCost,20);assert.equal(r.suggested,26.4);const m=a.quoteCalc({...order,quoteRisk:10,minProfit:100});assert.equal(m.suggested,32);assert.equal(a.quoteCalc({...order,quoteRisk:0}).total,200);assert.ok(a.quoteSummary({...order,quoteRisk:10,minProfit:100,price:25}).includes('Mindestgewinn'));}
 assert.equal(a.machineRate({annualHours:1000,lifeYears:5}),null,'Incomplete machine model must not become zero-cost');
 assert.equal(a.machineRate({purchase:35000,annualHours:1000,lifeYears:5,maintenanceYear:1000,power:5000,electricity:.25,overheadHour:10,laborHour:20}),39.25);
 mat.reserved=15;order.reservations=[{materialId:'m',qty:5}];assert.equal(a.quoteCalc(order).free,10,'Own reservation is available to this order');
