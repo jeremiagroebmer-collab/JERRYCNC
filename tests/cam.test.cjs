@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+const C=require('../camfiles.js'),{jsPDF}=require('../vendor/jspdf-4.2.1.min.js'),fonts=require('../vendor/pdf-fonts.js');
+const files=[{name:'CNC-2026-001_OP10.nc',path:'a/CNC-2026-001_OP10.nc'},{name:'Welle Z-100 v3.step',path:'b/Welle Z-100 v3.step'},{name:'notiz.txt',path:'c/notiz.txt'},{name:'CNC-2026-001.docx',path:'a/CNC-2026-001.docx'},{name:'x.nc',path:'Z100/x.nc'}];
+const r=C.matchFiles(files,{number:'CNC-2026-001',partNumber:'Z-100'});assert.deepEqual(r.map(f=>f.name).sort(),['CNC-2026-001_OP10.nc','Welle Z-100 v3.step','x.nc'].sort());
+assert.equal(C.matchFiles(files,{number:'',partNumber:''}).length,0);
+const csv='T-Nr;Bezeichnung;Durchmesser;Länge;Halter;Hinweis\n1;"Schaftfräser 10 mm, 3 Schneiden";10;75;Spannzange ER32;Schruppen\n2;Bohrer 6,8;6,8;60;;\n';
+const t=C.parseToolList(csv,'t.csv');assert.equal(t.length,2);assert.equal(t[0].no,'1');assert.equal(t[0].name,'Schaftfräser 10 mm, 3 Schneiden');assert.equal(t[0].holder,'Spannzange ER32');assert.equal(t[1].diameter,'6,8');
+const en='Tool,Description,Diameter,Length\n5,Face mill,50,100\n';assert.equal(C.parseToolList(en,'x.csv')[0].diameter,'50');
+const xml='<?xml version="1.0"?><Tools><Tool number="7" description="Gewindebohrer M8" diameter="8" length="90"/><Tool><number>8</number><description>Fase</description><diameter>12</diameter></Tool></Tools>';
+const x=C.parseToolList(xml,'t.xml');assert.equal(x.length,2);assert.equal(x[0].name,'Gewindebohrer M8');assert.equal(x[1].no,'8');
+assert.deepEqual(C.parseToolList('nur text',''),[]);
+const many=Array.from({length:80},(_,i)=>({no:String(i+1),name:'Werkzeug '+i,diameter:'10',length:'50',holder:'ER32',note:'x'}));
+const {pdf}=C.renderToolSheet(C.sheetModel({company:'Muster'},{number:'A-1',title:'Welle'},many,'2026-11-23'),{jsPDF,fonts});assert.ok(pdf.getNumberOfPages()>=2);
+console.log('PASS: CAM-Dateien finden, Werkzeuglisten (CSV/XML) lesen, Werkzeugblatt.');
