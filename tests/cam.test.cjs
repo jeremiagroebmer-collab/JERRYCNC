@@ -11,4 +11,5 @@ const x=C.parseToolList(xml,'t.xml');assert.equal(x.length,2);assert.equal(x[0].
 assert.deepEqual(C.parseToolList('nur text',''),[]);
 const many=Array.from({length:80},(_,i)=>({no:String(i+1),name:'Werkzeug '+i,diameter:'10',length:'50',holder:'ER32',note:'x'}));
 const {pdf}=C.renderToolSheet(C.sheetModel({company:'Muster'},{number:'A-1',title:'Welle'},many,'2026-11-23'),{jsPDF,fonts});assert.ok(pdf.getNumberOfPages()>=2);
+const fj=JSON.stringify({data:[{description:'Schaftfräser D10',type:'flat end mill',geometry:{DC:10,OAL:75,NOF:3},'post-process':{number:4},holder:{description:'ER32'}}]});const jt=C.parseToolList(fj,'lib.json');assert.equal(jt.length,1);assert.equal(jt[0].no,'4');assert.equal(jt[0].diameter,'10');assert.equal(jt[0].holder,'ER32');assert.deepEqual(C.parseToolList('{kaputt','a.json'),[]);
 console.log('PASS: CAM-Dateien finden, Werkzeuglisten (CSV/XML) lesen, Werkzeugblatt.');
