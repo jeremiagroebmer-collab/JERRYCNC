@@ -20,7 +20,7 @@ assert.equal(B.overdueInvoices(db,'2026-12-10').length,1);
 // Bezahlt
 db.orders[0].status='Ausgeliefert';B.markPaid(db,f,'2026-12-01');assert.equal(f.status,'Bezahlt');assert.equal(f.date,'2026-12-01');assert.equal(db.orders[0].status,'Bezahlt');assert.equal(B.reminderLevel(f,'2027-02-01'),0);
 // Kleinunternehmer
-const k=mk();k.settings[0].documentProfile.smallBiz='Ja';const kf=B.createInvoice(k,k.orders[0],'2026-11-23');assert.equal(kf.vat,'0');const km=B.model(k,'rechnung','o1',{today:'2026-11-23'});assert.equal(km.gross,255);assert.ok(km.outro.some(x=>x.includes('§ 19')));
+const k=mk();k.settings[0].documentProfile.smallBiz='Ja';const kf=B.createInvoice(k,k.orders[0],'2026-11-23');assert.equal(kf.vat,'0');const km=B.model(k,'rechnung','o1',{today:'2026-11-23'});assert.equal(km.gross,255);assert.ok(km.outro.some(x=>x.includes('Kleinunternehmer')));
 // ohne Preis
 const n=mk();delete n.orders[0].price;assert.throws(()=>B.model(n,'angebot','o1',{}),/Preis/);
 // Angebotsstand hat Vorrang
@@ -38,3 +38,4 @@ console.log('PASS: Belege, Rechnungsnummern, Fälligkeit, Mahnstufen, Bezahlt, K
  B.render(ma,{jsPDF,fonts});B.render(an,{jsPDF,fonts});
  const late=B.model(d,'mahnung','o1',{today:'2027-03-01',invoiceId:'a'});assert.equal(late.level,3);
  console.log('PASS: Anzahlung, Schlussrechnung mit Abzug, Skonto.')}
+{const d=mk();d.settings[0].documentProfile.vatStd='22';const f=B.createInvoice(d,d.orders[0],'2026-11-23');assert.equal(f.vat,'22');const m=B.model(d,'rechnung','o1',{today:'2026-11-23'});assert.equal(m.gross,311.1);console.log('PASS: einstellbarer Steuersatz.')}
