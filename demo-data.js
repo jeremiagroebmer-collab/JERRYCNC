@@ -99,7 +99,7 @@ add('deadlines','FR',{title:'DEMO Umsatzsteuer-Voranmeldung',date:day(5),repeat:
 add('deadlines','FR',{title:'DEMO Versicherung prüfen',date:day(-2),repeat:'Einmalig',notes:'Absichtlich überfällig, um die Warnung zu zeigen.'});
 add('deadlines','FR',{title:'DEMO Maschinenprüfung',date:day(40),repeat:'Jährlich',notes:'Fiktiv.'});
 db.settings.push({id:'demo-set-1',number:'EI-D001',title:'Kontostand',value:'6400',notes:today,createdAt:iso(-1)});
-db.settings.push({id:'cncos-document-profile',title:'Demo-Dokumentprofil',documentProfile:{appName:'CNC OS · DEMO',company:'Demo-Firma · keine echten Firmendaten',contact:'Demostraße 1\n00000 Demostadt',taxId:'DEMO-000',iban:'DE00 0000 0000 0000 0000 00',payDays:'14',smallBiz:'Nein',generalNote:'Nur Beispieldaten. Nicht zur Fertigung oder Abrechnung verwenden.'}});
+db.settings.push({id:'cncos-document-profile',title:'Demo-Dokumentprofil',documentProfile:{appName:'CNC OS · DEMO',company:'Demo-Firma · keine echten Firmendaten',contact:'Demostraße 1\n00000 Demostadt',taxId:'DEMO-00000000000',iban:'IT00 X000 0000 0000 0000 0000 000',payDays:'30',smallBiz:'Nein',vatStd:'22',vatMode:'IT-Q',lateRate:'10.4',generalNote:'Nur Beispieldaten. Nicht zur Fertigung oder Abrechnung verwenden.'}});
 return db}
 const api={build};if(typeof module!=='undefined')module.exports=api;root.CncDemoData=api;
 })(typeof window!=='undefined'?window:globalThis);

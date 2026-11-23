@@ -1,11 +1,12 @@
 const assert=require('node:assert/strict'),F=require('../firma.js');
+F.setDefaultVat(19);
 const db={finance:[
 {type:'Einnahme',amount:1000,vat:19,date:'2026-11-05',status:'Bezahlt'},
 {type:'Ausgabe',amount:200,vat:19,date:'2026-11-06',status:'Bezahlt'},
 {type:'Ausgabe',amount:500,vat:0,date:'2026-09-01',status:'Geplant',repeat:'Monatlich'},
 {type:'Ausgabe',amount:1200,vat:0,date:'2026-01-15',status:'Geplant',repeat:'Jährlich'},
 {type:'Einnahme',amount:2000,vat:19,date:'2026-12-10',status:'Offen'}],
-debts:[{balance:10000,payment:300},{balance:0,payment:99}],settings:[{title:'Kontostand',value:'1000',notes:'2026-11-20'}],
+debts:[{balance:10000,payment:300},{balance:0,payment:99}],settings:[{title:'Kontostand',value:'1000',notes:'2026-11-20'},{id:'cncos-document-profile',documentProfile:{vatMode:'DE-Q'}}],
 deadlines:[{title:'USt',date:'2026-11-10',repeat:'Vierteljährlich'},{title:'Alt',date:'2026-11-01',repeat:'Einmalig'}]};
 const p=F.flows(db,'2026-11','paid');
 assert.equal(p.inNet,1000);assert.equal(p.outNet,700);            // 200 gebucht + 500 feste Kosten
@@ -59,3 +60,14 @@ console.log('firma 3 ok');
  const {pdf}=B.monthReport(L,{company:'X GmbH'},'2026-11',[{number:'RE-1',title:'T',date:'2026-12-01',gross:100}],{jsPDF,fonts});assert.ok(pdf.getNumberOfPages()>=1);
  const many=Array.from({length:120},(_,i)=>({date:'2026-11-05',title:'Posten '+i,type:'Ausgabe',net:10,vat:0,gross:10,status:'bezahlt'}));assert.ok(B.monthReport(many,{company:'X'},'2026-11',[],{jsPDF,fonts}).pdf.getNumberOfPages()>=3);
  console.log('PASS: Monatsübersicht.');}
+{ // Italien
+ F.setDefaultVat(22);
+ const it={finance:[{type:'Einnahme',amount:1000,vat:19,date:'2027-02-05',status:'Bezahlt'},{type:'Einnahme',amount:1000,vat:22,date:'2026-12-05',status:'Bezahlt'}],debts:[],settings:[]};
+ assert.equal(F.vatMode(it),'IT-Q');
+ const m=F.forecast(it,'2027-02-10',0,2);assert.equal(Math.round(m[1].vat*100)/100,220);          // März: Q4 (Okt-Dez), ohne Zuschlag
+ const may=F.forecast(it,'2027-04-20',0,2);assert.equal(Math.round(may[1].vat*100)/100,191.9);     // Mai: Q1, 190 + 1 %
+ const aug=F.weekly({...it,finance:[{type:'Einnahme',amount:1000,vat:22,date:'2027-05-05',status:'Bezahlt'}]},'2027-07-20',0,5).flatMap(r=>r.items).find(e=>e.label==='Umsatzsteuer');assert.ok(aug&&aug.date==='2027-08-20'&&Math.round(aug.amt*100)/100===-222.2);
+ const mon={...it,settings:[{id:'cncos-document-profile',documentProfile:{vatMode:'IT-M'}}]};const mf=F.forecast(mon,'2027-03-01',0,2);assert.equal(Math.round(mf[0].vat*100)/100,190);   // 16.3.: Februar
+ assert.equal(F.forecast(mon,'2027-03-20',0,1)[0].vat,0);                                    // 16. schon vorbei
+ assert.equal(F.gross({type:'Einnahme',amount:100}),122);
+ console.log('PASS: Italien-Umsatzsteuer.');}
