@@ -8,20 +8,21 @@ const eur=n=>(n<0?'-':'')+Math.abs(n).toLocaleString('de-DE',{minimumFractionDig
 const dateDE=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?String(v).slice(8,10)+'.'+String(v).slice(5,7)+'.'+String(v).slice(0,4):'';
 function addDays(day,n){const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
 function diffDays(a,b){return Math.round((new Date(a+'T12:00:00Z')-new Date(b+'T12:00:00Z'))/864e5)}
+const titleIt={Angebot:'Offerta',Auftragsbestätigung:'Conferma d\'ordine',Lieferschein:'Documento di trasporto',Rechnung:'Fattura',Anzahlungsrechnung:'Fattura di acconto',Mahnung:'Sollecito',Zahlungserinnerung:'Promemoria di pagamento','1. Mahnung':'1° sollecito','2. Mahnung (letzte)':'2° sollecito (ultimo)'};
 const kinds={angebot:'Angebot',bestaetigung:'Auftragsbestätigung',lieferschein:'Lieferschein',rechnung:'Rechnung',mahnung:'Mahnung'};
 
 function profile(db){
- const p={company:'',contact:'',taxId:'',iban:'',bank:'',payDays:'14',smallBiz:'Nein',skontoPct:'0',skontoDays:'7',vatStd:'19',...list(db.settings).find(x=>x.id==='cncos-document-profile')?.documentProfile};
+ const p={company:'',contact:'',taxId:'',iban:'',bank:'',payDays:'30',smallBiz:'Nein',skontoPct:'0',skontoDays:'7',vatStd:'22',lateRate:'10.4',...list(db.settings).find(x=>x.id==='cncos-document-profile')?.documentProfile};
  if(p.company==='Eigene Firma noch nicht eingetragen')p.company='';
  const d=Math.round(Number(p.payDays));p.payDays=Number.isFinite(d)&&d>=0&&d<=365?d:14;const sp=Number(String(p.skontoPct).replace(',','.')),sd=Math.round(Number(p.skontoDays));p.skontoPct=Number.isFinite(sp)&&sp>0&&sp<=20?sp:0;p.skontoDays=Number.isFinite(sd)&&sd>0&&sd<=90?sd:7;
  return p;
 }
 // Pflichtangaben einer Rechnung; fehlt etwas, fragt die App einmal danach.
-function missing(db){const p=profile(db),m=[];if(!p.company.trim())m.push('Firmenname');if(!String(p.contact||'').trim())m.push('Adresse');if(!String(p.taxId||'').trim())m.push('Steuernummer oder USt-IdNr');if(!String(p.iban||'').trim())m.push('IBAN');return m}
+function missing(db){const p=profile(db),m=[];if(!p.company.trim())m.push('Firmenname');if(!String(p.contact||'').trim())m.push('Adresse');if(!String(p.taxId||'').trim())m.push('Partita IVA');if(!String(p.iban||'').trim())m.push('IBAN');return m}
 function customer(db,o){
  const name=String(o.customer||'').trim();
  const c=list(db.customers).find(x=>name&&String(x.title||'').trim().toLowerCase()===name.toLowerCase());
- return {name:c?.title||name,address:String(c?.address||'').trim(),number:c?.number||'',email:c?.email||'',known:!!c};
+ return {name:c?.title||name,address:String(c?.address||'').trim(),number:c?.number||'',email:c?.email||'',vatId:String(c?.vatId||'').trim(),sdi:String(c?.sdi||'').trim(),known:!!c};
 }
 function positions(o){
  const s=o.offerSnapshot;
@@ -32,7 +33,7 @@ function positions(o){
  const title=[o.title,o.partNumber?('Zeichnung '+o.partNumber+(o.revision?' Rev. '+o.revision:'')):''].filter(Boolean).join(' · ')||'Fertigungsauftrag '+o.number;
  return [{pos:1,title,qty,unit:'Stk',price:unit,total}];
 }
-const vatRate=p=>{if(String(p.smallBiz)==='Ja')return 0;const v=Number(p.vatStd);return Number.isFinite(v)&&v>=0&&v<=30?v:19};
+const vatRate=p=>{if(String(p.smallBiz)==='Ja')return 0;const v=Number(p.vatStd);return Number.isFinite(v)&&v>=0&&v<=30?v:22};
 const isInvoice=f=>f&&f.docKind==='Rechnung'&&f.type==='Einnahme';
 const invoicesFor=(db,o)=>list(db.finance).filter(f=>isInvoice(f)&&f.invoiceFor===o.id&&f.status!=='Storniert');
 const deposits=(db,o)=>invoicesFor(db,o).filter(f=>f.deposit);
@@ -51,6 +52,7 @@ function createInvoice(db,o,today,id,opts={}){
  let net=total,extra={},title='Rechnung '+(o.number||'')+' · '+(o.customer||'ohne Kunde');
  if(opts.deposit){const pct=Number(opts.deposit);if(!(pct>0&&pct<=90))throw Error('Anzahlung zwischen 1 und 90 Prozent wählen.');net=r2(total*pct/100);extra={deposit:true,depositPct:pct};title='Anzahlung '+pct+' % · '+(o.number||'')+' · '+(o.customer||'ohne Kunde')}
  else if(deps.length){const paid=r2(deps.reduce((s,d)=>s+Number(d.amount),0));net=r2(total-paid);if(net<0)throw Error('Die Anzahlungen sind höher als der Auftragswert.');extra={fullNet:total,deductions:deps.map(d=>({number:d.number,net:Number(d.amount)}))}}
+ if(vatRate(p)===0&&net>77.47)extra.bollo=2;
  if(p.skontoPct>0&&!opts.deposit){extra.skontoPct=p.skontoPct;extra.skontoUntil=addDays(today,p.skontoDays)}
  const f={id:id||('fin-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),number:nextInvoiceNumber(db,today),title,type:'Einnahme',amount:net,date:due,status:'Offen',category:'Rechnung',vat:String(vatRate(p)),repeat:'Einmalig',docKind:'Rechnung',invoiceFor:o.id,invoiceDate:today,order:o.number||'',...extra};
  db.finance=list(db.finance);db.finance.push(f);return f;
@@ -80,10 +82,13 @@ function model(db,kind,orderId,opts={}){
   if(f){m.rate=Number(f.vat)||0;m.net=r2(Number(f.amount));m.vat=r2(m.net*m.rate/100);m.gross=r2(m.net+m.vat);if(f.deposit){const q=1;m.positions=[{pos:1,title:'Anzahlung '+f.depositPct+' % auf Auftrag '+(o.number||'')+' ('+(o.title||'')+')',qty:q,unit:'psch.',price:m.net,total:m.net}];m.title='Anzahlungsrechnung'}else if(f.deductions){m.fullNet=Number(f.fullNet);m.deductions=f.deductions}else if(m.positions.length===1&&r2(m.positions[0].total)!==m.net){const q=m.positions[0].qty;m.positions=[{...m.positions[0],total:m.net,price:r2(m.net/q)}]}}
   const invNo=f?f.number:opts.number||nextInvoiceNumber(db,today),invDate=f?.invoiceDate||today,due=f?(f.dueDate||f.date):addDays(today,p.payDays);
   if(kind==='rechnung'){
+   if(f?.bollo){m.bollo=f.bollo;m.gross=r2(m.gross+f.bollo)}
    m.number=invNo;m.date=invDate;m.dueDate=due;m.intro=f?.deposit?'für den oben genannten Auftrag berechnen wir Ihnen folgende Anzahlung:':'für die erbrachte Lieferung berechnen wir Ihnen:';
-   m.outro=['Bitte überweisen Sie den Betrag bis '+dateDE(due)+' unter Angabe der Rechnungsnummer '+invNo+'.'];
+   m.outro=['Bitte überweisen Sie den Betrag bis '+dateDE(due)+' unter Angabe der Rechnungsnummer '+invNo+'.','Bei Zahlungsverzug fallen Verzugszinsen nach D.Lgs. 231/2002 an.'];
    if(f?.skontoPct>0&&f.skontoUntil)m.outro.push('Bei Zahlung bis '+dateDE(f.skontoUntil)+' gewähren wir '+String(f.skontoPct).replace('.',',')+' % Skonto. Zahlbetrag dann: '+eur(r2(m.gross*(1-f.skontoPct/100)))+'.');
-   if(m.rate===0)m.outro.push('Keine Umsatzsteuer ausgewiesen (Kleinunternehmerregelung).');
+   if(m.rate===0)m.outro.push('Operazione senza applicazione dell\'IVA ai sensi dell\'art. 1, commi 54-89, L. 190/2014 (Regime forfettario).');
+   if(m.bollo)m.outro.push('Imposta di bollo assolta in modo virtuale (2,00 EUR).');
+   m.outro.push('Rechtsgültig ist die elektronische Rechnung über das Sistema di Interscambio (SdI). Dieses PDF ist die Kopie (copia di cortesia).');
    if(!f?.deposit)m.outro.push('Das Lieferdatum entspricht dem Rechnungsdatum, sofern nicht anders angegeben.');
    m.meta=[['Rechnung Nr.',invNo],['Rechnungsdatum',dateDE(invDate)],['Fällig am',dateDE(due)]];
   }else{
@@ -94,7 +99,10 @@ function model(db,kind,orderId,opts={}){
    m.intro=lv===1?'zu unserer Rechnung '+invNo+' vom '+dateDE(invDate)+' konnten wir noch keinen Zahlungseingang feststellen. Möglicherweise hat sich Ihre Zahlung mit diesem Schreiben überschnitten oder ist Ihrer Aufmerksamkeit entgangen.'
     :lv===2?'trotz unserer Zahlungserinnerung konnten wir zu unserer Rechnung '+invNo+' vom '+dateDE(invDate)+' noch keinen Zahlungseingang feststellen.'
     :'unsere Rechnung '+invNo+' vom '+dateDE(invDate)+' ist trotz Erinnerung und Mahnung weiterhin offen.';
-   m.outro=['Offener Betrag: '+eur(open)+' (ursprünglich fällig am '+dateDE(due)+').','Bitte überweisen Sie den Betrag bis '+dateDE(newDue)+'.'];
+   m.outro=['Offener Betrag: '+eur(open)+' (ursprünglich fällig am '+dateDE(due)+').'];
+   const rate2=Number(String(p.lateRate).replace(',','.')),days=Math.max(0,diffDays(today,due));
+   if(lv>=2&&rate2>0&&days>0){const interest=r2(open*rate2/100*days/365);m.interest=interest;m.flat=40;m.total=r2(open+interest+40);m.outro.push('Verzugszinsen nach D.Lgs. 231/2002: '+String(rate2).replace('.',',')+' % p.a. für '+days+' Tage = '+eur(interest)+'.','Pauschale für Beitreibungskosten (Art. 6 D.Lgs. 231/2002): '+eur(40)+'.','Gesamtforderung: '+eur(m.total)+'.')}
+   m.outro.push('Bitte überweisen Sie den Betrag bis '+dateDE(newDue)+'.');
    if(lv===3)m.outro.push('Sollte bis dahin keine Zahlung eingehen, behalten wir uns weitere Schritte vor.');
    m.outro.push('Falls Sie bereits gezahlt haben, betrachten Sie dieses Schreiben bitte als gegenstandslos.');
    m.meta=[['Mahnung zu Rechnung',invNo],['Datum',dateDE(today)],['Neue Frist',dateDE(newDue)]];
@@ -120,11 +128,11 @@ function render(m,options){
  // Absenderzeile + Empfänger
  let ry=54;font(7,false,[86,101,111]);pdf.text(clean([p.company,String(p.contact||'').split('\n').join(' · ')].join(' · ')).slice(0,95),15,ry-7);
  font(11,true);pdf.text(wrap(m.customer.name||'Kunde',85,11,true),15,ry);ry+=wrap(m.customer.name||'Kunde',85,11,true).length*5;
- font(10);const adr=wrap(m.customer.address||'(Adresse fehlt)',85,10);pdf.text(adr,15,ry);
+ font(10);const adr=wrap([m.customer.address||'(Adresse fehlt)',m.customer.vatId?'P.IVA / Steuernr.: '+m.customer.vatId:'',m.customer.sdi&&['rechnung'].includes(m.kind)?'Cod. destinatario / PEC: '+m.customer.sdi:''].filter(Boolean).join('\n'),85,10);pdf.text(adr,15,ry);
  // Kennzahlen rechts
  let my=52;for(const [k,v] of m.meta){font(7,false,[86,101,111]);pdf.text(clean(k).toUpperCase(),120,my-2);font(10,true);pdf.text(clean(v),120,my+2.5);my+=9}
  y=Math.max(ry+adr.length*5,my)+10;
- font(17,true,[22,108,101]);pdf.text(clean(m.title)+' '+clean(m.number),15,y);y+=9;
+ font(17,true,[22,108,101]);pdf.text(clean(m.title+(titleIt[m.title]?' / '+titleIt[m.title]:''))+'  '+clean(m.number),15,y);y+=9;
  font(10);const intro=wrap('Sehr geehrte Damen und Herren,\n\n'+m.intro,180,10);pdf.text(intro,15,y);y+=intro.length*5+4;
  const need=h=>{if(y+h>262){pdf.addPage();y=20}};
  if(m.positions.length){
@@ -138,12 +146,12 @@ function render(m,options){
    y+=t.length*5+2;pdf.setDrawColor(214,225,226);pdf.line(15,y-1,195,y-1);y+=3}
   if(m.showPrices){need(26+(m.deductions?6*(m.deductions.length+1):0));font(10);if(m.deductions){pdf.text('Summe netto',150,y,{align:'right'});pdf.text(eur(m.fullNet),195,y,{align:'right'});y+=6;for(const d of m.deductions){pdf.text('abzgl. Anzahlung '+clean(d.number),150,y,{align:'right'});pdf.text(eur(-d.net),195,y,{align:'right'});y+=6}pdf.text('Noch zu zahlen netto',150,y,{align:'right'});pdf.text(eur(m.net),195,y,{align:'right'});y+=6}else{pdf.text('Summe netto',150,y,{align:'right'});pdf.text(eur(m.net),195,y,{align:'right'});y+=6}
    pdf.text(m.rate?'Umsatzsteuer '+m.rate+' %':'Umsatzsteuer',150,y,{align:'right'});pdf.text(eur(m.vat),195,y,{align:'right'});y+=6;
-   font(11,true);pdf.text('Gesamtbetrag',150,y,{align:'right'});pdf.text(eur(m.gross),195,y,{align:'right'});y+=10}
+   if(m.bollo){pdf.text('Stempelsteuer (Bollo)',150,y,{align:'right'});pdf.text(eur(m.bollo),195,y,{align:'right'});y+=6}font(11,true);pdf.text('Gesamtbetrag',150,y,{align:'right'});pdf.text(eur(m.gross),195,y,{align:'right'});y+=10}
  }
  for(const line of m.outro){const t=wrap(line,180,10);need(t.length*5+2);font(10);pdf.text(t,15,y);y+=t.length*5+2}
  need(14);font(10);pdf.text('Mit freundlichen Grüßen',15,y+4);pdf.text(clean(p.company),15,y+10);
  // Fußzeile
- const foot=[];if(p.taxId)foot.push('Steuernr./USt-IdNr.: '+p.taxId);if(p.iban)foot.push('IBAN: '+p.iban+(p.bank?' · '+p.bank:''));
+ const foot=[];if(p.taxId)foot.push('P.IVA / Steuernr.: '+p.taxId);if(p.iban)foot.push('IBAN: '+p.iban+(p.bank?' · '+p.bank:''));
  font(8,false,[86,101,111]);const pages=pdf.getNumberOfPages();
  for(let i=1;i<=pages;i++){pdf.setPage(i);pdf.setDrawColor(214,225,226);pdf.line(15,278,195,278);pdf.text(clean(foot.join('   ·   ')),15,283);pdf.text('Seite '+i+' von '+pages,195,283,{align:'right'})}
  pdf.setProperties({title:m.title+' '+m.number,author:p.company,creator:'CNC OS'});
@@ -172,6 +180,14 @@ function monthReport(lines,p,key,open,options){
  pdf.setProperties({title:'Monatsübersicht '+key,author:p.company,creator:'CNC OS'});
  return {pdf,name:'Monatsuebersicht_'+key+'.pdf'};
 }
-const api={monthReport,deposits,finalInvoice,kinds,levelName,profile,missing,customer,positions,invoicesFor,nextInvoiceNumber,createInvoice,markPaid,reminderLevel,overdueInvoices,model,render,addDays,eur,dateDE};
+function einvoiceData(m,db){
+ const p=m.profile,c=m.customer,it=r=>String(r).replace('.',','),ord=p.smallBiz==='Ja'?'RF19 (Regime forfettario)':'RF01 (ordentliches Regime)';
+ const L=['DATEN FÜR DIE ELEKTRONISCHE RECHNUNG (zum Eintragen im Portal "Fatture e Corrispettivi" oder für den Steuerberater)','','Lieferant: '+p.company,'Partita IVA: '+(p.taxId||'fehlt'),'Adresse: '+String(p.contact||'fehlt').replace(/\n/g,', '),'Regime fiscale: '+ord,'','Kunde: '+(c.name||'fehlt'),'Partita IVA / Codice fiscale: '+(c.vatId||'fehlt (beim Kunden eintragen)'),'Codice destinatario (7 Zeichen) oder PEC: '+(c.sdi||'fehlt (beim Kunden eintragen)'),'Adresse: '+String(c.address||'fehlt').replace(/\n/g,', '),'','Dokumenttyp: '+(m.title==='Anzahlungsrechnung'?'TD02 (Rechnung über Anzahlung)':'TD01 (Rechnung)'),'Nummer: '+m.number,'Datum: '+dateDE(m.date)];
+ m.positions.forEach(r=>L.push('Zeile '+r.pos+': '+r.title+' | Menge '+it(r.qty)+' | Preis '+it(r.price.toFixed(2))+' | '+(m.rate>0?'Steuersatz '+it(m.rate)+' %':'Steuersatz 0 %, Natura N2.2 (nicht steuerbar, Regime forfettario)')));
+ if(m.deductions)m.deductions.forEach(d=>L.push('Abzug Anzahlung '+d.number+': -'+it(d.net.toFixed(2))));
+ L.push('Bollo virtuale: '+(m.bollo?'Ja, 2,00 EUR':'Nein'),'Zahlung: Überweisung (MP05), IBAN '+(p.iban||'fehlt')+', fällig am '+dateDE(m.dueDate),'Gesamtbetrag: '+it(m.gross.toFixed(2))+' EUR');
+ return L.join('\n');
+}
+const api={einvoiceData,monthReport,deposits,finalInvoice,kinds,levelName,profile,missing,customer,positions,invoicesFor,nextInvoiceNumber,createInvoice,markPaid,reminderLevel,overdueInvoices,model,render,addDays,eur,dateDE};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.CncBelege=api;
 })(typeof window!=='undefined'?window:globalThis);

@@ -6,7 +6,8 @@ const monthsBetween=(a,b)=>{const [y1,m1]=a.split('-').map(Number),[y2,m2]=b.spl
 const recurring=f=>['Monatlich','Vierteljährlich','Jährlich'].includes(f.repeat);
 const stepOf=f=>f.repeat==='Monatlich'?1:f.repeat==='Vierteljährlich'?3:12;
 const net=f=>Math.max(0,num(f.amount)??0);
-const vatRate=f=>{const v=num(f.vat);return v===null?(f.type==='Einnahme'?19:0):Math.max(0,v)};
+let defVat=22;const setDefaultVat=v=>{const n=Number(v);defVat=Number.isFinite(n)&&n>=0&&n<=30?n:22};
+const vatRate=f=>{const v=num(f.vat);return v===null?(f.type==='Einnahme'?defVat:0):Math.max(0,v)};
 const vatOf=f=>net(f)*vatRate(f)/100;
 const gross=f=>net(f)+vatOf(f);
 const isIncome=f=>f.type==='Einnahme';
@@ -22,8 +23,18 @@ function fixedPerMonth(db,today){let s=0;for(const f of db.finance||[])if(recurr
 // Umsatzsteuer-Rücklage für das laufende Quartal (aus gebuchten Beträgen)
 function vatReserve(db,today){const cur=ym(today),mo=Number(today.slice(5,7)),q0=Math.floor((mo-1)/3)*3+1,start=today.slice(0,4)+'-'+String(q0).padStart(2,'0');const from=(mo===q0&&Number(today.slice(8,10))<=10)?addMonths(start,-3):start;let due=0;for(let k=from;k<=cur;k=addMonths(k,1)){const f=flows(db,k,'paid');due+=f.vatIn-f.vatOut}return Math.max(0,due)}
 function balance(db){const e=(db.settings||[]).find(s=>String(s.title||'').trim().toLowerCase()==='kontostand');if(!e)return null;const v=num(String(e.value??'').replace(',','.'));return v===null?null:{value:v,date:e.notes||''}}
-// Umsatzsteuer-Vorauszahlung: Quartalsmeldung, fällig bis zum 10. des Folgemonats (Jan, Apr, Jul, Okt)
-function vatDue(db,key,cur,today){const mo=Number(key.slice(5,7));if(![1,4,7,10].includes(mo))return 0;if(key===cur&&Number(today.slice(8,10))>10)return 0;let d=0;for(let i=3;i>=1;i--){const k=addMonths(key,-i);let f=flows(db,k,k<cur?'paid':'plan',cur);d+=f.vatIn-f.vatOut;if(k===cur){const nr={...db,finance:(db.finance||[]).filter(x=>!recurring(x))},g=flows(nr,k,'paid');d+=g.vatIn-g.vatOut}}return Math.max(0,d)}
+// Umsatzsteuer-Zahlung. Modi: IT-Q Italien vierteljährlich (16.5., 20.8., 16.11., 16.3. mit 1 % Zuschlag außer März), IT-M Italien monatlich (16. des Folgemonats), DE-Q Deutschland vierteljährlich (10. Jan/Apr/Jul/Okt)
+function vatMode(db){const m=(db.settings||[]).find(x=>x.id==='cncos-document-profile')?.documentProfile?.vatMode;return ['IT-Q','IT-M','DE-Q'].includes(m)?m:'IT-Q'}
+function vatOfMonth(db,k,cur){let r=flows(db,k,k<cur?'paid':'plan',cur),d=r.vatIn-r.vatOut;if(k===cur){const nr={...db,finance:(db.finance||[]).filter(x=>!recurring(x))},g=flows(nr,k,'paid');d+=g.vatIn-g.vatOut}return d}
+// Welche Monate werden im Zahlmonat key abgerechnet, welcher Tag, welcher Zuschlag
+function vatPlan(db,key){const mode=vatMode(db),mo=Number(key.slice(5,7));
+ if(mode==='DE-Q')return [1,4,7,10].includes(mo)?{months:[-3,-2,-1].map(n=>addMonths(key,n)),day:10,rate:0}:null;
+ if(mode==='IT-M')return {months:[addMonths(key,-1)],day:16,rate:0};
+ if(mo===5||mo===8||mo===11)return {months:[-4,-3,-2].map(n=>addMonths(key,n)),day:mo===8?20:16,rate:0.01};
+ if(mo===3)return {months:[-5,-4,-3].map(n=>addMonths(key,n)),day:16,rate:0};
+ return null}
+const vatPayDay=(db,key)=>vatPlan(db,key)?.day||10;
+function vatDue(db,key,cur,today){const p=vatPlan(db,key);if(!p)return 0;if(key===cur&&Number(today.slice(8,10))>p.day)return 0;let d=0;for(const k of p.months)d+=vatOfMonth(db,k,cur);return d>0?d*(1+p.rate):0}
 function forecast(db,today,start,months=3){const cur=ym(today);let bal=start;const rows=[];for(let i=0;i<months;i++){const key=addMonths(cur,i),f=flows(db,key,'plan',cur),rates=debtRates(db,key),vat=vatDue(db,key,cur,today),inflow=f.inGross,outflow=f.outGross+rates+vat;bal=bal===null?null:bal+inflow-outflow;rows.push({key,inflow,outflow,vat,end:bal})}return rows}
 // margin: Anteil (0..1) aus Aufträgen mit bekanntem Erlös und Plankosten
 function breakEven(db,margin,today){const fx=fixedPerMonth(db,today);return {...fx,revenue:margin&&margin>0?fx.total/margin:null}}
@@ -49,7 +60,7 @@ function weekly(db,today,start,weeks=10){
    push(f.date,isIncome(f)?gross(f):-gross(f),f.title||'Buchung');
   }
   const rate=debtRates(db,k);if(rate>0){const d=k+'-01';if(d>=today)push(d,-rate,'Kreditraten')}
-  const vat=vatDue(db,k,cur,today);if(vat>0){const d=k+'-10';if(d>=today)push(d,-vat,'Umsatzsteuer')}
+  const vat=vatDue(db,k,cur,today);if(vat>0){const d=k+'-'+String(vatPayDay(db,k)).padStart(2,'0');if(d>=today)push(d,-vat,'Umsatzsteuer')}
  }
  const rows=[];let bal=start;
  for(let i=0;i<weeks;i++){const from=new Date(day0);from.setUTCDate(from.getUTCDate()+i*7);const to=new Date(from);to.setUTCDate(to.getUTCDate()+6);const a=iso(from),b=iso(to);
@@ -70,6 +81,6 @@ function monthLines(db,key){
  }
  return out.sort((a,b)=>a.date.localeCompare(b.date));
 }
-const api={monthLines,weekly,wageMissing,noVat,openPayables,num,ym,addMonths,recurring,net,vatOf,gross,flows,fixedPerMonth,debtRates,debtTotal,vatReserve,balance,forecast,breakEven,nextDue,deadlines,backupAge};
+const api={setDefaultVat,vatMode,monthLines,weekly,wageMissing,noVat,openPayables,num,ym,addMonths,recurring,net,vatOf,gross,flows,fixedPerMonth,debtRates,debtTotal,vatReserve,balance,forecast,breakEven,nextDue,deadlines,backupAge};
 if(typeof module!=='undefined')module.exports=api;root.CncFirma=api;
 })(typeof window!=='undefined'?window:globalThis);

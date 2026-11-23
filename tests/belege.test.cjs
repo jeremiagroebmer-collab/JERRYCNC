@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const B=require('../belege.js'),{jsPDF}=require('../vendor/jspdf-4.2.1.min.js'),fonts=require('../vendor/pdf-fonts.js');
-const mk=()=>({settings:[{id:'cncos-document-profile',documentProfile:{appName:'X',company:'Muster GmbH',contact:'Hauptstr. 1\n39040 Ort',taxId:'IT123',iban:'IT00X',payDays:'14'}}],customers:[{id:'c1',title:'Kunde AG',address:'Weg 2\n39100 Bozen',number:'K-1'}],orders:[{id:'o1',number:'A-1',title:'Welle',customer:'Kunde AG',qty:10,price:25.5,status:'Fertig',due:'2026-12-01'}],finance:[]});
+const mk=()=>({settings:[{id:'cncos-document-profile',documentProfile:{appName:'X',company:'Muster GmbH',contact:'Hauptstr. 1\n39040 Ort',taxId:'IT123',iban:'IT00X',payDays:'14',vatStd:'19'}}],customers:[{id:'c1',title:'Kunde AG',address:'Weg 2\n39100 Bozen',number:'K-1'}],orders:[{id:'o1',number:'A-1',title:'Welle',customer:'Kunde AG',qty:10,price:25.5,status:'Fertig',due:'2026-12-01'}],finance:[]});
 let db=mk();
 assert.deepEqual(B.missing(db),[]);assert.ok(B.missing({settings:[]}).length>=3);
 const pos=B.positions(db.orders[0]);assert.equal(pos[0].total,255);
@@ -20,7 +20,7 @@ assert.equal(B.overdueInvoices(db,'2026-12-10').length,1);
 // Bezahlt
 db.orders[0].status='Ausgeliefert';B.markPaid(db,f,'2026-12-01');assert.equal(f.status,'Bezahlt');assert.equal(f.date,'2026-12-01');assert.equal(db.orders[0].status,'Bezahlt');assert.equal(B.reminderLevel(f,'2027-02-01'),0);
 // Kleinunternehmer
-const k=mk();k.settings[0].documentProfile.smallBiz='Ja';const kf=B.createInvoice(k,k.orders[0],'2026-11-23');assert.equal(kf.vat,'0');const km=B.model(k,'rechnung','o1',{today:'2026-11-23'});assert.equal(km.gross,255);assert.ok(km.outro.some(x=>x.includes('Kleinunternehmer')));
+const k=mk();k.settings[0].documentProfile.smallBiz='Ja';const kf=B.createInvoice(k,k.orders[0],'2026-11-23');assert.equal(kf.vat,'0');const km=B.model(k,'rechnung','o1',{today:'2026-11-23'});assert.equal(km.gross,257);assert.equal(km.bollo,2);assert.ok(km.outro.some(x=>x.includes('forfettario')));
 // ohne Preis
 const n=mk();delete n.orders[0].price;assert.throws(()=>B.model(n,'angebot','o1',{}),/Preis/);
 // Angebotsstand hat Vorrang
@@ -39,3 +39,10 @@ console.log('PASS: Belege, Rechnungsnummern, Fälligkeit, Mahnstufen, Bezahlt, K
  const late=B.model(d,'mahnung','o1',{today:'2027-03-01',invoiceId:'a'});assert.equal(late.level,3);
  console.log('PASS: Anzahlung, Schlussrechnung mit Abzug, Skonto.')}
 {const d=mk();d.settings[0].documentProfile.vatStd='22';const f=B.createInvoice(d,d.orders[0],'2026-11-23');assert.equal(f.vat,'22');const m=B.model(d,'rechnung','o1',{today:'2026-11-23'});assert.equal(m.gross,311.1);console.log('PASS: einstellbarer Steuersatz.')}
+{const d=mk();d.settings[0].documentProfile={...d.settings[0].documentProfile,vatStd:'22',payDays:'30',lateRate:'10.4'};d.customers[0].vatId='IT0123';d.customers[0].sdi='ABCDEFG';
+ const f=B.createInvoice(d,d.orders[0],'2026-11-23');assert.equal(f.vat,'22');assert.equal(f.date,'2026-12-23');const m=B.model(d,'rechnung','o1',{today:'2026-11-23'});assert.equal(m.gross,311.1);assert.ok(m.outro.some(x=>x.includes('SdI')));
+ const txt=B.einvoiceData(m);assert.ok(txt.includes('TD01')&&txt.includes('ABCDEFG')&&txt.includes('MP05')&&txt.includes('311,10'));B.render(m,{jsPDF,fonts});
+ const ma=B.model(d,'mahnung','o1',{today:'2027-01-10'});assert.equal(ma.level,2);assert.equal(ma.interest,Math.round(311.1*0.104*18/365*100)/100);assert.equal(ma.flat,40);assert.ok(ma.outro.some(x=>x.includes('Gesamtforderung')));
+ const ma1=B.model(d,'mahnung','o1',{today:'2026-12-30'});assert.equal(ma1.level,1);assert.equal(ma1.interest,undefined);
+ const k=mk();k.settings[0].documentProfile={...k.settings[0].documentProfile,smallBiz:'Ja'};const kt=B.einvoiceData((B.createInvoice(k,k.orders[0],'2026-11-23'),B.model(k,'rechnung','o1',{today:'2026-11-23'})));assert.ok(kt.includes('RF19')&&kt.includes('N2.2')&&kt.includes('Bollo virtuale: Ja'));
+ console.log('PASS: Italien (22 %, Bollo, SdI-Datenblatt, Verzugszinsen).')}
