@@ -1,6 +1,6 @@
 (function(root){'use strict';
 const groups={cutting:'Bearbeitungswerkzeuge',holders:'Aufnahmen & Zubehör',general:'Mess- und Handwerkzeuge'};
-const shaftKinds=['Schaftfräser','Bohrer','Gewindebohrer','Gewindeformer','Gewindefräser','Reibahle','Senker'];
+const shaftKinds=['Schaftfräser','Kugelfräser','Radiusfräser','Lollipopfräser','Bohrer','Gewindebohrer','Gewindeformer','Gewindefräser','Reibahle','Senker'];
 const kinds={cutting:[...shaftKinds,'Drehmeißel','Platten-Drehhalter','Wendeschneidplatte','Messerkopf','Sonderwerkzeug'],holders:['Spannzangenfutter','Schrumpffutter','Hydrodehnspannfutter','Weldon','Bohrfutter','Fräsdorn','Spannzange','Reduzierhülse','Verlängerung','Sonderaufnahme','Zubehör'],general:['Messschieber','Bügelmessschraube','Messuhr','Lehre / Prüfmittel','Handwerkzeug','Sonstiges']};
 const polymers=['PLA','PETG','ABS','ABS Plus','ASA','TPU','PC','PVA','PA','Resin','BC','BVA','DPU'];
 const supplies=['Isopropanol','Bremsenreiniger','Nitro','Kühlschmierstoff','Schmieröl','Sonstiges'];

@@ -13,7 +13,7 @@ const ER={ER11:{l:18,nut:19,od:11.5},ER16:{l:27.5,nut:28,od:17},ER20:{l:31.5,nut
 function erOf(s){const m=String(s||'').toUpperCase().match(/ER[- ]?(\d+)/);return m&&ER['ER'+m[1]]?ER['ER'+m[1]]:null}
 // Flansch-Durchmesser der Maschinenaufnahme (Richtwerte)
 function flangeOf(s){s=String(s||'').toUpperCase();let m=s.match(/HSK[- ]?[A-Z]?(\d+)/);if(m)return Number(m[1]);m=s.match(/(?:SK|BT|ISO)[- ]?(\d+)/);if(m){const n=Number(m[1]);return n<=30?46:n<=40?63:n<=50?100:63}m=s.match(/C(\d)/);if(m&&/CAPTO/.test(s))return ({3:32,4:40,5:50,6:63,8:80})[m[1]]||63;return null}
-const HOLD=['erchuck','shrink','hydro','weldon','adapter'],CUT=['endmill','ball','drill','tap'];
+const HOLD=['erchuck','shrink','hydro','weldon','adapter'],CUT=['endmill','ball','lolli','radius','drill','tap'];
 const GROUP=k=>CUT.includes(k)?'cutter':HOLD.includes(k)?'holder':(k==='collet'||k==='reducer')?'collet':'other';
 // ---------- Teile als Profil: [[z, r, tag], ...]  z nach unten (Schneide unten), r = Radius, tag = Zone der Strecke vom Vorpunkt zu diesem Punkt
 function cutter(t,k){
@@ -23,13 +23,15 @@ function cutter(t,k){
  let l=num(t.cuttingLength);if(!(l>0)){l=D*(k==='drill'?6:k==='ball'?2:2.5);est.push('Schneidenlänge')}
  let L=num(t.totalLength);if(!(L>0)){L=l+Math.max(20,2.5*S);est.push('Gesamtlänge')}
  if(l>L-1)l=Math.max(1,L-1);
+ if(k==='lolli'){const r=D/2,R=S/2,nd=num(t.neckDiameter),rn=Math.min(r*0.95,Math.max(0.5,(nd||D*0.5)/2)),ln=num(t.neckLength)||D*3;if(!nd)est.push('Hals-Ø');if(!num(t.neckLength))est.push('Halslänge');const zb=L-r,zt=L-2*r,zn=Math.max(1,zt-ln),a0=Math.asin(rn/r),pts=[[0,R,'shank'],[zn,R,'shank'],[zn,rn,'neck'],[zb-Math.sqrt(Math.max(0,r*r-rn*rn)),rn,'neck']];for(let i=1;i<=12;i++){const al=a0+(Math.PI-a0)*i/12;pts.push([zb-r*Math.cos(al),r*Math.sin(al),'flute'])}return {kind:k,group:'cutter',pts,L,rMax:Math.max(R,r),est,flute:false,teeth:0,D,S,l:2*r,dims:[{key:'shaftDiameter',type:'dia',z:zn*0.5,r:R,text:'Schaft Ø'+fmt(S),hl:{tags:['shank']}},{key:'diameter',type:'dia',z:zb,r:r,text:'Kugel Ø'+fmt(D),hl:{tags:['flute']}},{key:'neckDiameter',type:'dia',z:(zn+zt)/2,r:rn,text:'Hals Ø'+fmt(rn*2),hl:{tags:['neck']}},{key:'neckLength',type:'len',z0:zn,z1:zt,text:'Hals '+fmt(zt-zn),hl:{tags:['neck']}},{key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}}]}}
  const r=D/2,R=S/2,zc=L-l,ch=S>D?Math.min(2,(S-D)/2):0,pts=[[0,R,'shank'],[Math.max(0,zc-ch),R,'shank']];
  pts.push([zc,r,ch>0||S!==D?'neck':'shank']);
- const tip=k==='ball'?r:k==='drill'?r/Math.tan(59*Math.PI/180):k==='tap'?Math.min(l,D*0.6):0,zt=Math.max(zc,L-tip);
+ const tip=k==='ball'?r:k==='drill'?r/Math.tan(59*Math.PI/180):k==='tap'?Math.min(l,D*0.6):k==='radius'?Math.min(r,num(t.cornerRadius)||D*0.15):0,zt=Math.max(zc,L-tip);
  if(zt>zc)pts.push([zt,r,'flute']);
  if(k==='ball'){for(let i=1;i<=8;i++){const f=i/8*Math.PI/2;pts.push([zt+r*Math.sin(f),r*Math.cos(f),'flute'])}}
  else if(k==='drill')pts.push([L,0,'flute']);
  else if(k==='tap')pts.push([L,r*0.75,'flute']);
+ else if(k==='radius'){const R_=tip;for(let i=1;i<=6;i++){const f=i/6*Math.PI/2;pts.push([zt+R_*Math.sin(f),r-R_+R_*Math.cos(f),'flute'])}pts.push([L,0,'flute'])}
  else pts.push([L,r,'flute']);
  const dims=[
   {key:'shaftDiameter',type:'dia',z:Math.min(zc*0.5,Math.max(4,zc-6)),r:R,text:'Schaft Ø'+fmt(S),hl:{tags:['shank']}},
@@ -70,7 +72,7 @@ function simple(t,k){
  if(!(D>0)){D=16;est.push('Durchmesser')}if(!(L>0)){L=40;est.push('Länge')}
  return {kind:k,group:'other',pts:[[0,D/2,'body'],[L,D/2,'body']],L,rMax:D/2,dims:[{key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}},{key:'diameter',type:'dia',z:L/2,r:D/2,text:'Ø'+fmt(D),hl:{tags:['body']}}],est,simpleShape:true};
 }
-function buildPart(t,o={}){const A=Art(),k=A?A.kind(t):'generic';if(CUT.includes(k))return cutter(t,k);if(HOLD.includes(k))return holder(t,k,o);if(k==='collet'||k==='reducer')return collet(t,k);if(k==='insert')return null;return simple(t,k)}
+function buildPart(t,o={}){const A=Art(),k=A?A.kind(t):'generic';if(CUT.includes(k))return cutter(t,k);if(HOLD.includes(k))return holder(t,k,o);if(k==='collet'||k==='reducer')return collet(t,k);return simple(t,k)}
 const shift=(p,dz,id,t,drop)=>({...p,id,title:t?.title||t?.number||'',pts:p.pts.map(q=>[q[0]+dz,q[1],q[2]]),z0:p.pts[0][0]+dz,z1:p.pts[p.pts.length-1][0]+dz,dims:p.dims.filter(d=>!(drop||[]).includes(d.key)).map(d=>({...d,part:id,z:d.z===undefined?undefined:d.z+dz,z0:d.z0===undefined?undefined:d.z0+dz,z1:d.z1===undefined?undefined:d.z1+dz,hl:{...d.hl,part:id}})),dz});
 function finish(m){
  const all=m.parts.flatMap(p=>p.pts);
@@ -79,7 +81,7 @@ function finish(m){
 }
 // Einzelnes Teil
 function single(t){
- const p=buildPart(t,{});if(!p)return null;const m={parts:[shift(p,0,'p0',t)],warn:[],est:[],single:true,title:t?.title||''};return finish(m);
+ const p=buildPart(t,{});if(!p)return null;const m={parts:[shift(p,0,'p0',t)],warn:[],est:[],single:true,tool:t,title:t?.title||''};return finish(m);
 }
 // Zusammenbau: Messebene z=0, Schneide unten. Auspannlänge = wie weit das Werkzeug aus der Spannzange / dem Futter steht.
 function assembly(db,a,Tooling,opts={}){
@@ -236,23 +238,25 @@ function view3d(canvas,getModel){
 // ---------- Bedienfeld (Zeichnung / 3D umschalten, Maße antippen)
 const chipText={shaftDiameter:'Schaft Ø',diameter:'Schneiden Ø',cuttingLength:'Schneidenlänge',totalLength:'Länge',stickout:'Auspannlänge',insert:'Eingespannt',holderLength:'Futterlänge',assemblyLength:'Gesamtlänge',minDiameter:'Aufnahme / Spannbereich',interface:'Anschluss',outSize:'Spannzange'};
 function panelHtml(o={}){
- return '<div class="t3d-panel'+(o.sticky?' sticky':'')+'" data-t3d="1"'+(o.asm?' data-t3d-asm="'+esc(o.asm)+'"':'')+'><div class="t3d-tabs"><button type="button" data-t3d-tab="draw" class="on">Zeichnung</button><button type="button" data-t3d-tab="3d">3D</button></div><div class="t3d-view"></div><div class="t3d-tools" hidden><button type="button" class="secondary" data-t3d-act="all">Ganz</button><button type="button" class="secondary" data-t3d-act="tip">Schneide</button><button type="button" class="secondary" data-t3d-act="spin">Drehen</button><button type="button" class="secondary" data-t3d-act="stl">STL laden</button></div><div class="t3d-chips"></div><p class="t3d-note muted small"></p></div>';
+ return '<div class="t3d-panel'+(o.sticky?' sticky':'')+'" data-t3d="1"'+(o.asm?' data-t3d-asm="'+esc(o.asm)+'"':'')+(o.tool?' data-t3d-tool="'+esc(o.tool)+'"':'')+'><div class="t3d-tabs">'+(o.single?'<button type="button" data-t3d-tab="sketch" class="on">Skizze</button><button type="button" data-t3d-tab="draw">Maßstab</button>':'<button type="button" data-t3d-tab="draw" class="on">Zeichnung</button>')+'<button type="button" data-t3d-tab="3d">3D</button></div><div class="t3d-view"></div><div class="t3d-tools" hidden><button type="button" class="secondary" data-t3d-act="all">Ganz</button><button type="button" class="secondary" data-t3d-act="tip">Schneide</button><button type="button" class="secondary" data-t3d-act="spin">Drehen</button><button type="button" class="secondary" data-t3d-act="stl">STL laden</button></div><div class="t3d-chips"></div><p class="t3d-note muted small"></p></div>';
 }
 function download(name,bytes){const url=URL.createObjectURL(new Blob([bytes],{type:'model/stl'})),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 // el = Element aus panelHtml, getModel = () => Modell oder null, o.name = Dateiname, o.focusField = Feld mit Fokus -> Maß leuchtet
 function mount(el,getModel,o={}){
  const view=el.querySelector('.t3d-view'),tools=el.querySelector('.t3d-tools'),chips=el.querySelector('.t3d-chips'),note=el.querySelector('.t3d-note');
- let tab=o.tab||'draw',key=null,v3=null,m=null;
+ let tab=o.tab||(el.querySelector('[data-t3d-tab="sketch"]')?'sketch':'draw'),key=null,v3=null,m=null;
  function setKey(k){key=k===key?null:k;paint()}
  function paint(){
   m=getModel();
-  el.querySelectorAll('[data-t3d-tab]').forEach(b=>b.classList.toggle('on',b.dataset.t3dTab===tab));
-  if(!m){view.innerHTML='<p class="muted small">Noch zu wenig Maße für eine Zeichnung. Durchmesser und Länge eintragen.</p>';tools.hidden=true;chips.innerHTML='';note.textContent='';v3=null;return}
-  tools.hidden=tab!=='3d';
-  if(tab==='draw'){v3=null;view.innerHTML=drawing(m,{h:o.h});const svg=view.querySelector('svg');highlight(svg,key)}
+  const sk=m&&m.single&&root.CncSketch?root.CncSketch.draw(m.tool,m.parts[0].kind):null,skb=el.querySelector('[data-t3d-tab="sketch"]');if(skb)skb.hidden=!sk;const cur=tab==='sketch'&&!sk?'draw':tab;
+  el.querySelectorAll('[data-t3d-tab]').forEach(b=>b.classList.toggle('on',b.dataset.t3dTab===cur));
+  if(!m){view.innerHTML='<p class="muted small">Wähle zuerst die Art. Dann erscheint hier die Zeichnung.</p>';tools.hidden=true;chips.innerHTML='';note.textContent='';v3=null;return}
+  tools.hidden=cur!=='3d';
+  if(cur==='sketch'){v3=null;view.innerHTML=sk.svg;highlight(view.querySelector('svg'),key)}
+  else if(cur==='draw'){v3=null;view.innerHTML=drawing(m,{h:o.h});const svg=view.querySelector('svg');highlight(svg,key)}
   else{let cv=view.querySelector('canvas');if(!cv){view.innerHTML='<canvas style="width:100%;height:300px;display:block"></canvas>';cv=view.querySelector('canvas');v3=view3d(cv,()=>m)}v3.set();const d=m.dims.find(x=>x.key===key);v3.setHl(d?d.hl:null)}
   const seen=new Set(),list=m.dims.filter(d=>!seen.has(d.key)&&seen.add(d.key));
-  chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');
+  if(cur==='sketch')chips.innerHTML=root.CncSketch.legend(sk.rows,key);else chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');
   const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));note.textContent=bits.join(' ');
   note.className='t3d-note small '+((m.warn||[]).length?'warn':'muted');
  }
@@ -267,6 +271,7 @@ function mount(el,getModel,o={}){
 }
 // Bei Bedienfeldern auf der Baugruppen-Seite: alle auf der Seite suchen
 function mountAll(ctx){
+ document.querySelectorAll('[data-t3d-tool]').forEach(el=>{if(el._mounted)return;el._mounted=true;const t=ctx.db.tools.find(x=>x.id===el.dataset.t3dTool);if(!t)return;mount(el,()=>single(t),{name:t.number||'werkzeug'})});
  document.querySelectorAll('[data-t3d-asm]').forEach(el=>{if(el._mounted)return;el._mounted=true;const a=ctx.db.toolassemblies.find(x=>x.id===el.dataset.t3dAsm);if(!a)return;mount(el,()=>assembly(ctx.db,a,ctx.Tooling),{name:(a.number||'baugruppe')+'-werkzeug'})});
 }
 const api={buildPart,single,assembly,union,mesh,stl,drawing,highlight,view3d,panelHtml,mount,mountAll,erOf,flangeOf,ER,KEYS};
