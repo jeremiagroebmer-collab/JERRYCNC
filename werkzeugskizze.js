@@ -31,8 +31,11 @@ function kit(){
  o.svg=H=>{const hl=Object.entries(o.hl).map(([k,v])=>'<g class="hl" data-dim="'+k+'">'+v.join('')+'</g>').join('');return '<svg class="t3d" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Technische Zeichnung mit Kürzeln" style="max-height:'+H+'px">'+CSS+o.out.join('')+hl+o.dims.join('')+'</svg>'};
  return o;
 }
+// Schaft und Schneide im Verhältnis der eingegebenen Durchmesser (grob, begrenzt); ohne Werte: Schaft größer
+function prop(t,big,dflt){const d1=num(t.diameter),d2=num(t.shaftDiameter);if(!(d1>0)||!(d2>0))return dflt;const r=d2/d1;return r>=1?[big,Math.max(8,big/Math.min(r,3))]:[Math.max(8,big*Math.max(r,.33)),big]}
 function mill(o,k,t){
- const cx=150,yt=46,hs=k==='lolli'?22:19,y1=128,y2=140,hc=k==='lolli'?16:13,hn=5,yh=218,ye=k==='lolli'?252:246,yf=yt+66;
+ const P=prop(t,k==='lolli'?22:19,k==='lolli'?[22,16]:[19,13]);
+ const cx=150,yt=46,hs=P[0],y1=128,y2=140,hc=P[1],hn=5,yh=218,ye=k==='lolli'?252:246,yf=yt+66;
  const hcut=hc;
  o.axis(cx,yt-10,ye+10);
  o.poly([[cx-hs,yt],[cx+hs,yt],[cx+hs,y1],[cx-hs,y1]],'cutter',['shaftDiameter']);
@@ -69,7 +72,7 @@ function mill(o,k,t){
  return k==='radius'?ye+100:ye+52;
 }
 function drill(o,t){
- const cx=150,yt=46,hs=18,y1=118,y2=130,hc=12,yc=232,ya=yc+hc/Math.tan(59*Math.PI/180),yf=yt+60;
+ const yc=232,pa=Math.min(170,Math.max(60,num(t.pointAngle)||118))/2,P=prop(t,18,[18,12]),hs=P[0],hc=P[1],cx=150,yt=46,y1=118,y2=130,ya=yc+hc/Math.tan(pa*Math.PI/180),yf=yt+60;
  o.axis(cx,yt-10,ya+10);
  o.poly([[cx-hs,yt],[cx+hs,yt],[cx+hs,y1],[cx-hs,y1]],'cutter',['shaftDiameter']);
  if(String(t.shaftType)==='Weldon')o.out.push('<rect x="'+(cx-6)+'" y="'+(yt+26)+'" width="12" height="18" rx="3" fill="none" stroke="'+INK+'"/>');
@@ -77,7 +80,7 @@ function drill(o,t){
  o.poly([[cx-hc,y2],[cx+hc,y2],[cx+hc,yc],[cx-hc,yc]],'cutter',['diameter','cuttingLength']);
  o.poly([[cx-hc,yc],[cx+hc,yc],[cx,ya]],'cutter',['pointAngle']);
  for(let i=0;i<4;i++)o.swoosh(cx,y2+20+i*22,hc-1);
- const r=30,a=59*Math.PI/180,p1=[cx-r*Math.sin(a),ya-r*Math.cos(a)],p2=[cx+r*Math.sin(a),ya-r*Math.cos(a)];
+ const r=30,a=pa*Math.PI/180,p1=[cx-r*Math.sin(a),ya-r*Math.cos(a)],p2=[cx+r*Math.sin(a),ya-r*Math.cos(a)];
  o.dims.push('<g class="dim" data-dim="pointAngle"><path d="M'+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+'A'+r+' '+r+' 0 0 1 '+p2[0].toFixed(1)+' '+p2[1].toFixed(1)+'"/><text x="'+(cx+hc+10)+'" y="'+(ya-12)+'">a<tspan class="sb" dy="3">1</tspan></text><rect x="'+(cx-40)+'" y="'+(ya-r-6)+'" width="110" height="'+(r+10)+'" fill="transparent" stroke="none"/></g>');
  o.hin('shaftDiameter','d2',yt-24,cx-hs,cx+hs,yt);
  o.hin('diameter','d1',ya+28,cx-hc,cx+hc,yc);
@@ -88,7 +91,7 @@ function drill(o,t){
  return ya+56;
 }
 function tap(o,t){
- const cx=150,yt=46,hs=18,y1=124,y2=140,hc=13,ye=240,yf=yt+60;
+ const P=prop(t,18,[18,13]),hs=P[0],hc=P[1],cx=150,yt=46,y1=124,y2=140,ye=240,yf=yt+60;
  o.axis(cx,yt-10,ye+10);
  o.poly([[cx-hs,yt],[cx+hs,yt],[cx+hs,y1],[cx-hs,y1]],'cutter',['shaftDiameter']);
  o.out.push('<rect x="'+(cx-6)+'" y="'+(yt+5)+'" width="12" height="12" fill="none" stroke="'+INK+'"/>');
