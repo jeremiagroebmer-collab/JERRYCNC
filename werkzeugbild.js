@@ -26,16 +26,26 @@ function kind(t){
 }
 const GROUP={adapter:'spindle',erchuck:'holder',shrink:'holder',hydro:'holder',weldon:'holder',collet:'collet',reducer:'collet',extension:'holder',insertholder:'holder',turn:'cutter',tap:'cutter',ball:'cutter',lolli:'cutter',radius:'cutter',drill:'cutter',endmill:'cutter',insert:'insert',generic:'generic'};
 const LABEL={adapter:'Maschinenanschluss',erchuck:'ER-Futter',shrink:'Schrumpffutter',hydro:'Dehnspannfutter',weldon:'Weldon-Aufnahme',collet:'Spannzange',reducer:'Reduzierhülse',extension:'Verlängerung',insertholder:'Plattenhalter',turn:'Drehwerkzeug',tap:'Gewindewerkzeug',ball:'Kugelfräser',lolli:'Lollipopfräser',radius:'Radiusfräser',drill:'Bohrer',endmill:'Fräser',insert:'Wendeplatte',generic:'Teil',spindle:'Maschine'};
-const OL='#2a3642';
+const OL='#38434b';
 const st=(fill,extra='')=>'fill="'+fill+'" stroke="'+OL+'" stroke-width="1.1" stroke-linejoin="round" '+extra;
 const ln=(x1,y1,x2,y2,o='.5')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#14202b" stroke-width=".9" stroke-opacity="'+o+'" stroke-linecap="round"/>';
 const crv=(d,o='.55')=>'<path d="'+d+'" fill="none" stroke="#0d3a35" stroke-width="1" stroke-opacity="'+o+'" stroke-linecap="round"/>';
 const poly=(pts,fill)=>'<polygon points="'+pts.map(p=>p.join(',')).join(' ')+'" '+st(fill)+'/>';
 const rect=(x,y,w,h,fill,r=2)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+r+'" '+st(fill)+'/>';
 // Metall-Verläufe quer zur Achse (Zylinder-Optik), in jeder Zeichnung einmal eingebettet
-const DEFS='<defs><linearGradient id="ta-c" x1="0" x2="1"><stop offset="0" stop-color="#1c7a70"/><stop offset=".32" stop-color="#8fe3d6"/><stop offset=".62" stop-color="#2fb5a3"/><stop offset="1" stop-color="#16625a"/></linearGradient><linearGradient id="ta-h" x1="0" x2="1"><stop offset="0" stop-color="#4b6682"/><stop offset=".3" stop-color="#b4c8dc"/><stop offset=".62" stop-color="#6f8cab"/><stop offset="1" stop-color="#3d546c"/></linearGradient><linearGradient id="ta-g" x1="0" x2="1"><stop offset="0" stop-color="#9a6f1c"/><stop offset=".3" stop-color="#f1d083"/><stop offset=".62" stop-color="#d4a03a"/><stop offset="1" stop-color="#85601a"/></linearGradient><linearGradient id="ta-i" x1="0" x2="1" y2="1"><stop offset="0" stop-color="#8e3a4f"/><stop offset=".45" stop-color="#e48aa0"/><stop offset="1" stop-color="#a24a60"/></linearGradient><linearGradient id="ta-s" x1="0" x2="1"><stop offset="0" stop-color="#6b7886"/><stop offset=".3" stop-color="#e3e8ed"/><stop offset=".62" stop-color="#a3adb8"/><stop offset="1" stop-color="#5e6b78"/></linearGradient></defs>';
+const DEFS='<defs><linearGradient id="ta-c" x1="0" x2="1"><stop offset="0" stop-color="#454e54"/><stop offset=".32" stop-color="#e2e8e7"/><stop offset=".62" stop-color="#839692"/><stop offset="1" stop-color="#394a49"/></linearGradient><linearGradient id="ta-h" x1="0" x2="1"><stop offset="0" stop-color="#4b6682"/><stop offset=".3" stop-color="#b4c8dc"/><stop offset=".62" stop-color="#6f8cab"/><stop offset="1" stop-color="#3d546c"/></linearGradient><linearGradient id="ta-g" x1="0" x2="1"><stop offset="0" stop-color="#9a6f1c"/><stop offset=".3" stop-color="#f1d083"/><stop offset=".62" stop-color="#d4a03a"/><stop offset="1" stop-color="#85601a"/></linearGradient><linearGradient id="ta-i" x1="0" x2="1" y2="1"><stop offset="0" stop-color="#80602b"/><stop offset=".45" stop-color="#ebd092"/><stop offset="1" stop-color="#aa8442"/></linearGradient><linearGradient id="ta-s" x1="0" x2="1"><stop offset="0" stop-color="#6b7886"/><stop offset=".3" stop-color="#e3e8ed"/><stop offset=".62" stop-color="#a3adb8"/><stop offset="1" stop-color="#5e6b78"/></linearGradient></defs>';
 const COL={holder:'url(#ta-h)',collet:'url(#ta-g)',cutter:'url(#ta-c)',insert:'url(#ta-i)',spindle:'url(#ta-s)',steel:'url(#ta-s)',generic:'url(#ta-s)'};
 const SOLID={cutter:'#2fb5a3'};
+// Continuous flutes with a dark rake face and a narrow polished cutting edge.
+function flutes(cx,y,r,h){
+ let out='';
+ for(let i=0;i<3;i++){
+  const a=y+i*h/3,b=Math.min(y+h,a+h*.52),x0=cx-r,x1=cx+r;
+  out+='<path d="M'+x0+' '+a+' C'+(cx-r*.3)+' '+(a+h*.2)+' '+(cx+r*.2)+' '+(b-h*.12)+' '+x1+' '+b+' L'+x1+' '+Math.min(y+h,b+3)+' C'+cx+' '+(b-h*.04)+' '+(cx-r*.5)+' '+(a+h*.2)+' '+x0+' '+(a+4)+'Z" fill="#344642" opacity=".8"/>';
+  out+='<path d="M'+x0+' '+a+' C'+(cx-r*.3)+' '+(a+h*.2)+' '+(cx+r*.2)+' '+(b-h*.12)+' '+x1+' '+b+'" fill="none" stroke="#f0f5ed" stroke-width=".65"/>';
+ }
+ return out;
+}
 // Taper-Stummel oben (Maschinenseite) für Halter
 const taper=(cx,y,h=14,w=12)=>poly([[cx-w,y],[cx+w,y],[cx+w+4,y+h],[cx-w-4,y+h]],COL.steel);
 // Eine Form zeichnen: Mitte cx, Oberkante y, Durchmesser d (nur Schneiden). Gibt {svg,h,w} zurück.
@@ -54,11 +64,11 @@ function shape(k,cx,y,d){
   case 'insert':return {h:22,w:26,svg:poly([[cx,y],[cx+13,y+11],[cx,y+22],[cx-13,y+11]],g)+'<circle cx="'+cx+'" cy="'+(y+11)+'" r="3" '+st('#e9eef2')+'/>'};
   case 'turn':return {h:42,w:38,svg:rect(cx-18,y,36,28,S,2)+poly([[cx-18,y+28],[cx+18,y+28],[cx+18,y+36],[cx+8,y+42],[cx-18,y+34]],S)+poly([[cx+8,y+30],[cx+18,y+30],[cx+18,y+38],[cx+10,y+41]],COL.insert)+ln(cx-18,y+10,cx+18,y+10,.2)};
   case 'tap':return {h:56,w:cw,svg:rect(cx-4,y,8,6,S,1)+rect(cx-5,y+6,10,16,S,1)+poly([[cx-5,y+22],[cx+5,y+22],[cx+R*0.6+2,y+28],[cx-R*0.6-2,y+28]],S)+poly([[cx-R*0.6-2,y+28],[cx+R*0.6+2,y+28],[cx+R*0.6+2,y+51],[cx+R*0.35,y+56],[cx-R*0.35,y+56],[cx-R*0.6-2,y+51]],g)+[0,1,2,3,4].map(i=>ln(cx-R*0.6-2,y+33+i*4.6,cx+R*0.6+2,y+31+i*4.6,.55)).join('')};
-  case 'drill':return {h:60,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+poly([[cx-R,y+26],[cx+R,y+26],[cx+R,y+50],[cx,y+60],[cx-R,y+50]],g)+crv('M'+(cx-R)+' '+(y+28)+'C'+cx+' '+(y+32)+' '+cx+' '+(y+38)+' '+(cx+R)+' '+(y+44))+crv('M'+(cx-R)+' '+(y+36)+'C'+cx+' '+(y+40)+' '+cx+' '+(y+46)+' '+(cx+R*0.6)+' '+(y+55))};
-  case 'ball':return {h:58,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+58-R)+'A'+R+' '+R+' 0 0 1 '+(cx-R)+' '+(y+58-R)+'Z" '+st(g)+'/>'+crv('M'+(cx-R)+' '+(y+30)+'Q'+cx+' '+(y+34)+' '+(cx+R)+' '+(y+40))+crv('M'+(cx-R)+' '+(y+38)+'Q'+cx+' '+(y+42)+' '+(cx+R*0.7)+' '+(y+49))};
+  case 'drill':return {h:60,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+poly([[cx-R,y+26],[cx+R,y+26],[cx+R,y+50],[cx,y+60],[cx-R,y+50]],g)+flutes(cx,y+28,R,21)};
+  case 'ball':return {h:58,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+58-R)+'A'+R+' '+R+' 0 0 1 '+(cx-R)+' '+(y+58-R)+'Z" '+st(g)+'/>'+flutes(cx,y+28,R,Math.max(10,29-R))};
   case 'lolli':return {h:58,w:cw,svg:rect(cx-6,y,12,20,S,1)+poly([[cx-6,y+20],[cx+6,y+20],[cx+2,y+25],[cx-2,y+25]],S)+rect(cx-2,y+25,4,15,S,0)+'<circle cx="'+cx+'" cy="'+(y+47)+'" r="'+Math.max(8,Math.min(11,R*0.8))+'" '+st(g)+'/>'+crv('M'+(cx-5)+' '+(y+44)+'Q'+cx+' '+(y+47)+' '+(cx+5)+' '+(y+52))};
-  case 'radius':return {h:54,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+49)+'Q'+(cx+R)+' '+(y+54)+' '+(cx+R-5)+' '+(y+54)+'H'+(cx-R+5)+'Q'+(cx-R)+' '+(y+54)+' '+(cx-R)+' '+(y+49)+'Z" '+st(g)+'/>'+crv('M'+(cx-R)+' '+(y+30)+'Q'+cx+' '+(y+34)+' '+(cx+R)+' '+(y+41))+crv('M'+(cx-R)+' '+(y+39)+'Q'+cx+' '+(y+43)+' '+(cx+R)+' '+(y+50))};
-  case 'endmill':return {h:54,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+52)+'L'+(cx+R-2)+' '+(y+54)+'H'+(cx-R+2)+'L'+(cx-R)+' '+(y+52)+'Z" '+st(g)+'/>'+crv('M'+(cx-R)+' '+(y+30)+'Q'+cx+' '+(y+34)+' '+(cx+R)+' '+(y+41))+crv('M'+(cx-R)+' '+(y+39)+'Q'+cx+' '+(y+43)+' '+(cx+R)+' '+(y+50))};
+  case 'radius':return {h:54,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+49)+'Q'+(cx+R)+' '+(y+54)+' '+(cx+R-5)+' '+(y+54)+'H'+(cx-R+5)+'Q'+(cx-R)+' '+(y+54)+' '+(cx-R)+' '+(y+49)+'Z" '+st(g)+'/>'+flutes(cx,y+28,R,22)};
+  case 'endmill':return {h:54,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+52)+'L'+(cx+R-2)+' '+(y+54)+'H'+(cx-R+2)+'L'+(cx-R)+' '+(y+52)+'Z" '+st(g)+'/>'+flutes(cx,y+28,R,22)};
   default:return {h:36,w:30,svg:rect(cx-14,y,28,36,S,5)};
  }
 }

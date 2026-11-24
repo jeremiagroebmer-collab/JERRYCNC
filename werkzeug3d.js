@@ -259,7 +259,7 @@ function mount(el,getModel,o={}){
   else{let cv=view.querySelector('canvas');if(!cv){view.innerHTML='<canvas style="width:100%;height:300px;display:block"></canvas>';cv=view.querySelector('canvas');v3=view3d(cv,()=>m)}v3.set();const d=m.dims.find(x=>x.key===key);v3.setHl(d?d.hl:null)}
   const seen=new Set(),list=m.dims.filter(d=>!seen.has(d.key)&&seen.add(d.key));
   if(cur==='sketch'){const wasOpen=!!chips.querySelector('details[open]');chips.innerHTML=el.classList.contains('sticky')?'<details class="t3d-det"'+(wasOpen?' open':'')+'><summary>Was bedeuten die Kürzel?</summary>'+root.CncSketch.legend(sk.rows,key)+'</details>':root.CncSketch.legend(sk.rows,key)}else chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');
-  const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));note.textContent=bits.join(' ');
+  const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));if(cur==='sketch')bits.unshift('Schematische Darstellung · Maße in mm · Maßlinie antippen zum Hervorheben.');note.textContent=bits.join(' ');
   note.className='t3d-note small '+((m.warn||[]).length?'warn':'muted');
  }
  el.addEventListener('click',e=>{
