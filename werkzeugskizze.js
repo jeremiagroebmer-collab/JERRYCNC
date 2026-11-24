@@ -5,30 +5,33 @@
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>v!==''&&v!==null&&v!==undefined&&Number.isFinite(Number(v))?Number(v):null;
 const fmt=n=>String(Math.round(n*100)/100).replace('.',',');
-const INK='var(--ink,#cfe0ee)',HIT='#ffb020',W=340;
-const TINT={cutter:'#2fb5a3',holder:'#5f7f9f',collet:'#d4a03a',insert:'#c9657a',spindle:'#7c8a99'};
-const CSS='<style>.t3d .dim{cursor:pointer}.t3d .dim line,.t3d .dim path{stroke:'+INK+';stroke-width:1;opacity:.85;fill:none}.t3d .dim polygon{fill:'+INK+';stroke:none}.t3d .dim text{fill:'+INK+';font-size:12px;font-style:italic;font-weight:700}.t3d .dim .tg{font-style:normal;font-weight:600;font-size:11.5px}.t3d .hl{display:none;pointer-events:none}.t3d[data-on] .dim{opacity:.4}.t3d[data-on] .dim.on{opacity:1}.t3d .dim.on line,.t3d .dim.on path{stroke:'+HIT+';stroke-width:2.2;opacity:1}.t3d .dim.on polygon{fill:'+HIT+'}.t3d .dim.on text{fill:'+HIT+'}.t3d .hl.on{display:inline}</style>';
+const INK='#1f2a37',HIT='#f59e0b',W=392,SH=46;
+const TINT={cutter:'url(#sk-c)',holder:'url(#sk-h)',collet:'url(#sk-g)',insert:'url(#sk-i)',spindle:'url(#sk-s)'};
+const grad=(id,a,b,c,d)=>'<linearGradient id="sk-'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+a+'"/><stop offset=".28" stop-color="'+b+'"/><stop offset=".6" stop-color="'+c+'"/><stop offset="1" stop-color="'+d+'"/></linearGradient>';
+const DEFS='<defs>'+grad('c','#2a8a80','#a9ece1','#46bfae','#1d6e65')+grad('h','#5c7894','#cfdeed','#86a0bc','#475f78')+grad('g','#a8791f','#f6dc9a','#dcab44','#8e671a')+grad('i','#9a4558','#f0a3b5','#b85a72','#7a3346')+grad('s','#7a8795','#eef1f4','#b2bbc5','#697684')+'</defs>';
+const CSS='<style>.t3d .dim{cursor:pointer}.t3d .dim line,.t3d .dim path{stroke:'+INK+';stroke-width:1;opacity:.85;fill:none}.t3d .dim polygon{fill:'+INK+';stroke:none}.t3d .dim text{fill:'+INK+';font-size:13px;font-weight:700}.t3d .dim .tg{font-weight:600;font-size:12px}.t3d .hl{display:none;pointer-events:none}.t3d[data-on] .dim{opacity:.4}.t3d[data-on] .dim.on{opacity:1}.t3d .dim.on line,.t3d .dim.on path{stroke:'+HIT+';stroke-width:2.2;opacity:1}.t3d .dim.on polygon{fill:'+HIT+'}.t3d .dim.on text{fill:'+HIT+'}.t3d .hl.on{display:inline}</style>';
 function kit(){
  const o={out:[],dims:[],hl:{}};
  const reg=(keys,el)=>(keys||[]).forEach(k=>(o.hl[k]=o.hl[k]||[]).push(el));
  const ptsStr=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
- o.poly=(p,tint,keys)=>{o.out.push('<polygon points="'+ptsStr(p)+'" fill="'+tint+'" fill-opacity=".28" stroke="'+INK+'" stroke-width="1.4" stroke-linejoin="round"/>');reg(keys,'<polygon points="'+ptsStr(p)+'" fill="'+HIT+'" fill-opacity=".6" stroke="'+HIT+'" stroke-width="1.6"/>')};
- o.path=(d,tint,keys)=>{o.out.push('<path d="'+d+'" fill="'+tint+'" fill-opacity=".28" stroke="'+INK+'" stroke-width="1.4" stroke-linejoin="round"/>');reg(keys,'<path d="'+d+'" fill="'+HIT+'" fill-opacity=".6" stroke="'+HIT+'" stroke-width="1.6"/>')};
- o.circ=(cx,cy,r,tint,keys,dash)=>{o.out.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+tint+'" fill-opacity=".28" stroke="'+INK+'" stroke-width="1.4"'+(dash?' stroke-dasharray="4 3"':'')+'/>');reg(keys,'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+HIT+'" fill-opacity=".6" stroke="'+HIT+'" stroke-width="1.6"/>')};
+ o.poly=(p,tint,keys)=>{o.out.push('<polygon points="'+ptsStr(p)+'" fill="'+tint+'" stroke="'+INK+'" stroke-width="1.3" stroke-linejoin="round"/>');reg(keys,'<polygon points="'+ptsStr(p)+'" fill="'+HIT+'" fill-opacity=".55" stroke="'+HIT+'" stroke-width="1.6"/>')};
+ o.path=(d,tint,keys)=>{o.out.push('<path d="'+d+'" fill="'+tint+'" stroke="'+INK+'" stroke-width="1.3" stroke-linejoin="round"/>');reg(keys,'<path d="'+d+'" fill="'+HIT+'" fill-opacity=".55" stroke="'+HIT+'" stroke-width="1.6"/>')};
+ o.circ=(cx,cy,r,tint,keys,dash)=>{o.out.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+tint+'" stroke="'+INK+'" stroke-width="1.3"'+(dash?' stroke-dasharray="4 3"':'')+'/>');reg(keys,'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+HIT+'" fill-opacity=".55" stroke="'+HIT+'" stroke-width="1.6"/>')};
  o.line=(x1,y1,x2,y2,op,dash)=>o.out.push('<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+INK+'" stroke-width="1" stroke-opacity="'+(op||.5)+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>');
  o.bore=(x1,x2,cy,h,keys)=>{const d='M'+x1+' '+(cy-h)+'H'+x2+'V'+(cy+h)+'H'+x1;o.out.push('<path d="'+d+'" fill="none" stroke="'+INK+'" stroke-dasharray="4 3" stroke-opacity=".8"/>');reg(keys,'<rect x="'+x1+'" y="'+(cy-h)+'" width="'+(x2-x1)+'" height="'+2*h+'" fill="'+HIT+'" fill-opacity=".7"/>')};
- o.axis=(x1,x2,cy)=>o.out.push('<line x1="'+x1+'" y1="'+cy+'" x2="'+x2+'" y2="'+cy+'" stroke="'+INK+'" stroke-opacity=".35" stroke-dasharray="10 3 2 3"/>');
+ o.m={};const A=a=>esc(o.m[a]||a);
+ o.axis=(x1,x2,cy)=>o.out.push('<line x1="'+x1+'" y1="'+cy+'" x2="'+x2+'" y2="'+cy+'" stroke="'+INK+'" stroke-opacity=".45" stroke-dasharray="10 3 2 3"/>');
  const hit=(x,y,w,h)=>'<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="transparent" stroke="none"/>';
  // senkrechtes Maß bei x zwischen y1 und y2, Hilfslinien von xs aus
  o.vdim=(key,abbr,x,y1,y2,xs)=>{const dir=x>=xs?1:-1,e=x+dir*3;let g='<g class="dim" data-dim="'+key+'">';
   if(Math.abs(x-xs)>1)g+='<line x1="'+xs+'" y1="'+y1+'" x2="'+e+'" y2="'+y1+'" stroke-dasharray="2 2"/><line x1="'+xs+'" y1="'+y2+'" x2="'+e+'" y2="'+y2+'" stroke-dasharray="2 2"/>';
-  g+='<line x1="'+x+'" y1="'+y1+'" x2="'+x+'" y2="'+y2+'"/><polygon points="'+x+','+y1+' '+(x-2.6)+','+(y1+6.5)+' '+(x+2.6)+','+(y1+6.5)+'"/><polygon points="'+x+','+y2+' '+(x-2.6)+','+(y2-6.5)+' '+(x+2.6)+','+(y2-6.5)+'"/><text x="'+(x+dir*6)+'" y="'+(((y1+y2)/2)+4).toFixed(1)+'" text-anchor="'+(dir>0?'start':'end')+'">'+esc(abbr)+'</text>'+hit(Math.min(x,xs)-4,y1,Math.abs(x-xs)+Math.max(22,0),y2-y1)+'</g>';o.dims.push(g)};
+  g+='<line x1="'+x+'" y1="'+y1+'" x2="'+x+'" y2="'+y2+'"/><polygon points="'+x+','+y1+' '+(x-2.6)+','+(y1+6.5)+' '+(x+2.6)+','+(y1+6.5)+'"/><polygon points="'+x+','+y2+' '+(x-2.6)+','+(y2-6.5)+' '+(x+2.6)+','+(y2-6.5)+'"/><text x="'+(x+dir*6)+'" y="'+(((y1+y2)/2)+4).toFixed(1)+'" text-anchor="'+(dir>0?'start':'end')+'">'+A(abbr)+'</text>'+hit(Math.min(x,xs)-4,y1,Math.abs(x-xs)+Math.max(22,0),y2-y1)+'</g>';o.dims.push(g)};
  // waagrechtes Maß auf Höhe y zwischen x1 und x2, Hilfslinien von ys1/ys2 aus
- o.hdim=(key,abbr,y,x1,x2,ys1,ys2)=>{o.dims.push('<g class="dim" data-dim="'+key+'"><line x1="'+x1+'" y1="'+ys1+'" x2="'+x1+'" y2="'+(y+3)+'" stroke-dasharray="2 2"/><line x1="'+x2+'" y1="'+ys2+'" x2="'+x2+'" y2="'+(y+3)+'" stroke-dasharray="2 2"/><line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'"/><polygon points="'+x1+','+y+' '+(x1+6.5)+','+(y-2.6)+' '+(x1+6.5)+','+(y+2.6)+'"/><polygon points="'+x2+','+y+' '+(x2-6.5)+','+(y-2.6)+' '+(x2-6.5)+','+(y+2.6)+'"/><text x="'+((x1+x2)/2).toFixed(1)+'" y="'+(y-4)+'" text-anchor="middle">'+esc(abbr)+'</text>'+hit(x1,y-12,x2-x1,16)+'</g>')};
+ o.hdim=(key,abbr,y,x1,x2,ys1,ys2)=>{o.dims.push('<g class="dim" data-dim="'+key+'"><line x1="'+x1+'" y1="'+ys1+'" x2="'+x1+'" y2="'+(y+3)+'" stroke-dasharray="2 2"/><line x1="'+x2+'" y1="'+ys2+'" x2="'+x2+'" y2="'+(y+3)+'" stroke-dasharray="2 2"/><line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'"/><polygon points="'+x1+','+y+' '+(x1+6.5)+','+(y-2.6)+' '+(x1+6.5)+','+(y+2.6)+'"/><polygon points="'+x2+','+y+' '+(x2-6.5)+','+(y-2.6)+' '+(x2-6.5)+','+(y+2.6)+'"/><text x="'+((x1+x2)/2).toFixed(1)+'" y="'+(y-4)+'" text-anchor="middle">'+A(abbr)+'</text>'+hit(x1,y-12,x2-x1,16)+'</g>')};
  // Text mit Führungslinie (Anschluss, ER-Größe, Plattenform)
- o.tag=(key,text,x,y,tx,ty,anchor)=>o.dims.push('<g class="dim" data-dim="'+key+'"><path d="M'+x+' '+y+'L'+tx+' '+ty+'"/><circle cx="'+x+'" cy="'+y+'" r="2.3" style="fill:'+INK+'" stroke="none"/><text class="tg" x="'+tx+'" y="'+(ty-3)+'" text-anchor="'+(anchor||'middle')+'">'+esc(text)+'</text>'+hit(tx-34,ty-16,68,18)+'</g>');
- o.ang=(key,abbr,ax,ay,r,half,right)=>{const a=half*Math.PI/180,sg=right?1:-1,P=s=>[(ax-sg*r*Math.cos(a)).toFixed(1),(ay+s*r*Math.sin(a)).toFixed(1)];const p1=P(-1),p2=P(1);o.dims.push('<g class="dim" data-dim="'+key+'"><path d="M'+p1[0]+' '+p1[1]+'A'+r+' '+r+' 0 0 '+(right?0:1)+' '+p2[0]+' '+p2[1]+'"/><text x="'+(ax-sg*(r+7))+'" y="'+(ay+4)+'" text-anchor="'+(right?'end':'start')+'">'+esc(abbr)+'</text>'+hit(ax-sg*(r+16)-(right?0:0),ay-r,r+16,2*r)+'</g>')};
- o.svg=H=>{const hl=Object.entries(o.hl).map(([k,v])=>'<g class="hl" data-dim="'+k+'">'+v.join('')+'</g>').join('');return '<svg class="t3d" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Skizze mit Kürzeln" style="max-height:'+H+'px">'+CSS+o.out.join('')+hl+o.dims.join('')+'</svg>'};
+ o.tag=(key,text,x,y,tx,ty,anchor)=>o.dims.push('<g class="dim" data-dim="'+key+'"><path d="M'+x+' '+y+'L'+tx+' '+ty+'"/><circle cx="'+x+'" cy="'+y+'" r="2.3" style="fill:'+INK+'" stroke="none"/><text class="tg" x="'+tx+'" y="'+(ty-3)+'" text-anchor="'+(anchor||'middle')+'">'+esc(o.m[text]||text)+'</text>'+hit(tx-34,ty-16,68,18)+'</g>');
+ o.ang=(key,abbr,ax,ay,r,half,right)=>{const a=half*Math.PI/180,sg=right?1:-1,P=s=>[(ax-sg*r*Math.cos(a)).toFixed(1),(ay+s*r*Math.sin(a)).toFixed(1)];const p1=P(-1),p2=P(1);o.dims.push('<g class="dim" data-dim="'+key+'"><path d="M'+p1[0]+' '+p1[1]+'A'+r+' '+r+' 0 0 '+(right?0:1)+' '+p2[0]+' '+p2[1]+'"/><text x="'+(ax-sg*(r+7))+'" y="'+(ay+4)+'" text-anchor="'+(right?'end':'start')+'">'+A(abbr)+'</text>'+hit(ax-sg*(r+16)-(right?0:0),ay-r,r+16,2*r)+'</g>')};
+ o.svg=H=>{const hl=Object.entries(o.hl).map(([k,v])=>'<g class="hl" data-dim="'+k+'">'+v.join('')+'</g>').join('');return '<svg class="t3d" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Skizze mit Kürzeln" style="max-height:'+H+'px">'+CSS+DEFS+'<rect x="1" y="1" width="'+(W-2)+'" height="'+(H-2)+'" rx="12" fill="#ffffff" stroke="#d3dae1"/><g transform="translate('+SH+',0)">'+o.out.join('')+hl+o.dims.join('')+'</g></svg>'};
  return o;
 }
 // ---------- Skizzen je Art. Rückgabe: Höhe. rows werden getrennt geführt.
@@ -55,7 +58,7 @@ function mill(o,k){
   if(k==='radius')o.tag('cornerRadius','r',xe-5,cy-hc+3,xe-30,cy-hc-14);
   o.hdim('cuttingLength','l2',cy+hc+16,x2,xe,cy+hc,cy+hc);
  }
- o.line(xf,cy-hs-12,xf,cy+hs+12,.8,'6 3');o.out.push('<text x="'+xf+'" y="'+(cy-hs-15)+'" font-size="10" text-anchor="middle" fill="'+INK+'" fill-opacity=".7">Futter</text>');
+ o.line(xf,cy-hs-12,xf,cy+hs+12,.8,'6 3');o.out.push('<text x="'+xf+'" y="'+(cy-hs-15)+'" font-size="10" text-anchor="middle" fill="'+INK+'" fill-opacity=".75">Futter</text>');
  o.vdim('shaftDiameter','d2',24,cy-hs,cy+hs,xs);
  o.hdim('projection','A',cy+hc+32,xf,xe,cy+hs+12,cy+hc);
  o.hdim('totalLength','l1',cy+hc+48,xs,xe,cy+hs,cy+hc);
@@ -70,7 +73,7 @@ function drill(o){
  o.poly([[xt,cy-hc],[xa,cy],[xt,cy+hc]],TINT.cutter,['pointAngle']);
  for(let i=0;i<3;i++){const a=x2+8+i*44;o.out.push('<path d="M'+a+' '+(cy+hc)+'Q'+(a+14)+' '+cy+' '+(a+34)+' '+(cy-hc)+'" fill="none" stroke="'+INK+'" stroke-opacity=".5"/>')}
  o.ang('pointAngle','σ',xa,cy,24,59,true);
- o.line(xf,cy-hs-12,xf,cy+hs+12,.8,'6 3');o.out.push('<text x="'+xf+'" y="'+(cy-hs-15)+'" font-size="10" text-anchor="middle" fill="'+INK+'" fill-opacity=".7">Futter</text>');
+ o.line(xf,cy-hs-12,xf,cy+hs+12,.8,'6 3');o.out.push('<text x="'+xf+'" y="'+(cy-hs-15)+'" font-size="10" text-anchor="middle" fill="'+INK+'" fill-opacity=".75">Futter</text>');
  o.vdim('shaftDiameter','d2',24,cy-hs,cy+hs,xs);
  o.vdim('diameter','d1',xa+28,cy-hc,cy+hc,xt);
  o.hdim('cuttingLength','l2',cy+hc+16,x2,xa,cy+hc,cy);
@@ -86,7 +89,7 @@ function tap(o){
  o.poly([[x1,cy-hs],[x2,cy-hc],[x2,cy+hc],[x1,cy+hs]],TINT.cutter,[]);
  o.poly([[x2,cy-hc],[xt,cy-hc],[xe,cy-hc+6],[xe,cy+hc-6],[xt,cy+hc],[x2,cy+hc]],TINT.cutter,['diameter','cuttingLength']);
  for(let a=x2+8;a<xt-4;a+=10)o.line(a,cy+hc,a+7,cy-hc,.4);
- o.line(xf,cy-hs-12,xf,cy+hs+12,.8,'6 3');o.out.push('<text x="'+xf+'" y="'+(cy-hs-15)+'" font-size="10" text-anchor="middle" fill="'+INK+'" fill-opacity=".7">Futter</text>');
+ o.line(xf,cy-hs-12,xf,cy+hs+12,.8,'6 3');o.out.push('<text x="'+xf+'" y="'+(cy-hs-15)+'" font-size="10" text-anchor="middle" fill="'+INK+'" fill-opacity=".75">Futter</text>');
  o.vdim('shaftDiameter','d2',24,cy-hs,cy+hs,xs);
  o.vdim('diameter','d1',xe+22,cy-hc,cy+hc,xt);
  o.hdim('cuttingLength','l2',cy+hc+16,x2,xe,cy+hc,cy+hc);
@@ -174,7 +177,7 @@ function extension(o){
 function insert(o,t){
  const cx=170,cy=84;
  o.poly([[cx,cy-66],[cx+55,cy],[cx,cy+66],[cx-55,cy]],TINT.insert,['inSize']);
- o.circ(cx,cy,12,'transparent',['inSize'],true);
+ o.circ(cx,cy,12,'#ffffff',['inSize'],true);
  o.tag('inSize',String(t.inSize||'Plattenform'),cx+30,cy-30,cx+62,cy-72,'start');
  return cy+66+10;
 }
@@ -210,16 +213,23 @@ function value(t,key,unit){
  if(key==='minDiameter'){const a=num(t.minDiameter),b=num(t.maxDiameter);if(a===null)return null;return (b!==null&&b!==a?fmt(a)+'–'+fmt(b):fmt(a))+' mm'}
  const v=t[key];if(v===''||v===null||v===undefined)return null;const n=num(v);return n===null?String(v):fmt(n)+(unit?' '+unit:'');
 }
+const MAP={
+ mill:{d1:'DC',d2:'DCONMS',d3:'DN',l1:'OAL',l2:'APMX',l3:'LU',A:'LPR',r:'RE'},
+ drill:{d1:'DC',d2:'DCONMS',l1:'OAL',l2:'LU',A:'LPR','σ':'SIG'},
+ tap:{d1:'DC',d2:'DCONMS',l1:'OAL',l2:'LU',A:'LPR'},
+ turn:{h:'H',f:'F',l1:'OAL'},millhead:{d1:'DC',d2:'BD',l1:'LF'},
+ erchuck:{l1:'LF'},bore:{l1:'LF',d1:'BD'},collet:{l1:'LF',d1:'BD'},reducer:{l1:'LF',d1:'BD',d2:'DCONMS'},extension:{l1:'LF',d1:'D'},insert:{}
+};
 function draw(t,kindKey){
  const ty=type(kindKey,t);if(!ty)return null;
- const o=kit();let H;
+ const o=kit();let H;o.m=MAP[({ball:'mill',radius:'mill',lolli:'mill'})[ty]||ty]||{};
  switch(ty){
   case 'mill':case 'radius':case 'lolli':case 'ball':H=mill(o,ty==='mill'?'endmill':ty);break;
   case 'drill':H=drill(o);break;case 'tap':H=tap(o);break;case 'turn':H=turn(o);break;case 'millhead':H=millhead(o);break;
   case 'erchuck':H=erchuck(o,t);break;case 'bore':H=boreHolder(o,t,kindKey);break;case 'collet':H=collet(o,t);break;case 'reducer':H=reducer(o);break;
   case 'extension':H=extension(o);break;case 'insert':H=insert(o,t);break;
  }
- const rows=ROWS[ty==='ball'?'mill':ty].map(([key,abbr,name,unit])=>({key,abbr,name,value:value(t,key,unit)}));
+ const rows=ROWS[ty==='ball'?'mill':ty].map(([key,abbr,name,unit])=>({key,abbr:o.m[abbr]||abbr,name,value:value(t,key,unit)}));
  return {svg:o.svg(H),rows,type:ty};
 }
 function legend(rows,on){
