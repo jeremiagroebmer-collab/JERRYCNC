@@ -22,7 +22,7 @@ function cutter(t,k){
  if(!(D>0)){D=S;est.push('Schneiden-Ø')}if(!(S>0)){S=D;est.push('Schaft-Ø')}
  let l=num(t.cuttingLength);if(!(l>0)){l=D*(k==='drill'?6:k==='ball'?2:2.5);est.push('Schneidenlänge')}
  let L=num(t.totalLength);if(!(L>0)){L=l+Math.max(20,2.5*S);est.push('Gesamtlänge')}
- if(l>L-1)l=Math.max(1,L-1);
+ if(l>L-1)l=Math.max(1,L-1);if(k==='ball')l=Math.min(Math.max(1,L-1),Math.max(l,D/2));if(k==='radius')l=Math.min(Math.max(1,L-1),Math.max(l,num(t.cornerRadius)||D*0.15));
  if(k==='lolli'){const r=D/2,R=S/2,nd=num(t.neckDiameter),rn=Math.min(r*0.95,Math.max(0.5,(nd||D*0.5)/2)),ln=num(t.neckLength)||D*3;if(!nd)est.push('Hals-Ø');if(!num(t.neckLength))est.push('Halslänge');const zb=L-r,zt=L-2*r,zn=Math.max(1,zt-ln),a0=Math.asin(rn/r),pts=[[0,R,'shank'],[zn,R,'shank'],[zn,rn,'neck'],[zb-Math.sqrt(Math.max(0,r*r-rn*rn)),rn,'neck']];for(let i=1;i<=12;i++){const al=a0+(Math.PI-a0)*i/12;pts.push([zb-r*Math.cos(al),r*Math.sin(al),'flute'])}return {kind:k,group:'cutter',pts,L,rMax:Math.max(R,r),est,flute:false,teeth:0,D,S,l:2*r,dims:[{key:'shaftDiameter',type:'dia',z:zn*0.5,r:R,text:'Schaft Ø'+fmt(S),hl:{tags:['shank']}},{key:'diameter',type:'dia',z:zb,r:r,text:'Kugel Ø'+fmt(D),hl:{tags:['flute']}},{key:'neckDiameter',type:'dia',z:(zn+zt)/2,r:rn,text:'Hals Ø'+fmt(rn*2),hl:{tags:['neck']}},{key:'neckLength',type:'len',z0:zn,z1:zt,text:'Hals '+fmt(zt-zn),hl:{tags:['neck']}},{key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}}]}}
  const r=D/2,R=S/2,zc=L-l,ch=S>D?Math.min(2,(S-D)/2):0,pts=[[0,R,'shank'],[Math.max(0,zc-ch),R,'shank']];
  pts.push([zc,r,ch>0||S!==D?'neck':'shank']);
@@ -38,7 +38,7 @@ function cutter(t,k){
   {key:'diameter',type:'dia',z:zc+l*0.5,r:r,text:'Schneide Ø'+fmt(D),hl:{tags:['flute']}},
   {key:'cuttingLength',type:'len',z0:zc,z1:L,text:'Schneide '+fmt(l),hl:{tags:['flute']}},
   {key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}}];
- return {kind:k,group:'cutter',pts,L,rMax:Math.max(R,r),dims,est,flute:k!=='tap',teeth:k==='drill'?2:4,D,S,l};
+ return {kind:k,group:'cutter',pts,L,rMax:Math.max(R,r),dims,est,flute:k!=='tap',teeth:(Number.isInteger(num(t.teeth))&&num(t.teeth)>0&&num(t.teeth)<=12)?num(t.teeth):(k==='drill'?2:4),D,S,l};
 }
 function holder(t,k,o){
  const est=[],tl=num(t.totalLength),pr=num(t.projection);
@@ -86,10 +86,10 @@ function single(t){
 // Zusammenbau: Messebene z=0, Schneide unten. Auspannlänge = wie weit das Werkzeug aus der Spannzange / dem Futter steht.
 function assembly(db,a,Tooling,opts={}){
  const c=Tooling.chain(db,a),rows=c.rows.filter(r=>r.part);if(!rows.length)return null;
- const m={parts:[],warn:[],est:[],extraDims:[],title:a.title||''};let zNose=0,holderNose=null,carrierNose=0,first=true;const so0=num(opts.stickout!==undefined?opts.stickout:a.stickout),so=so0>0?so0:null;
+ const m={parts:[],warn:[],est:[],extraDims:[],title:a.title||''};let zNose=0,holderNose=null,carrierNose=0,first=true,holderT=null;const so0=num(opts.stickout!==undefined?opts.stickout:a.stickout),so=so0>0?so0:null;
  rows.forEach((r,i)=>{
   const t=r.part,A=Art(),k=A?A.kind(t):'generic',id='p'+i,g=GROUP(k);
-  if(g==='holder'&&first){const p=buildPart(t,{asm:true});if(!p)return;m.parts.push(shift(p,0,id,t,['totalLength']));zNose=p.L;holderNose=p.L;carrierNose=p.L;first=false;return}
+  if(g==='holder'&&first){const p=buildPart(t,{asm:true});if(!p)return;m.parts.push(shift(p,0,id,t,['totalLength']));zNose=p.L;holderNose=p.L;carrierNose=p.L;first=false;holderT=t;return}
   first=false;
   if(g==='collet'){const p=buildPart(t,{});if(!p)return;let pc=num(t.projection);if(pc===null){pc=2;m.est.push('Spannzange ragt ca. 2 mm heraus')}const x=shift(p,zNose+pc-p.L,id,t,['totalLength','interface','minDiameter']);x.hiddenTo=holderNose??zNose;m.parts.push(x);zNose+=pc;carrierNose=zNose;return}
   if(g==='cutter'){
@@ -100,6 +100,7 @@ function assembly(db,a,Tooling,opts={}){
    const ins=p.L-A_,tip=zNose+A_;m.A=A_;m.I=ins;m.tipZ=tip;m.noseZ=zNose;m.cut=p;
    m.extraDims.push({key:'stickout',type:'len',z0:zNose,z1:tip,text:'Auspannlänge '+fmt(A_),part:id,hl:{part:id,fromZ:zNose}},{key:'insert',type:'len',z0:tip-p.L,z1:zNose,text:'Eingespannt '+fmt(ins),part:id,hl:{tags:['shank'],part:id,toZ:zNose}});
    if(ins<2.5*p.S)m.warn.push('Nur '+fmt(ins)+' mm eingespannt = '+fmt(ins/p.S)+' × Schaft-Ø. Besser mindestens 2,5 × Ø einspannen.');
+   {const idp=holderT?num(holderT.insertDepth):null;if(idp>0&&ins>idp+0.01)m.warn.push('Eingespannt '+fmt(ins)+' mm, aber das Futter nimmt nur '+fmt(idp)+' mm auf. Auspannlänge erhöhen oder ein kürzeres Werkzeug nehmen.')}
    if(A_<p.l)m.warn.push('Auspannlänge '+fmt(A_)+' mm ist kleiner als die Schneidenlänge '+fmt(p.l)+' mm: die Schneide steckt noch im Futter.');
    if(A_/p.D>4)m.warn.push('Lange Auskragung ('+fmt(A_/p.D)+' × Ø). Schnittwerte senken oder kürzer ausspannen.');
    return;
@@ -244,7 +245,7 @@ function download(name,bytes){const url=URL.createObjectURL(new Blob([bytes],{ty
 // el = Element aus panelHtml, getModel = () => Modell oder null, o.name = Dateiname, o.focusField = Feld mit Fokus -> Maß leuchtet
 function mount(el,getModel,o={}){
  const view=el.querySelector('.t3d-view'),tools=el.querySelector('.t3d-tools'),chips=el.querySelector('.t3d-chips'),note=el.querySelector('.t3d-note');
- let tab=o.tab||(el.querySelector('[data-t3d-tab="sketch"]')?'sketch':'draw'),key=null,v3=null,m=null;
+ const saved=root.__t3dTab&&el.querySelector('[data-t3d-tab="'+root.__t3dTab+'"]')?root.__t3dTab:null;let tab=o.tab||saved||(el.querySelector('[data-t3d-tab="sketch"]')?'sketch':'draw'),key=null,v3=null,m=null;
  function setKey(k){key=k===key?null:k;paint()}
  function paint(){try{paintInner()}catch(e){view.innerHTML='<p class="muted small">Die Zeichnung konnte nicht erstellt werden. Bitte Seite neu laden.</p>';if(root.console)console.error(e)}}
  function paintInner(){
@@ -257,13 +258,13 @@ function mount(el,getModel,o={}){
   else if(cur==='draw'){v3=null;view.innerHTML=drawing(m,{h:o.h});const svg=view.querySelector('svg');highlight(svg,key)}
   else{let cv=view.querySelector('canvas');if(!cv){view.innerHTML='<canvas style="width:100%;height:300px;display:block"></canvas>';cv=view.querySelector('canvas');v3=view3d(cv,()=>m)}v3.set();const d=m.dims.find(x=>x.key===key);v3.setHl(d?d.hl:null)}
   const seen=new Set(),list=m.dims.filter(d=>!seen.has(d.key)&&seen.add(d.key));
-  if(cur==='sketch')chips.innerHTML=root.CncSketch.legend(sk.rows,key);else chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');
+  if(cur==='sketch'){const wasOpen=!!chips.querySelector('details[open]');chips.innerHTML=el.classList.contains('sticky')?'<details class="t3d-det"'+(wasOpen?' open':'')+'><summary>Was bedeuten die Kürzel?</summary>'+root.CncSketch.legend(sk.rows,key)+'</details>':root.CncSketch.legend(sk.rows,key)}else chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');
   const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));note.textContent=bits.join(' ');
   note.className='t3d-note small '+((m.warn||[]).length?'warn':'muted');
  }
  el.addEventListener('click',e=>{
   const b=e.target.closest('button,[data-dim]');if(!b||!el.contains(b))return;
-  if(b.dataset.t3dTab){tab=b.dataset.t3dTab;paint();return}
+  if(b.dataset.t3dTab){tab=b.dataset.t3dTab;root.__t3dTab=tab;paint();return}
   if(b.dataset.t3dKey){setKey(b.dataset.t3dKey);return}
   if(b.dataset.t3dAct){const a=b.dataset.t3dAct;if(a==='stl'){if(m){const r=stl(m);download((o.name||'werkzeug')+'.stl',r.bytes)}return}if(!v3)return;if(a==='spin'){const on=!v3.st.spin;v3.spin(on);b.classList.toggle('on',on)}else v3.focus(a);return}
   const g=e.target.closest('.dim');if(g&&g.dataset.dim){setKey(g.dataset.dim);if(o.onKey)o.onKey(g.dataset.dim)}

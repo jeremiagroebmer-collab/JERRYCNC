@@ -155,6 +155,25 @@ function boreHolder(o,t,k){
  o.vd('totalLength','l1',cx+74,70,nose,cx+40,cx+26,1);
  return nose+56;
 }
+function arbor(o,t){
+ const cx=150,nose=236;o.axis(cx,30,nose+14);holderTop(o,t,cx);
+ o.poly([[cx-18,86],[cx+18,86],[cx+18,nose-34],[cx-18,nose-34]],'holder',['outSize']);
+ o.poly([[cx-30,nose-34],[cx+30,nose-34],[cx+30,nose],[cx-30,nose]],'holder',[]);
+ o.line(cx-18,nose-34,cx+18,nose-34,.6);
+ o.hin('outSize','d4',nose+28,cx-18,cx+18,nose-34);
+ o.vd('totalLength','l1',cx+74,70,nose,cx+40,cx+30,1);
+ return nose+56;
+}
+function chuck(o,t){
+ const cx=150,nose=236;o.axis(cx,30,nose+14);holderTop(o,t,cx);
+ o.poly([[cx-36,86],[cx+36,86],[cx+36,170],[cx+22,nose],[cx-22,nose]],'holder',[]);
+ for(let y=100;y<164;y+=10)o.line(cx-36,y,cx+36,y,.35);
+ o.circ(cx+36,128,4,null,[]);
+ o.bore(cx-9,cx+9,nose-110,nose,['minDiameter']);
+ o.hin('minDiameter','d4',nose+28,cx-9,cx+9,nose);
+ o.vd('totalLength','l1',cx+74,70,nose,cx+40,cx+22,1);
+ return nose+56;
+}
 function collet(o,t){
  const cx=150,yt=60,yb=230;o.axis(cx,yt-20,yb+14);
  o.poly([[cx-24,yt+8],[cx-30,yt+22],[cx-30,yb-30],[cx-22,yb],[cx+22,yb],[cx+30,yb-30],[cx+30,yt+22],[cx+24,yt+8]],'collet',['interface']);
@@ -183,20 +202,22 @@ function extension(o){
  return yb+30;
 }
 function insert(o,t){
- const cx=150,cy=130;
- o.poly([[cx,cy-76],[cx+62,cy],[cx,cy+76],[cx-62,cy]],'insert',['inSize']);
+ const cx=150,cy=130,L=String(t.inSize||'C').trim().charAt(0).toUpperCase();
+ const S={C:[[cx,cy-76],[cx+62,cy],[cx,cy+76],[cx-62,cy]],D:[[cx,cy-84],[cx+40,cy],[cx,cy+84],[cx-40,cy]],V:[[cx,cy-88],[cx+27,cy],[cx,cy+88],[cx-27,cy]],S:[[cx-58,cy-58],[cx+58,cy-58],[cx+58,cy+58],[cx-58,cy+58]],T:[[cx,cy-72],[cx+66,cy+46],[cx-66,cy+46]],W:[[cx-44,cy-52],[cx+44,cy-52],[cx+70,cy],[cx+28,cy+60],[cx-28,cy+60],[cx-70,cy]]};
+ if(L==='R')o.circ(cx,cy,62,'insert',['inSize']);else o.poly(S[L]||S.C,'insert',['inSize']);
  o.circ(cx,cy,13,null,['inSize'],true);
  o.tag('inSize',String(t.inSize||'Plattenform'),cx+32,cy-38,cx+80,cy-90,'start');
  return cy+90;
 }
 const ROWS={
- mill:[['diameter','d1','Schneiden-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l2','Schneidenlänge','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
- radius:[['diameter','d1','Schneiden-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l2','Schneidenlänge','mm'],['cornerRadius','r1','Eckenradius','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
- lolli:[['diameter','d1','Kugel-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['neckDiameter','d3','Hals-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['neckLength','l3','Halslänge','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
- drill:[['diameter','d1','Bohrer-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l3','Nutenlänge','mm'],['pointAngle','a1','Spitzenwinkel','°'],['projection','l4','Auskragung (Montagemaß)','mm']],
- tap:[['diameter','d1','Gewinde-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l3','Gewindelänge','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
+ mill:[['diameter','d1','Schneiden-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l2','Schneidenlänge','mm'],['projection','l4','Auspannlänge','mm']],
+ radius:[['diameter','d1','Schneiden-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l2','Schneidenlänge','mm'],['cornerRadius','r1','Eckenradius','mm'],['projection','l4','Auspannlänge','mm']],
+ lolli:[['diameter','d1','Kugel-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['neckDiameter','d3','Hals-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['neckLength','l3','Halslänge','mm'],['projection','l4','Auspannlänge','mm']],
+ drill:[['diameter','d1','Bohrer-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l3','Nutenlänge','mm'],['pointAngle','a1','Spitzenwinkel','°'],['projection','l4','Auspannlänge','mm']],
+ tap:[['diameter','d1','Gewinde-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l3','Gewindelänge','mm'],['projection','l4','Auspannlänge','mm']],
  turn:[['shaftDiameter','b1','Vierkantschaft','mm'],['diameter','f1','Bearbeitungsmaß','mm'],['totalLength','l1','Gesamtlänge','mm'],['inSize','Platte','Passende Wendeplatte','']],
  millhead:[['diameter','d1','Außen-Ø','mm'],['shaftDiameter','d4','Aufnahmebohrung','mm'],['totalLength','l1','Höhe','mm'],['outSize','Platte','Passende Wendeplatte','']],
+ arbor:[['interface','Anschluss','Maschinenaufnahme',''],['outSize','d4','Dorn-Ø','mm'],['totalLength','l1','Länge ab Messebene','mm']],
  erchuck:[['interface','Anschluss','Maschinenaufnahme',''],['outSize','ER','Spannzangengröße',''],['totalLength','l1','Länge ab Messebene','mm']],
  bore:[['interface','Anschluss','Maschinenaufnahme',''],['minDiameter','d4','Aufnahme-Ø','mm'],['totalLength','l1','Länge ab Messebene','mm']],
  collet:[['interface','ER','Spannzangentyp',''],['minDiameter','d4','Spannbereich','mm'],['totalLength','l1','Länge','mm']],
@@ -210,6 +231,7 @@ function type(k,t){
  if(k==='turn'||(k==='insertholder'&&t&&t.inKind==='Vierkantschaft'))return 'turn';
  if(k==='insertholder')return 'millhead';
  if(k==='erchuck')return 'erchuck';
+ if(t&&t.toolKind==='Fräsdorn')return 'arbor';
  if(['shrink','hydro','weldon'].includes(k))return 'bore';
  if(k==='collet')return 'collet';
  if(k==='reducer')return 'reducer';
@@ -227,7 +249,7 @@ function draw(t,kindKey){
  switch(ty){
   case 'mill':H=mill(o,'endmill',t);break;case 'ball':case 'radius':case 'lolli':H=mill(o,ty,t);break;
   case 'drill':H=drill(o,t);break;case 'tap':H=tap(o,t);break;case 'turn':H=turn(o);break;case 'millhead':H=millhead(o);break;
-  case 'erchuck':H=erchuck(o,t);break;case 'bore':H=boreHolder(o,t,kindKey);break;case 'collet':H=collet(o,t);break;case 'reducer':H=reducer(o);break;
+  case 'erchuck':H=erchuck(o,t);break;case 'bore':H=(t&&t.toolKind==='Bohrfutter')?chuck(o,t):boreHolder(o,t,kindKey);break;case 'arbor':H=arbor(o,t);break;case 'collet':H=collet(o,t);break;case 'reducer':H=reducer(o);break;
   case 'extension':H=extension(o);break;case 'insert':H=insert(o,t);break;
  }
  const rows=ROWS[ty==='ball'?'mill':ty].map(([key,abbr,name,unit])=>({key,abbr,name,value:value(t,key,unit)}));
