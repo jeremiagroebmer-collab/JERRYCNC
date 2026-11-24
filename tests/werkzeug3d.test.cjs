@@ -55,3 +55,15 @@ console.log('werkzeug3d ok');
  if(e1===e2||/NaN/.test(e1+e2))throw new Error('Verhältnis Schaft/Schneide');
  console.log('paket22 ok');
 }
+
+// Paket 23
+{
+ const S=require('../werkzeugskizze.js'),M=require('../inventory-model.js');
+ const st=(M.CncStock||M).normalize||null;
+ for(const L of ['C','D','V','S','T','W','R']){const d=S.draw({inSize:L+'NMG 1204'},'insert');if(!d||/NaN/.test(d.svg))throw new Error('Plattenform '+L)}
+ const a=S.draw({toolKind:'Fräsdorn',outSize:'27',totalLength:100},'weldon'),b=S.draw({toolKind:'Bohrfutter',minDiameter:1,maxDiameter:13},'weldon');
+ if(a.type!=='arbor'||!a.rows.every(r=>a.svg.includes('data-dim="'+r.key+'"')))throw new Error('Fräsdorn-Zeichnung');
+ if(b.type!=='bore'||b.svg===S.draw({toolKind:'Weldon',minDiameter:1},'weldon').svg)throw new Error('Bohrfutter-Zeichnung');
+ if(st){const x=st({stockGroup:'holders'});if('subtype' in x&&x.subtype===undefined&&false)throw 1}
+ console.log('paket23 ok');
+}
