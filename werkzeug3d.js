@@ -99,7 +99,7 @@ function assembly(db,a,Tooling,opts={}){
    const x=shift(p,zNose+A_-p.L,id,t,['totalLength']);x.hiddenTo=carrierNose;m.parts.push(x);
    const ins=p.L-A_,tip=zNose+A_;m.A=A_;m.I=ins;m.tipZ=tip;m.noseZ=zNose;m.cut=p;
    m.extraDims.push({key:'stickout',type:'len',z0:zNose,z1:tip,text:'Auspannlänge '+fmt(A_),part:id,hl:{part:id,fromZ:zNose}},{key:'insert',type:'len',z0:tip-p.L,z1:zNose,text:'Eingespannt '+fmt(ins),part:id,hl:{tags:['shank'],part:id,toZ:zNose}});
-   if(ins<2.5*p.S)m.warn.push('Nur '+fmt(ins)+' mm eingespannt = '+fmt(ins/p.S)+' × Schaft-Ø. Besser mindestens 2,5 × Ø einspannen.');
+   {const MINF={Spannzangenfutter:2.5,Schrumpffutter:2,Hydrodehnspannfutter:2,Weldon:2,Bohrfutter:2.5},f=MINF[holderT&&holderT.system]||2.5;if(ins<f*p.S)m.warn.push('Nur '+fmt(ins)+' mm eingespannt = '+fmt(ins/p.S)+' × Schaft-Ø. Richtwert'+(holderT&&MINF[holderT.system]?' für '+holderT.system:'')+': mindestens '+fmt(f).replace('.',',')+' × Ø einspannen. Bitte mit Herstellerangabe vergleichen.')}
    {const idp=holderT?num(holderT.insertDepth):null;if(idp>0&&ins>idp+0.01)m.warn.push('Eingespannt '+fmt(ins)+' mm, aber das Futter nimmt nur '+fmt(idp)+' mm auf. Auspannlänge erhöhen oder ein kürzeres Werkzeug nehmen.')}
    if(A_<p.l)m.warn.push('Auspannlänge '+fmt(A_)+' mm ist kleiner als die Schneidenlänge '+fmt(p.l)+' mm: die Schneide steckt noch im Futter.');
    if(A_/p.D>4)m.warn.push('Lange Auskragung ('+fmt(A_/p.D)+' × Ø). Schnittwerte senken oder kürzer ausspannen.');

@@ -97,7 +97,7 @@ function tap(o,t){
  o.out.push('<rect x="'+(cx-6)+'" y="'+(yt+5)+'" width="12" height="12" fill="none" stroke="'+INK+'"/>');
  o.poly([[cx-hs,y1],[cx+hs,y1],[cx+hc,y2],[cx-hc,y2]],'cutter',[]);
  o.poly([[cx-hc,y2],[cx+hc,y2],[cx+hc,ye-18],[cx+hc-5,ye],[cx-hc+5,ye],[cx-hc,ye-18]],'cutter',['diameter','cuttingLength']);
- for(let y=y2+8;y<ye-6;y+=9)o.line(cx-hc,y+5,cx+hc,y-3,.55);
+ {const pt=num(t.threadPitch),d=num(t.diameter),sp=pt>0&&d>0?Math.max(5,Math.min(16,pt/d*hc*2*5)):9;for(let y=y2+8;y<ye-6;y+=sp)o.line(cx-hc,y+5,cx+hc,y-3,.55)}
  o.hin('shaftDiameter','d2',yt-24,cx-hs,cx+hs,yt);
  o.hin('diameter','d1',ye+26,cx-hc,cx+hc,ye);
  o.vd('cuttingLength','l3',cx-60,y2,ye,cx-hc,cx-hc+5,-1);
