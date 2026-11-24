@@ -26,7 +26,7 @@ function cutter(t,k){
  if(k==='lolli'){const r=D/2,R=S/2,nd=num(t.neckDiameter),rn=Math.min(r*0.95,Math.max(0.5,(nd||D*0.5)/2)),ln=num(t.neckLength)||D*3;if(!nd)est.push('Hals-Ø');if(!num(t.neckLength))est.push('Halslänge');const zb=L-r,zt=L-2*r,zn=Math.max(1,zt-ln),a0=Math.asin(rn/r),pts=[[0,R,'shank'],[zn,R,'shank'],[zn,rn,'neck'],[zb-Math.sqrt(Math.max(0,r*r-rn*rn)),rn,'neck']];for(let i=1;i<=12;i++){const al=a0+(Math.PI-a0)*i/12;pts.push([zb-r*Math.cos(al),r*Math.sin(al),'flute'])}return {kind:k,group:'cutter',pts,L,rMax:Math.max(R,r),est,flute:false,teeth:0,D,S,l:2*r,dims:[{key:'shaftDiameter',type:'dia',z:zn*0.5,r:R,text:'Schaft Ø'+fmt(S),hl:{tags:['shank']}},{key:'diameter',type:'dia',z:zb,r:r,text:'Kugel Ø'+fmt(D),hl:{tags:['flute']}},{key:'neckDiameter',type:'dia',z:(zn+zt)/2,r:rn,text:'Hals Ø'+fmt(rn*2),hl:{tags:['neck']}},{key:'neckLength',type:'len',z0:zn,z1:zt,text:'Hals '+fmt(zt-zn),hl:{tags:['neck']}},{key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}}]}}
  const r=D/2,R=S/2,zc=L-l,ch=S>D?Math.min(2,(S-D)/2):0,pts=[[0,R,'shank'],[Math.max(0,zc-ch),R,'shank']];
  pts.push([zc,r,ch>0||S!==D?'neck':'shank']);
- const tip=k==='ball'?r:k==='drill'?r/Math.tan(59*Math.PI/180):k==='tap'?Math.min(l,D*0.6):k==='radius'?Math.min(r,num(t.cornerRadius)||D*0.15):0,zt=Math.max(zc,L-tip);
+ const tip=k==='ball'?r:k==='drill'?r/Math.tan(Math.min(170,Math.max(60,num(t.pointAngle)||118))/2*Math.PI/180):k==='tap'?Math.min(l,D*0.6):k==='radius'?Math.min(r,num(t.cornerRadius)||D*0.15):0,zt=Math.max(zc,L-tip);
  if(zt>zc)pts.push([zt,r,'flute']);
  if(k==='ball'){for(let i=1;i<=8;i++){const f=i/8*Math.PI/2;pts.push([zt+r*Math.sin(f),r*Math.cos(f),'flute'])}}
  else if(k==='drill')pts.push([L,0,'flute']);
@@ -86,7 +86,7 @@ function single(t){
 // Zusammenbau: Messebene z=0, Schneide unten. Auspannlänge = wie weit das Werkzeug aus der Spannzange / dem Futter steht.
 function assembly(db,a,Tooling,opts={}){
  const c=Tooling.chain(db,a),rows=c.rows.filter(r=>r.part);if(!rows.length)return null;
- const m={parts:[],warn:[],est:[],extraDims:[],title:a.title||''};let zNose=0,holderNose=null,carrierNose=0,first=true;const so=num(opts.stickout!==undefined?opts.stickout:a.stickout);
+ const m={parts:[],warn:[],est:[],extraDims:[],title:a.title||''};let zNose=0,holderNose=null,carrierNose=0,first=true;const so0=num(opts.stickout!==undefined?opts.stickout:a.stickout),so=so0>0?so0:null;
  rows.forEach((r,i)=>{
   const t=r.part,A=Art(),k=A?A.kind(t):'generic',id='p'+i,g=GROUP(k);
   if(g==='holder'&&first){const p=buildPart(t,{asm:true});if(!p)return;m.parts.push(shift(p,0,id,t,['totalLength']));zNose=p.L;holderNose=p.L;carrierNose=p.L;first=false;return}

@@ -41,3 +41,17 @@ assert.equal(W.assembly(db,{machineId:'m',components:[]},T),null);
 // Auch ohne Maße muss eine Zeichnung entstehen
 for(const grp of ['cutting','holders'])for(const kind of S.kinds[grp]){const tool=mk({toolKind:kind,stockGroup:grp});const m3=W.single(tool);assert.ok(m3,kind);assert.ok(!W.drawing(m3).includes('NaN'),kind);const d=SK.draw(tool,A.kind(tool));if(d)assert.ok(!d.svg.includes('NaN')&&d.rows.every(r=>r.value===null),kind);assert.ok(W.mesh(m3,12).length>0,kind)}
 console.log('werkzeug3d ok');
+
+// Paket 22
+{
+ const T=require('../tooling.js'),S=require('../werkzeugskizze.js'),D=require('../werkzeug3d.js');
+ const db={machines:[{id:'m',title:'M',turret:'20x20'}],tools:[{id:'h',role:'Aufnahme/Futter',projection:70},{id:'c',role:'Schneidwerkzeug',totalLength:83,projection:45}],toolassemblies:[]};
+ const a={components:[{id:'h'},{id:'c'}],stickout:200};
+ if(T.length(db,a).value!==153)throw new Error('Auspannlänge muss auf Werkzeuglänge begrenzt werden: '+T.length(db,a).value);
+ a.stickout=0;if(T.length(db,a).value!==115)throw new Error('stickout 0 ignorieren');
+ const d1=S.draw({diameter:10,shaftDiameter:10,pointAngle:140},'drill'),d2=S.draw({diameter:10,shaftDiameter:10,pointAngle:90},'drill');
+ if(!d1||d1.svg===d2.svg)throw new Error('Spitzenwinkel wirkt nicht auf die Zeichnung');
+ const e1=S.draw({diameter:6,shaftDiameter:12},'endmill').svg,e2=S.draw({diameter:12,shaftDiameter:6},'endmill').svg;
+ if(e1===e2||/NaN/.test(e1+e2))throw new Error('Verhältnis Schaft/Schneide');
+ console.log('paket22 ok');
+}
