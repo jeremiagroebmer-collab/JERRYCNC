@@ -17,13 +17,15 @@ function kind(t){
  if(role==='Wendeschneidplatte'||t.componentType==='Wendeplatte')return 'insert';
  if(/drehmeissel|drehwerkzeug/.test(sub))return 'turn';
  if(/gewindebohr|gewindeform|gewindefras/.test(sub))return 'tap';
+ if(/lolli/.test(sub))return 'lolli';
+ if(/radiusfr|eckradius|torus/.test(sub))return 'radius';
  if(/kugel/.test(sub))return 'ball';
  if(/bohrer|reibahle|senker/.test(sub))return 'drill';
  if(role==='Schneidwerkzeug'||t.componentType==='Schneidwerkzeug'||/frae|fras|schaft/.test(sub))return 'endmill';
  return 'generic';
 }
-const GROUP={adapter:'spindle',erchuck:'holder',shrink:'holder',hydro:'holder',weldon:'holder',collet:'collet',reducer:'collet',extension:'holder',insertholder:'holder',turn:'cutter',tap:'cutter',ball:'cutter',drill:'cutter',endmill:'cutter',insert:'insert',generic:'generic'};
-const LABEL={adapter:'Maschinenanschluss',erchuck:'ER-Futter',shrink:'Schrumpffutter',hydro:'Dehnspannfutter',weldon:'Weldon-Aufnahme',collet:'Spannzange',reducer:'Reduzierhülse',extension:'Verlängerung',insertholder:'Plattenhalter',turn:'Drehwerkzeug',tap:'Gewindewerkzeug',ball:'Kugelfräser',drill:'Bohrer',endmill:'Fräser',insert:'Wendeplatte',generic:'Teil',spindle:'Maschine'};
+const GROUP={adapter:'spindle',erchuck:'holder',shrink:'holder',hydro:'holder',weldon:'holder',collet:'collet',reducer:'collet',extension:'holder',insertholder:'holder',turn:'cutter',tap:'cutter',ball:'cutter',lolli:'cutter',radius:'cutter',drill:'cutter',endmill:'cutter',insert:'insert',generic:'generic'};
+const LABEL={adapter:'Maschinenanschluss',erchuck:'ER-Futter',shrink:'Schrumpffutter',hydro:'Dehnspannfutter',weldon:'Weldon-Aufnahme',collet:'Spannzange',reducer:'Reduzierhülse',extension:'Verlängerung',insertholder:'Plattenhalter',turn:'Drehwerkzeug',tap:'Gewindewerkzeug',ball:'Kugelfräser',lolli:'Lollipopfräser',radius:'Radiusfräser',drill:'Bohrer',endmill:'Fräser',insert:'Wendeplatte',generic:'Teil',spindle:'Maschine'};
 const st=(fill,extra='')=>'fill="'+fill+'" fill-opacity=".85" stroke="'+INK+'" stroke-width="1.3" stroke-linejoin="round" '+extra;
 const ln=(x1,y1,x2,y2,o='.6')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+INK+'" stroke-width="1" stroke-opacity="'+o+'"/>';
 const poly=(pts,fill)=>'<polygon points="'+pts.map(p=>p.join(',')).join(' ')+'" '+st(fill)+'/>';
@@ -46,7 +48,8 @@ function shape(k,cx,y,d){
   case 'tap':return {h:56,w:cw,svg:rect(cx-5,y,10,22,g,1)+rect(cx-3,y+22,6,8,g,0)+rect(cx-cw/4-2,y+30,cw/2+4,26,g,2)+[0,1,2,3,4].map(i=>ln(cx-cw/4-2,y+34+i*5,cx+cw/4+2,y+36+i*5)).join('')};
   case 'drill':return {h:60,w:cw,svg:rect(cx-6,y,12,22,g,1)+rect(cx-cw/2,y+22,cw,28,g,2)+poly([[cx-cw/2,y+50],[cx+cw/2,y+50],[cx,y+60]],g)+ln(cx-cw/2,y+30,cx+cw/2,y+42)+ln(cx-cw/2,y+38,cx+cw/2,y+50)};
   case 'ball':return {h:58,w:cw,svg:rect(cx-6,y,12,22,g,1)+'<path d="M'+(cx-cw/2)+' '+(y+22)+'H'+(cx+cw/2)+'V'+(y+40)+'A'+(cw/2)+' '+(cw/2)+' 0 0 1 '+(cx-cw/2)+' '+(y+40)+'Z" '+st(g)+'/>'+ln(cx-cw/2,y+28,cx+cw/2,y+38)};
-  case 'endmill':return {h:54,w:cw,svg:rect(cx-6,y,12,22,g,1)+rect(cx-cw/2,y+22,cw,32,g,2)+ln(cx-cw/2,y+28,cx+cw/2,y+40)+ln(cx-cw/2,y+36,cx+cw/2,y+48)+ln(cx-cw/2,y+44,cx+cw/2,y+54)};
+  case 'lolli':return {h:58,w:cw,svg:rect(cx-6,y,12,20,g,1)+rect(cx-2,y+20,4,14,g,0)+'<circle cx="'+cx+'" cy="'+(y+44)+'" r="'+Math.max(8,cw/2.4)+'" '+st(g)+'/>'};
+  case 'endmill':case 'radius':return {h:54,w:cw,svg:rect(cx-6,y,12,22,g,1)+rect(cx-cw/2,y+22,cw,32,g,2)+ln(cx-cw/2,y+28,cx+cw/2,y+40)+ln(cx-cw/2,y+36,cx+cw/2,y+48)+ln(cx-cw/2,y+44,cx+cw/2,y+54)};
   default:return {h:36,w:30,svg:rect(cx-14,y,28,36,g,5)};
  }
 }
@@ -86,6 +89,9 @@ function stack(db,a,Tooling){
 // Kacheln für "Was legst du an?"
 const tiles=[
  {k:'endmill',label:'Fräser',kind:'Schaftfräser',group:'cutting'},
+ {k:'ball',label:'Kugelfräser',kind:'Kugelfräser',group:'cutting'},
+ {k:'lolli',label:'Lollipop',kind:'Lollipopfräser',group:'cutting'},
+ {k:'radius',label:'Radiusfräser',kind:'Radiusfräser',group:'cutting'},
  {k:'drill',label:'Bohrer',kind:'Bohrer',group:'cutting'},
  {k:'tap',label:'Gewindebohrer',kind:'Gewindebohrer',group:'cutting'},
  {k:'erchuck',label:'ER-Futter',kind:'Spannzangenfutter',group:'holders'},
