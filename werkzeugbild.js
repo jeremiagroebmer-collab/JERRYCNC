@@ -4,7 +4,7 @@
 const norm=v=>String(v||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ß/g,'ss');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>v!==''&&v!==null&&v!==undefined&&Number.isFinite(Number(v))?Number(v):null;
-const INK='var(--ink,#cfe0ee)',COL={holder:'#5f7f9f',collet:'#d4a03a',cutter:'#2fb5a3',insert:'#c9657a',spindle:'#7c8a99',generic:'#8795a3'};
+const INK='var(--ink,#cfe0ee)';
 // Welche Zeichnung gehört zu einem Teil?
 function kind(t){
  if(!t)return 'generic';
@@ -26,36 +26,45 @@ function kind(t){
 }
 const GROUP={adapter:'spindle',erchuck:'holder',shrink:'holder',hydro:'holder',weldon:'holder',collet:'collet',reducer:'collet',extension:'holder',insertholder:'holder',turn:'cutter',tap:'cutter',ball:'cutter',lolli:'cutter',radius:'cutter',drill:'cutter',endmill:'cutter',insert:'insert',generic:'generic'};
 const LABEL={adapter:'Maschinenanschluss',erchuck:'ER-Futter',shrink:'Schrumpffutter',hydro:'Dehnspannfutter',weldon:'Weldon-Aufnahme',collet:'Spannzange',reducer:'Reduzierhülse',extension:'Verlängerung',insertholder:'Plattenhalter',turn:'Drehwerkzeug',tap:'Gewindewerkzeug',ball:'Kugelfräser',lolli:'Lollipopfräser',radius:'Radiusfräser',drill:'Bohrer',endmill:'Fräser',insert:'Wendeplatte',generic:'Teil',spindle:'Maschine'};
-const st=(fill,extra='')=>'fill="'+fill+'" fill-opacity=".85" stroke="'+INK+'" stroke-width="1.3" stroke-linejoin="round" '+extra;
-const ln=(x1,y1,x2,y2,o='.6')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+INK+'" stroke-width="1" stroke-opacity="'+o+'"/>';
+const OL='#2a3642';
+const st=(fill,extra='')=>'fill="'+fill+'" stroke="'+OL+'" stroke-width="1.1" stroke-linejoin="round" '+extra;
+const ln=(x1,y1,x2,y2,o='.5')=>'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#14202b" stroke-width=".9" stroke-opacity="'+o+'" stroke-linecap="round"/>';
+const crv=(d,o='.55')=>'<path d="'+d+'" fill="none" stroke="#0d3a35" stroke-width="1" stroke-opacity="'+o+'" stroke-linecap="round"/>';
 const poly=(pts,fill)=>'<polygon points="'+pts.map(p=>p.join(',')).join(' ')+'" '+st(fill)+'/>';
 const rect=(x,y,w,h,fill,r=2)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+r+'" '+st(fill)+'/>';
+// Metall-Verläufe quer zur Achse (Zylinder-Optik), in jeder Zeichnung einmal eingebettet
+const DEFS='<defs><linearGradient id="ta-c" x1="0" x2="1"><stop offset="0" stop-color="#1c7a70"/><stop offset=".32" stop-color="#8fe3d6"/><stop offset=".62" stop-color="#2fb5a3"/><stop offset="1" stop-color="#16625a"/></linearGradient><linearGradient id="ta-h" x1="0" x2="1"><stop offset="0" stop-color="#4b6682"/><stop offset=".3" stop-color="#b4c8dc"/><stop offset=".62" stop-color="#6f8cab"/><stop offset="1" stop-color="#3d546c"/></linearGradient><linearGradient id="ta-g" x1="0" x2="1"><stop offset="0" stop-color="#9a6f1c"/><stop offset=".3" stop-color="#f1d083"/><stop offset=".62" stop-color="#d4a03a"/><stop offset="1" stop-color="#85601a"/></linearGradient><linearGradient id="ta-i" x1="0" x2="1" y2="1"><stop offset="0" stop-color="#8e3a4f"/><stop offset=".45" stop-color="#e48aa0"/><stop offset="1" stop-color="#a24a60"/></linearGradient><linearGradient id="ta-s" x1="0" x2="1"><stop offset="0" stop-color="#6b7886"/><stop offset=".3" stop-color="#e3e8ed"/><stop offset=".62" stop-color="#a3adb8"/><stop offset="1" stop-color="#5e6b78"/></linearGradient></defs>';
+const COL={holder:'url(#ta-h)',collet:'url(#ta-g)',cutter:'url(#ta-c)',insert:'url(#ta-i)',spindle:'url(#ta-s)',steel:'url(#ta-s)',generic:'url(#ta-s)'};
+const SOLID={cutter:'#2fb5a3'};
+// Taper-Stummel oben (Maschinenseite) für Halter
+const taper=(cx,y,h=14,w=12)=>poly([[cx-w,y],[cx+w,y],[cx+w+4,y+h],[cx-w-4,y+h]],COL.steel);
 // Eine Form zeichnen: Mitte cx, Oberkante y, Durchmesser d (nur Schneiden). Gibt {svg,h,w} zurück.
 function shape(k,cx,y,d){
- const g=COL[GROUP[k]||'generic'],cw=Math.max(8,Math.min(38,(num(d)||8)*2.4));
+ const g=COL[GROUP[k]||'generic'],cw=Math.max(10,Math.min(36,(num(d)||8)*2.4)),R=cw/2,S=COL.steel;
  switch(k){
-  case 'adapter':return {h:34,w:64,svg:rect(cx-32,y,64,8,g)+poly([[cx-26,y+8],[cx+26,y+8],[cx+14,y+34],[cx-14,y+34]],g)};
-  case 'erchuck':return {h:58,w:48,svg:poly([[cx-24,y],[cx+24,y],[cx+14,y+22],[cx-14,y+22]],g)+rect(cx-14,y+22,28,12,g,1)+rect(cx-19,y+34,38,24,g,4)+ln(cx-9,y+38,cx-9,y+54)+ln(cx,y+38,cx,y+54)+ln(cx+9,y+38,cx+9,y+54)};
-  case 'shrink':return {h:56,w:44,svg:poly([[cx-22,y],[cx+22,y],[cx+9,y+56],[cx-9,y+56]],g)+ln(cx,y+14,cx,y+56,'.4')};
-  case 'hydro':return {h:52,w:40,svg:rect(cx-20,y,40,14,g,3)+poly([[cx-16,y+14],[cx+16,y+14],[cx+10,y+52],[cx-10,y+52]],g)+ln(cx-16,y+22,cx+16,y+22)};
-  case 'weldon':return {h:44,w:34,svg:rect(cx-17,y,34,44,g,3)+rect(cx+17,y+16,6,12,g,1)};
-  case 'collet':return {h:22,w:28,svg:poly([[cx-13,y],[cx+13,y],[cx+9,y+22],[cx-9,y+22]],g)+ln(cx-5,y+3,cx-4,y+19)+ln(cx,y+3,cx,y+19)+ln(cx+5,y+3,cx+4,y+19)};
-  case 'reducer':return {h:26,w:28,svg:poly([[cx-14,y],[cx+14,y],[cx+9,y+26],[cx-9,y+26]],g)};
-  case 'extension':return {h:40,w:24,svg:rect(cx-11,y,22,40,g,2)+ln(cx-11,y+7,cx+11,y+7)+ln(cx-11,y+33,cx+11,y+33)};
-  case 'insertholder':return {h:46,w:34,svg:rect(cx-16,y,32,32,g,3)+poly([[cx,y+30],[cx+10,y+38],[cx,y+46],[cx-10,y+38]],COL.insert)};
-  case 'insert':return {h:22,w:26,svg:poly([[cx,y],[cx+13,y+11],[cx,y+22],[cx-13,y+11]],g)};
-  case 'turn':return {h:42,w:38,svg:rect(cx-18,y,36,34,g,2)+poly([[cx-18,y+34],[cx-6,y+34],[cx-18,y+42]],COL.insert)};
-  case 'tap':return {h:56,w:cw,svg:rect(cx-5,y,10,22,g,1)+rect(cx-3,y+22,6,8,g,0)+rect(cx-cw/4-2,y+30,cw/2+4,26,g,2)+[0,1,2,3,4].map(i=>ln(cx-cw/4-2,y+34+i*5,cx+cw/4+2,y+36+i*5)).join('')};
-  case 'drill':return {h:60,w:cw,svg:rect(cx-6,y,12,22,g,1)+rect(cx-cw/2,y+22,cw,28,g,2)+poly([[cx-cw/2,y+50],[cx+cw/2,y+50],[cx,y+60]],g)+ln(cx-cw/2,y+30,cx+cw/2,y+42)+ln(cx-cw/2,y+38,cx+cw/2,y+50)};
-  case 'ball':return {h:58,w:cw,svg:rect(cx-6,y,12,22,g,1)+'<path d="M'+(cx-cw/2)+' '+(y+22)+'H'+(cx+cw/2)+'V'+(y+40)+'A'+(cw/2)+' '+(cw/2)+' 0 0 1 '+(cx-cw/2)+' '+(y+40)+'Z" '+st(g)+'/>'+ln(cx-cw/2,y+28,cx+cw/2,y+38)};
-  case 'lolli':return {h:58,w:cw,svg:rect(cx-6,y,12,20,g,1)+rect(cx-2,y+20,4,14,g,0)+'<circle cx="'+cx+'" cy="'+(y+44)+'" r="'+Math.max(8,cw/2.4)+'" '+st(g)+'/>'};
-  case 'endmill':case 'radius':return {h:54,w:cw,svg:rect(cx-6,y,12,22,g,1)+rect(cx-cw/2,y+22,cw,32,g,2)+ln(cx-cw/2,y+28,cx+cw/2,y+40)+ln(cx-cw/2,y+36,cx+cw/2,y+48)+ln(cx-cw/2,y+44,cx+cw/2,y+54)};
-  default:return {h:36,w:30,svg:rect(cx-14,y,28,36,g,5)};
+  case 'adapter':return {h:34,w:64,svg:rect(cx-32,y,64,8,S,2)+poly([[cx-26,y+8],[cx+26,y+8],[cx+14,y+34],[cx-14,y+34]],S)+ln(cx-20,y+12,cx-11,y+30,.25)};
+  case 'erchuck':return {h:58,w:48,svg:taper(cx,y,13)+rect(cx-24,y+13,48,5,g,1)+poly([[cx-18,y+18],[cx+18,y+18],[cx+15,y+35],[cx-15,y+35]],g)+rect(cx-19,y+35,38,17,g,3)+[-12,-4,4,12].map(x=>ln(cx+x,y+38,cx+x,y+49)).join('')+rect(cx-9,y+52,18,6,COL.collet,1)};
+  case 'shrink':return {h:56,w:44,svg:taper(cx,y,12)+rect(cx-22,y+12,44,5,g,1)+poly([[cx-17,y+17],[cx+17,y+17],[cx+7,y+56],[cx-7,y+56]],g)+ln(cx-5,y+24,cx-2,y+52,.3)};
+  case 'hydro':return {h:52,w:40,svg:taper(cx,y,11)+rect(cx-21,y+11,42,5,g,1)+poly([[cx-17,y+16],[cx+17,y+16],[cx+12,y+27],[cx+12,y+52],[cx-12,y+52],[cx-12,y+27]],g)+'<circle cx="'+cx+'" cy="'+(y+34)+'" r="2.6" '+st('#c9d3dc')+'/>'};
+  case 'weldon':return {h:44,w:34,svg:taper(cx,y,9,10)+rect(cx-20,y+9,40,5,g,1)+rect(cx-14,y+14,28,30,g,3)+rect(cx+14,y+27,6,9,S,1)+ln(cx-8,y+18,cx-8,y+40,.25)};
+  case 'collet':return {h:22,w:28,svg:poly([[cx-13,y],[cx+13,y],[cx+9,y+22],[cx-9,y+22]],g)+[-6,-2,2,6].map(x=>ln(cx+x,y+2,cx+x*0.8,y+20,.4)).join('')+ln(cx-12,y+4,cx+12,y+4,.35)};
+  case 'reducer':return {h:26,w:28,svg:poly([[cx-14,y],[cx+14,y],[cx+9,y+26],[cx-9,y+26]],g)+'<line x1="'+cx+'" y1="'+(y+3)+'" x2="'+cx+'" y2="'+(y+23)+'" stroke="#14202b" stroke-dasharray="2 2" stroke-opacity=".5"/>'};
+  case 'extension':return {h:40,w:24,svg:rect(cx-11,y,22,40,g,2)+ln(cx-11,y+6,cx+11,y+6,.5)+ln(cx-11,y+34,cx+11,y+34,.5)+ln(cx-11,y+20,cx+11,y+20,.25)};
+  case 'insertholder':return {h:46,w:34,svg:rect(cx-6,y,12,7,S,1)+poly([[cx-17,y+7],[cx+17,y+7],[cx+14,y+34],[cx-14,y+34]],g)+poly([[cx-16,y+30],[cx-9,y+30],[cx-11,y+40],[cx-18,y+38]],COL.insert)+poly([[cx+16,y+30],[cx+9,y+30],[cx+11,y+40],[cx+18,y+38]],COL.insert)+ln(cx-12,y+14,cx+12,y+14,.3)};
+  case 'insert':return {h:22,w:26,svg:poly([[cx,y],[cx+13,y+11],[cx,y+22],[cx-13,y+11]],g)+'<circle cx="'+cx+'" cy="'+(y+11)+'" r="3" '+st('#e9eef2')+'/>'};
+  case 'turn':return {h:42,w:38,svg:rect(cx-18,y,36,28,S,2)+poly([[cx-18,y+28],[cx+18,y+28],[cx+18,y+36],[cx+8,y+42],[cx-18,y+34]],S)+poly([[cx+8,y+30],[cx+18,y+30],[cx+18,y+38],[cx+10,y+41]],COL.insert)+ln(cx-18,y+10,cx+18,y+10,.2)};
+  case 'tap':return {h:56,w:cw,svg:rect(cx-4,y,8,6,S,1)+rect(cx-5,y+6,10,16,S,1)+poly([[cx-5,y+22],[cx+5,y+22],[cx+R*0.6+2,y+28],[cx-R*0.6-2,y+28]],S)+poly([[cx-R*0.6-2,y+28],[cx+R*0.6+2,y+28],[cx+R*0.6+2,y+51],[cx+R*0.35,y+56],[cx-R*0.35,y+56],[cx-R*0.6-2,y+51]],g)+[0,1,2,3,4].map(i=>ln(cx-R*0.6-2,y+33+i*4.6,cx+R*0.6+2,y+31+i*4.6,.55)).join('')};
+  case 'drill':return {h:60,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+poly([[cx-R,y+26],[cx+R,y+26],[cx+R,y+50],[cx,y+60],[cx-R,y+50]],g)+crv('M'+(cx-R)+' '+(y+28)+'C'+cx+' '+(y+32)+' '+cx+' '+(y+38)+' '+(cx+R)+' '+(y+44))+crv('M'+(cx-R)+' '+(y+36)+'C'+cx+' '+(y+40)+' '+cx+' '+(y+46)+' '+(cx+R*0.6)+' '+(y+55))};
+  case 'ball':return {h:58,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+58-R)+'A'+R+' '+R+' 0 0 1 '+(cx-R)+' '+(y+58-R)+'Z" '+st(g)+'/>'+crv('M'+(cx-R)+' '+(y+30)+'Q'+cx+' '+(y+34)+' '+(cx+R)+' '+(y+40))+crv('M'+(cx-R)+' '+(y+38)+'Q'+cx+' '+(y+42)+' '+(cx+R*0.7)+' '+(y+49))};
+  case 'lolli':return {h:58,w:cw,svg:rect(cx-6,y,12,20,S,1)+poly([[cx-6,y+20],[cx+6,y+20],[cx+2,y+25],[cx-2,y+25]],S)+rect(cx-2,y+25,4,15,S,0)+'<circle cx="'+cx+'" cy="'+(y+47)+'" r="'+Math.max(8,Math.min(11,R*0.8))+'" '+st(g)+'/>'+crv('M'+(cx-5)+' '+(y+44)+'Q'+cx+' '+(y+47)+' '+(cx+5)+' '+(y+52))};
+  case 'radius':return {h:54,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+49)+'Q'+(cx+R)+' '+(y+54)+' '+(cx+R-5)+' '+(y+54)+'H'+(cx-R+5)+'Q'+(cx-R)+' '+(y+54)+' '+(cx-R)+' '+(y+49)+'Z" '+st(g)+'/>'+crv('M'+(cx-R)+' '+(y+30)+'Q'+cx+' '+(y+34)+' '+(cx+R)+' '+(y+41))+crv('M'+(cx-R)+' '+(y+39)+'Q'+cx+' '+(y+43)+' '+(cx+R)+' '+(y+50))};
+  case 'endmill':return {h:54,w:cw,svg:rect(cx-6,y,12,21,S,1)+poly([[cx-6,y+21],[cx+6,y+21],[cx+R,y+26],[cx-R,y+26]],S)+'<path d="M'+(cx-R)+' '+(y+26)+'H'+(cx+R)+'V'+(y+52)+'L'+(cx+R-2)+' '+(y+54)+'H'+(cx-R+2)+'L'+(cx-R)+' '+(y+52)+'Z" '+st(g)+'/>'+crv('M'+(cx-R)+' '+(y+30)+'Q'+cx+' '+(y+34)+' '+(cx+R)+' '+(y+41))+crv('M'+(cx-R)+' '+(y+39)+'Q'+cx+' '+(y+43)+' '+(cx+R)+' '+(y+50))};
+  default:return {h:36,w:30,svg:rect(cx-14,y,28,36,S,5)};
  }
 }
 // Einzelnes Teil als kleines Bild (für Karten und Listen).
-function icon(t,size=44){const k=kind(t),s=shape(k,30,6,t&&t.diameter);return '<svg class="tool-art" viewBox="0 0 60 70" width="'+size+'" height="'+Math.round(size*70/60)+'" role="img" aria-label="'+esc(LABEL[k]||'Teil')+'">'+s.svg+'</svg>'}
-function kindIcon(k,size=64){const s=shape(k,30,6,8);return '<svg class="tool-art" viewBox="0 0 60 70" width="'+size+'" height="'+Math.round(size*70/60)+'" role="img" aria-label="'+esc(LABEL[k]||'Teil')+'">'+s.svg+'</svg>'}
+function icon(t,size=44){const k=kind(t),s=shape(k,30,6,t&&t.diameter);return '<svg class="tool-art" viewBox="0 0 60 70" width="'+size+'" height="'+Math.round(size*70/60)+'" role="img" aria-label="'+esc(LABEL[k]||'Teil')+'">'+DEFS+s.svg+'</svg>'}
+function kindIcon(k,size=64){const s=shape(k,30,6,8);return '<svg class="tool-art" viewBox="0 0 60 70" width="'+size+'" height="'+Math.round(size*70/60)+'" role="img" aria-label="'+esc(LABEL[k]||'Teil')+'">'+DEFS+s.svg+'</svg>'}
 // Was wird als Nächstes gebraucht?
 function nextHint(up){
  if(!up)return 'Zuerst Maschine wählen';
@@ -82,9 +91,9 @@ function stack(db,a,Tooling){
   out.push(s.svg+label(y+4+Math.min(20,s.h/2-8),r.part?(r.part.title||r.part.number):'Teil fehlt',t2,!r.ok));
   y+=4+s.h;
  }
- if(!c.complete){y+=10;out.push('<rect x="'+(cx-34)+'" y="'+y+'" width="68" height="40" rx="8" fill="none" stroke="'+COL.cutter+'" stroke-width="1.6" stroke-dasharray="5 4"/><text x="'+cx+'" y="'+(y+25)+'" font-size="20" text-anchor="middle" fill="'+COL.cutter+'">+</text><text x="170" y="'+(y+16)+'" font-size="12" font-weight="700" fill="'+INK+'">Als Nächstes</text><text x="170" y="'+(y+31)+'" font-size="10.5" fill="'+INK+'" fill-opacity=".8">'+esc(cut(nextHint(c.up),38))+'</text>');y+=40}
+ if(!c.complete){y+=10;out.push('<rect x="'+(cx-34)+'" y="'+y+'" width="68" height="40" rx="8" fill="none" stroke="'+SOLID.cutter+'" stroke-width="1.6" stroke-dasharray="5 4"/><text x="'+cx+'" y="'+(y+25)+'" font-size="20" text-anchor="middle" fill="'+SOLID.cutter+'">+</text><text x="170" y="'+(y+16)+'" font-size="12" font-weight="700" fill="'+INK+'">Als Nächstes</text><text x="170" y="'+(y+31)+'" font-size="10.5" fill="'+INK+'" fill-opacity=".8">'+esc(cut(nextHint(c.up),38))+'</text>');y+=40}
  y+=10;
- return '<svg class="tool-stack" viewBox="0 0 '+W+' '+y+'" width="100%" role="img" aria-label="Aufbau des Werkzeugs von der Maschine bis zur Schneide">'+out.join('')+joints.join('')+'</svg>';
+ return '<svg class="tool-stack" viewBox="0 0 '+W+' '+y+'" width="100%" role="img" aria-label="Aufbau des Werkzeugs von der Maschine bis zur Schneide">'+DEFS+out.join('')+joints.join('')+'</svg>';
 }
 // Kacheln für "Was legst du an?"
 const tiles=[
