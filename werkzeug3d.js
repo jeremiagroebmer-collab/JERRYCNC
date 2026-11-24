@@ -18,7 +18,7 @@ const GROUP=k=>CUT.includes(k)?'cutter':HOLD.includes(k)?'holder':(k==='collet'|
 // ---------- Teile als Profil: [[z, r, tag], ...]  z nach unten (Schneide unten), r = Radius, tag = Zone der Strecke vom Vorpunkt zu diesem Punkt
 function cutter(t,k){
  const est=[];let D=num(t.diameter),S=num(t.shaftDiameter);if(S===null&&t.inKind==='Zylinderschaft')S=num(t.inSize);
- if(!(D>0)&&!(S>0))return null;
+ if(!(D>0)&&!(S>0)){D=10;S=10;est.push('Schneiden-Ø','Schaft-Ø')}
  if(!(D>0)){D=S;est.push('Schneiden-Ø')}if(!(S>0)){S=D;est.push('Schaft-Ø')}
  let l=num(t.cuttingLength);if(!(l>0)){l=D*(k==='drill'?6:k==='ball'?2:2.5);est.push('Schneidenlänge')}
  let L=num(t.totalLength);if(!(L>0)){L=l+Math.max(20,2.5*S);est.push('Gesamtlänge')}
@@ -238,7 +238,7 @@ function view3d(canvas,getModel){
 // ---------- Bedienfeld (Zeichnung / 3D umschalten, Maße antippen)
 const chipText={shaftDiameter:'Schaft Ø',diameter:'Schneiden Ø',cuttingLength:'Schneidenlänge',totalLength:'Länge',stickout:'Auspannlänge',insert:'Eingespannt',holderLength:'Futterlänge',assemblyLength:'Gesamtlänge',minDiameter:'Aufnahme / Spannbereich',interface:'Anschluss',outSize:'Spannzange'};
 function panelHtml(o={}){
- return '<div class="t3d-panel'+(o.sticky?' sticky':'')+'" data-t3d="1"'+(o.asm?' data-t3d-asm="'+esc(o.asm)+'"':'')+(o.tool?' data-t3d-tool="'+esc(o.tool)+'"':'')+'><div class="t3d-tabs">'+(o.single?'<button type="button" data-t3d-tab="sketch" class="on">Skizze</button><button type="button" data-t3d-tab="draw">Maßstab</button>':'<button type="button" data-t3d-tab="draw" class="on">Zeichnung</button>')+'<button type="button" data-t3d-tab="3d">3D</button></div><div class="t3d-view"></div><div class="t3d-tools" hidden><button type="button" class="secondary" data-t3d-act="all">Ganz</button><button type="button" class="secondary" data-t3d-act="tip">Schneide</button><button type="button" class="secondary" data-t3d-act="spin">Drehen</button><button type="button" class="secondary" data-t3d-act="stl">STL laden</button></div><div class="t3d-chips"></div><p class="t3d-note muted small"></p></div>';
+ return '<div class="t3d-panel'+(o.sticky?' sticky':'')+'" data-t3d="1"'+(o.asm?' data-t3d-asm="'+esc(o.asm)+'"':'')+(o.tool?' data-t3d-tool="'+esc(o.tool)+'"':'')+'><div class="t3d-tabs">'+(o.single?'<button type="button" data-t3d-tab="sketch" class="on">Zeichnung</button>':'<button type="button" data-t3d-tab="draw" class="on">Zeichnung</button>')+'<button type="button" data-t3d-tab="3d">3D</button></div><div class="t3d-view"></div><div class="t3d-tools" hidden><button type="button" class="secondary" data-t3d-act="all">Ganz</button><button type="button" class="secondary" data-t3d-act="tip">Schneide</button><button type="button" class="secondary" data-t3d-act="spin">Drehen</button><button type="button" class="secondary" data-t3d-act="stl">STL laden</button></div><div class="t3d-chips"></div><p class="t3d-note muted small"></p></div>';
 }
 function download(name,bytes){const url=URL.createObjectURL(new Blob([bytes],{type:'model/stl'})),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 // el = Element aus panelHtml, getModel = () => Modell oder null, o.name = Dateiname, o.focusField = Feld mit Fokus -> Maß leuchtet
@@ -246,7 +246,8 @@ function mount(el,getModel,o={}){
  const view=el.querySelector('.t3d-view'),tools=el.querySelector('.t3d-tools'),chips=el.querySelector('.t3d-chips'),note=el.querySelector('.t3d-note');
  let tab=o.tab||(el.querySelector('[data-t3d-tab="sketch"]')?'sketch':'draw'),key=null,v3=null,m=null;
  function setKey(k){key=k===key?null:k;paint()}
- function paint(){
+ function paint(){try{paintInner()}catch(e){view.innerHTML='<p class="muted small">Die Zeichnung konnte nicht erstellt werden. Bitte Seite neu laden.</p>';if(root.console)console.error(e)}}
+ function paintInner(){
   m=getModel();
   const sk=m&&m.single&&root.CncSketch?root.CncSketch.draw(m.tool,m.parts[0].kind):null,skb=el.querySelector('[data-t3d-tab="sketch"]');if(skb)skb.hidden=!sk;const cur=tab==='sketch'&&!sk?'draw':tab;
   el.querySelectorAll('[data-t3d-tab]').forEach(b=>b.classList.toggle('on',b.dataset.t3dTab===cur));
