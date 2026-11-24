@@ -9,7 +9,7 @@ const INK='#1f2a37',HIT='#f59e0b',W=392,SH=46;
 const TINT={cutter:'url(#sk-c)',holder:'url(#sk-h)',collet:'url(#sk-g)',insert:'url(#sk-i)',spindle:'url(#sk-s)'};
 const grad=(id,a,b,c,d)=>'<linearGradient id="sk-'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+a+'"/><stop offset=".28" stop-color="'+b+'"/><stop offset=".6" stop-color="'+c+'"/><stop offset="1" stop-color="'+d+'"/></linearGradient>';
 const DEFS='<defs>'+grad('c','#2a8a80','#a9ece1','#46bfae','#1d6e65')+grad('h','#5c7894','#cfdeed','#86a0bc','#475f78')+grad('g','#a8791f','#f6dc9a','#dcab44','#8e671a')+grad('i','#9a4558','#f0a3b5','#b85a72','#7a3346')+grad('s','#7a8795','#eef1f4','#b2bbc5','#697684')+'</defs>';
-const CSS='<style>.t3d .dim{cursor:pointer}.t3d .dim line,.t3d .dim path{stroke:'+INK+';stroke-width:1;opacity:.85;fill:none}.t3d .dim polygon{fill:'+INK+';stroke:none}.t3d .dim text{fill:'+INK+';font-size:13px;font-weight:700}.t3d .dim .tg{font-weight:600;font-size:12px}.t3d .hl{display:none;pointer-events:none}.t3d[data-on] .dim{opacity:.4}.t3d[data-on] .dim.on{opacity:1}.t3d .dim.on line,.t3d .dim.on path{stroke:'+HIT+';stroke-width:2.2;opacity:1}.t3d .dim.on polygon{fill:'+HIT+'}.t3d .dim.on text{fill:'+HIT+'}.t3d .hl.on{display:inline}</style>';
+const CSS='<style>.t3d .dim{cursor:pointer}.t3d .dim line,.t3d .dim path{stroke:'+INK+';stroke-width:1;opacity:.85;fill:none}.t3d .dim polygon{fill:'+INK+';stroke:none}.t3d .dim text{fill:'+INK+';font-size:14.5px;font-weight:700}.t3d .dim .tg{font-weight:600;font-size:12px}.t3d .hl{display:none;pointer-events:none}.t3d[data-on] .dim{opacity:.4}.t3d[data-on] .dim.on{opacity:1}.t3d .dim.on line,.t3d .dim.on path{stroke:'+HIT+';stroke-width:2.2;opacity:1}.t3d .dim.on polygon{fill:'+HIT+'}.t3d .dim.on text{fill:'+HIT+'}.t3d .hl.on{display:inline}</style>';
 function kit(){
  const o={out:[],dims:[],hl:{}};
  const reg=(keys,el)=>(keys||[]).forEach(k=>(o.hl[k]=o.hl[k]||[]).push(el));
@@ -213,13 +213,7 @@ function value(t,key,unit){
  if(key==='minDiameter'){const a=num(t.minDiameter),b=num(t.maxDiameter);if(a===null)return null;return (b!==null&&b!==a?fmt(a)+'–'+fmt(b):fmt(a))+' mm'}
  const v=t[key];if(v===''||v===null||v===undefined)return null;const n=num(v);return n===null?String(v):fmt(n)+(unit?' '+unit:'');
 }
-const MAP={
- mill:{d1:'DC',d2:'DCONMS',d3:'DN',l1:'OAL',l2:'APMX',l3:'LU',A:'LPR',r:'RE'},
- drill:{d1:'DC',d2:'DCONMS',l1:'OAL',l2:'LU',A:'LPR','σ':'SIG'},
- tap:{d1:'DC',d2:'DCONMS',l1:'OAL',l2:'LU',A:'LPR'},
- turn:{h:'H',f:'F',l1:'OAL'},millhead:{d1:'DC',d2:'BD',l1:'LF'},
- erchuck:{l1:'LF'},bore:{l1:'LF',d1:'BD'},collet:{l1:'LF',d1:'BD'},reducer:{l1:'LF',d1:'BD',d2:'DCONMS'},extension:{l1:'LF',d1:'D'},insert:{}
-};
+const MAP={mill:{A:'l4'},drill:{A:'l4'},tap:{A:'l4'}};
 function draw(t,kindKey){
  const ty=type(kindKey,t);if(!ty)return null;
  const o=kit();let H;o.m=MAP[({ball:'mill',radius:'mill',lolli:'mill'})[ty]||ty]||{};

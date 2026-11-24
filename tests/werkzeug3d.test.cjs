@@ -38,4 +38,6 @@ const r=W.stl(m,24);assert.equal(r.bytes.length,84+50*r.triangles);assert.equal(
 // Außenkontur: Schaft im Futter ist nicht sichtbar
 const bands=W.union(m);assert.ok(!bands.some(b=>b.part.group==='cutter'&&b.z1<=72-1e-6&&b.tag==='shank'));
 assert.equal(W.assembly(db,{machineId:'m',components:[]},T),null);
+// Auch ohne Maße muss eine Zeichnung entstehen
+for(const grp of ['cutting','holders'])for(const kind of S.kinds[grp]){const tool=mk({toolKind:kind,stockGroup:grp});const m3=W.single(tool);assert.ok(m3,kind);assert.ok(!W.drawing(m3).includes('NaN'),kind);const d=SK.draw(tool,A.kind(tool));if(d)assert.ok(!d.svg.includes('NaN')&&d.rows.every(r=>r.value===null),kind);assert.ok(W.mesh(m3,12).length>0,kind)}
 console.log('werkzeug3d ok');
