@@ -9,7 +9,7 @@ const fmt=n=>String(Math.round(n*100)/100).replace('.',',');
 const INK='var(--ink,#cfe0ee)',HIT='#f59e0b',W=340;
 const FILL={cutter:['#46b8c4',.4],holder:['#7f9bb8',.38],collet:['#d9a441',.42],insert:['#d9708a',.5],spindle:['#98a5b3',.3]};
 const CSS='<style>.t3d .dim{cursor:pointer}.t3d .dim line,.t3d .dim path{stroke:'+INK+';stroke-width:1;fill:none}.t3d .dim polygon{fill:'+INK+';stroke:none}.t3d .dim text{fill:'+INK+';font-size:14.5px;font-weight:500}.t3d .dim tspan.sb{font-size:10px}.t3d .hl{display:none;pointer-events:none}.t3d[data-on] .dim{opacity:.45}.t3d[data-on] .dim.on{opacity:1}.t3d .dim.on line,.t3d .dim.on path{stroke:'+HIT+';stroke-width:2.2}.t3d .dim.on polygon{fill:'+HIT+'}.t3d .dim.on text{fill:'+HIT+';font-weight:700}.t3d .hl.on{display:inline}</style>';
-const lab=s=>{s=String(s);return s==='DCONMS'?'DCON<tspan class="sb" dy="3">MS</tspan>':esc(s)};
+const lab=s=>{s=String(s);const m=/^([a-zα]+)(\d)$/.exec(s);return m?m[1]+'<tspan class="sb" dy="3">'+m[2]+'</tspan>':esc(s)};
 function kit(){
  const o={out:[],dims:[],hl:{}};
  const reg=(keys,el)=>(keys||[]).forEach(k=>(o.hl[k]=o.hl[k]||[]).push(el));
@@ -32,8 +32,8 @@ function kit(){
  return o;
 }
 function mill(o,k,t){
- const cx=150,yt=46,hs=13,y1=128,y2=140,hc=k==='lolli'?22:16,hn=5,yh=206,ye=k==='lolli'?252:246,yf=yt+66;
- const hcut=k==='lolli'?16:hc;
+ const cx=150,yt=46,hs=k==='lolli'?22:19,y1=128,y2=140,hc=k==='lolli'?16:13,hn=5,yh=218,ye=k==='lolli'?252:246,yf=yt+66;
+ const hcut=hc;
  o.axis(cx,yt-10,ye+10);
  o.poly([[cx-hs,yt],[cx+hs,yt],[cx+hs,y1],[cx-hs,y1]],'cutter',['shaftDiameter']);
  if(String(t.shaftType)==='Weldon'){o.out.push('<rect x="'+(cx-6)+'" y="'+(yt+30)+'" width="12" height="18" rx="3" fill="none" stroke="'+INK+'"/><circle cx="'+cx+'" cy="'+(yt+39)+'" r="3.4" fill="none" stroke="'+INK+'"/>')}
@@ -41,8 +41,8 @@ function mill(o,k,t){
   o.poly([[cx-hs,y1],[cx+hs,y1],[cx+hn,y2],[cx-hn,y2]],'cutter',[]);
   o.poly([[cx-hn,y2],[cx+hn,y2],[cx+hn,yh+4],[cx-hn,yh+4]],'cutter',['neckDiameter','neckLength']);
   o.circ(cx,ye-hc,hc,'cutter',['diameter']);
-  o.hin('neckDiameter','DN',(y2+yh)/2,cx-hn,cx+hn,(y2+yh)/2);
-  o.vd('neckLength','LU',cx-60,y2,yh,cx-hn,cx-hc,-1);
+  o.hin('neckDiameter','d3',(y2+yh)/2,cx-hn,cx+hn,(y2+yh)/2);
+  o.vd('neckLength','l3',cx-60,y2,yh,cx-hn,cx-hc,-1);
  }else{
   o.poly([[cx-hs,y1],[cx+hs,y1],[cx+hc,y2],[cx-hc,y2]],'cutter',[]);
   let d;
@@ -51,25 +51,25 @@ function mill(o,k,t){
   else d='M'+(cx-hc)+' '+y2+'V'+(ye-2)+'L'+(cx-hc+2)+' '+ye+'H'+(cx+hc-2)+'L'+(cx+hc)+' '+(ye-2)+'V'+y2+'Z';
   o.path(d,'cutter',['diameter','cuttingLength']);
   for(let i=0;i<4;i++)o.swoosh(cx,y2+22+i*24,hc-1);
-  o.vd('cuttingLength','APMX',cx-60,y2,ye,cx-hc,cx-(k==='ball'?3:hc),-1);
+  o.vd('cuttingLength','l2',cx-60,y2,ye,cx-hc,cx-(k==='ball'?3:hc),-1);
   if(k==='radius'){
    const dx=66,dy=ye+50,R=40;
    o.out.push('<clipPath id="skc"><circle cx="'+dx+'" cy="'+dy+'" r="'+R+'"/></clipPath>');
    o.out.push('<circle cx="'+dx+'" cy="'+dy+'" r="'+R+'" fill="none" stroke="'+INK+'" stroke-width="1.2"/>');
    o.out.push('<path clip-path="url(#skc)" d="M'+(dx-R)+' '+(dy-R)+'H'+(dx+14)+'V'+(dy+6)+'Q'+(dx+14)+' '+(dy+24)+' '+(dx-6)+' '+(dy+24)+'H'+(dx-R)+'Z" fill="'+FILL.cutter[0]+'" fill-opacity="'+FILL.cutter[1]+'" stroke="'+INK+'" stroke-width="1.2"/>');
    o.line(dx+R-8,dy-22,cx-hc+2,ye-2,.7);o.out.push('<circle cx="'+(cx-hc+4)+'" cy="'+(ye-4)+'" r="6" fill="none" stroke="'+INK+'"/>');
-   o.tag('cornerRadius','RE',dx+10,dy+20,dx+64,dy+36,'start');
+   o.tag('cornerRadius','r1',dx+10,dy+20,dx+64,dy+36,'start');
   }
  }
- o.hin('shaftDiameter','DCONMS',yt-24,cx-hs,cx+hs,yt);
- o.hin('diameter','DC',ye+26,cx-hcut-(k==='lolli'?6:0),cx+hcut+(k==='lolli'?6:0),k==='ball'||k==='lolli'?ye-hc:ye);
- o.vd('totalLength','LF',cx+58,yt,ye,cx+hs,cx+3,1);
+ o.hin('shaftDiameter','d2',yt-24,cx-hs,cx+hs,yt);
+ o.hin('diameter','d1',ye+26,cx-hcut,cx+hcut,k==='ball'||k==='lolli'?ye-hc:ye);
+ o.vd('totalLength','l1',cx+58,yt,ye,cx+hs,cx+3,1);
  o.line(cx-hs-8,yf,cx+hs+8,yf,.7,'6 3');
- o.vd('projection','LPR',cx+100,yf,ye,cx+hs+8,cx+3,1);
+ o.vd('projection','l4',cx+100,yf,ye,cx+hs+8,cx+3,1);
  return k==='radius'?ye+100:ye+52;
 }
 function drill(o,t){
- const cx=150,yt=46,hs=11,y1=118,y2=130,hc=16,yc=232,ya=yc+hc/Math.tan(59*Math.PI/180),yf=yt+60;
+ const cx=150,yt=46,hs=18,y1=118,y2=130,hc=12,yc=232,ya=yc+hc/Math.tan(59*Math.PI/180),yf=yt+60;
  o.axis(cx,yt-10,ya+10);
  o.poly([[cx-hs,yt],[cx+hs,yt],[cx+hs,y1],[cx-hs,y1]],'cutter',['shaftDiameter']);
  if(String(t.shaftType)==='Weldon')o.out.push('<rect x="'+(cx-6)+'" y="'+(yt+26)+'" width="12" height="18" rx="3" fill="none" stroke="'+INK+'"/>');
@@ -78,29 +78,29 @@ function drill(o,t){
  o.poly([[cx-hc,yc],[cx+hc,yc],[cx,ya]],'cutter',['pointAngle']);
  for(let i=0;i<4;i++)o.swoosh(cx,y2+20+i*22,hc-1);
  const r=30,a=59*Math.PI/180,p1=[cx-r*Math.sin(a),ya-r*Math.cos(a)],p2=[cx+r*Math.sin(a),ya-r*Math.cos(a)];
- o.dims.push('<g class="dim" data-dim="pointAngle"><path d="M'+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+'A'+r+' '+r+' 0 0 1 '+p2[0].toFixed(1)+' '+p2[1].toFixed(1)+'"/><text x="'+(cx+hc+10)+'" y="'+(ya-12)+'">SIG</text><rect x="'+(cx-40)+'" y="'+(ya-r-6)+'" width="110" height="'+(r+10)+'" fill="transparent" stroke="none"/></g>');
- o.hin('shaftDiameter','DCONMS',yt-24,cx-hs,cx+hs,yt);
- o.hin('diameter','DC',ya+28,cx-hc,cx+hc,yc);
- o.vd('cuttingLength','LU',cx-60,y2,ya,cx-hc,cx,-1);
- o.vd('totalLength','LF',cx+58,yt,ya,cx+hs,cx+3,1);
+ o.dims.push('<g class="dim" data-dim="pointAngle"><path d="M'+p1[0].toFixed(1)+' '+p1[1].toFixed(1)+'A'+r+' '+r+' 0 0 1 '+p2[0].toFixed(1)+' '+p2[1].toFixed(1)+'"/><text x="'+(cx+hc+10)+'" y="'+(ya-12)+'">a<tspan class="sb" dy="3">1</tspan></text><rect x="'+(cx-40)+'" y="'+(ya-r-6)+'" width="110" height="'+(r+10)+'" fill="transparent" stroke="none"/></g>');
+ o.hin('shaftDiameter','d2',yt-24,cx-hs,cx+hs,yt);
+ o.hin('diameter','d1',ya+28,cx-hc,cx+hc,yc);
+ o.vd('cuttingLength','l3',cx-60,y2,ya,cx-hc,cx,-1);
+ o.vd('totalLength','l1',cx+58,yt,ya,cx+hs,cx+3,1);
  o.line(cx-hs-8,yf,cx+hs+8,yf,.7,'6 3');
- o.vd('projection','LPR',cx+100,yf,ya,cx+hs+8,cx+3,1);
+ o.vd('projection','l4',cx+100,yf,ya,cx+hs+8,cx+3,1);
  return ya+56;
 }
 function tap(o,t){
- const cx=150,yt=46,hs=11,y1=124,y2=140,hc=17,ye=240,yf=yt+60;
+ const cx=150,yt=46,hs=18,y1=124,y2=140,hc=13,ye=240,yf=yt+60;
  o.axis(cx,yt-10,ye+10);
  o.poly([[cx-hs,yt],[cx+hs,yt],[cx+hs,y1],[cx-hs,y1]],'cutter',['shaftDiameter']);
  o.out.push('<rect x="'+(cx-6)+'" y="'+(yt+5)+'" width="12" height="12" fill="none" stroke="'+INK+'"/>');
  o.poly([[cx-hs,y1],[cx+hs,y1],[cx+hc,y2],[cx-hc,y2]],'cutter',[]);
  o.poly([[cx-hc,y2],[cx+hc,y2],[cx+hc,ye-18],[cx+hc-5,ye],[cx-hc+5,ye],[cx-hc,ye-18]],'cutter',['diameter','cuttingLength']);
  for(let y=y2+8;y<ye-6;y+=9)o.line(cx-hc,y+5,cx+hc,y-3,.55);
- o.hin('shaftDiameter','DCONMS',yt-24,cx-hs,cx+hs,yt);
- o.hin('diameter','DC',ye+26,cx-hc,cx+hc,ye);
- o.vd('cuttingLength','LU',cx-60,y2,ye,cx-hc,cx-hc+5,-1);
- o.vd('totalLength','LF',cx+58,yt,ye,cx+hs,cx+hc-5,1);
+ o.hin('shaftDiameter','d2',yt-24,cx-hs,cx+hs,yt);
+ o.hin('diameter','d1',ye+26,cx-hc,cx+hc,ye);
+ o.vd('cuttingLength','l3',cx-60,y2,ye,cx-hc,cx-hc+5,-1);
+ o.vd('totalLength','l1',cx+58,yt,ye,cx+hs,cx+hc-5,1);
  o.line(cx-hs-8,yf,cx+hs+8,yf,.7,'6 3');
- o.vd('projection','LPR',cx+100,yf,ye,cx+hs+8,cx+hc-5,1);
+ o.vd('projection','l4',cx+100,yf,ye,cx+hs+8,cx+hc-5,1);
  return ye+52;
 }
 function turn(o){
@@ -109,9 +109,9 @@ function turn(o){
  o.poly([[cx-hw,yt],[cx+hw,yt],[cx+hw,ye-34],[cx-hw,ye-34]],'holder',['shaftDiameter']);
  o.poly([[cx-hw,ye-34],[cx+hw,ye-34],[cx+hw,ye],[cx+10,ye+14],[cx-hw,ye+6]],'holder',[]);
  o.poly([[cx+hw-12,ye-6],[cx+hw,ye-6],[cx+hw,ye],[cx+10,ye+14]],'insert',['inSize']);
- o.hin('shaftDiameter','B',yt-24,cx-hw,cx+hw,yt);
- o.vd('totalLength','LF',cx+62,yt,ye+14,cx+hw,cx+12,1);
- o.hin('diameter','WF',ye+40,cx,cx+hw,ye+14);
+ o.hin('shaftDiameter','b1',yt-24,cx-hw,cx+hw,yt);
+ o.vd('totalLength','l1',cx+62,yt,ye+14,cx+hw,cx+12,1);
+ o.hin('diameter','f1',ye+40,cx,cx+hw,ye+14);
  o.tag('inSize','Platte',cx+hw-4,ye-3,cx-60,ye-40,'end');
  return ye+66;
 }
@@ -121,9 +121,9 @@ function millhead(o){
  o.poly([[cx-h,yt],[cx+h,yt],[cx+h,yb],[cx-h,yb]],'holder',['diameter']);
  o.bore(cx-12,cx+12,yt,yb,['shaftDiameter']);
  [-h,h-10].forEach(x=>o.poly([[cx+x,yb-14],[cx+x+10,yb-14],[cx+x+10,yb+4],[cx+x,yb+4]],'insert',['outSize']));
- o.hin('shaftDiameter','DMM',yt-34,cx-12,cx+12,yt);
- o.hin('diameter','DC',yb+34,cx-h,cx+h,yb+4);
- o.vd('totalLength','LF',cx+h+30,yt,yb,cx+h,cx+h,1);
+ o.hin('shaftDiameter','d4',yt-34,cx-12,cx+12,yt);
+ o.hin('diameter','d1',yb+34,cx-h,cx+h,yb+4);
+ o.vd('totalLength','l1',cx+h+30,yt,yb,cx+h,cx+h,1);
  o.tag('outSize','Platte',cx+h-4,yb-6,cx-80,yb+24,'end');
  return yb+66;
 }
@@ -139,7 +139,7 @@ function erchuck(o,t){
  [200,210,220,228].forEach(y=>o.line(cx-30,y,cx+30,y,.45));
  o.poly([[cx-13,236],[cx+13,236],[cx+13,nose],[cx-13,nose]],'collet',['outSize']);
  o.tag('outSize',String(t.outSize||'ER'),cx-30,213,cx-82,196,'end');
- o.vd('totalLength','LF',cx+70,70,nose,cx+40,cx+13,1);
+ o.vd('totalLength','l1',cx+70,70,nose,cx+40,cx+13,1);
  return nose+30;
 }
 function boreHolder(o,t,k){
@@ -148,8 +148,8 @@ function boreHolder(o,t,k){
  else if(k==='hydro')o.poly([[cx-34,86],[cx+34,86],[cx+24,120],[cx+24,nose],[cx-24,nose],[cx-24,120]],'holder',[]);
  else{o.poly([[cx-26,86],[cx+26,86],[cx+26,nose],[cx-26,nose]],'holder',[]);if(k==='weldon')o.out.push('<rect x="'+(cx+26)+'" y="'+(nose-44)+'" width="10" height="14" fill="none" stroke="'+INK+'"/>')}
  o.bore(cx-9,cx+9,nose-100,nose,['minDiameter']);
- o.hin('minDiameter','BD',nose+28,cx-9,cx+9,nose);
- o.vd('totalLength','LF',cx+74,70,nose,cx+40,cx+26,1);
+ o.hin('minDiameter','d4',nose+28,cx-9,cx+9,nose);
+ o.vd('totalLength','l1',cx+74,70,nose,cx+40,cx+26,1);
  return nose+56;
 }
 function collet(o,t){
@@ -157,8 +157,8 @@ function collet(o,t){
  o.poly([[cx-24,yt+8],[cx-30,yt+22],[cx-30,yb-30],[cx-22,yb],[cx+22,yb],[cx+30,yb-30],[cx+30,yt+22],[cx+24,yt+8]],'collet',['interface']);
  for(let i=-2;i<=2;i++)o.line(cx+i*10,yb-80,cx+i*10,yb,.3);
  o.bore(cx-11,cx+11,yt+8,yb,['minDiameter']);
- o.hin('minDiameter','BD',yb+28,cx-11,cx+11,yb);
- o.vd('totalLength','LF',cx+66,yt+8,yb,cx+30,cx+22,1);
+ o.hin('minDiameter','d4',yb+28,cx-11,cx+11,yb);
+ o.vd('totalLength','l1',cx+66,yt+8,yb,cx+30,cx+22,1);
  o.tag('interface',String(t.interface||'ER'),cx-26,yt+16,cx-76,yt-2,'end');
  return yb+56;
 }
@@ -166,17 +166,17 @@ function reducer(o){
  const cx=150,yt=60,yb=220;o.axis(cx,yt-20,yb+14);
  o.poly([[cx-30,yt],[cx+30,yt],[cx+30,yb],[cx-30,yb]],'collet',['shaftDiameter']);
  o.bore(cx-11,cx+11,yt,yb,['minDiameter']);
- o.hin('shaftDiameter','DCONMS',yt-26,cx-30,cx+30,yt);
- o.hin('minDiameter','BD',yb+28,cx-11,cx+11,yb);
- o.vd('totalLength','LF',cx+66,yt,yb,cx+30,cx+30,1);
+ o.hin('shaftDiameter','d2',yt-26,cx-30,cx+30,yt);
+ o.hin('minDiameter','d4',yb+28,cx-11,cx+11,yb);
+ o.vd('totalLength','l1',cx+66,yt,yb,cx+30,cx+30,1);
  return yb+56;
 }
 function extension(o){
  const cx=150,yt=60,yb=230;o.axis(cx,yt-20,yb+14);
  o.poly([[cx-26,yt],[cx+26,yt],[cx+26,yb],[cx-26,yb]],'holder',['diameter']);
  [yt+10,yb-10].forEach(y=>o.line(cx-26,y,cx+26,y,.5));
- o.hin('diameter','D',yt-26,cx-26,cx+26,yt);
- o.vd('totalLength','LF',cx+62,yt,yb,cx+26,cx+26,1);
+ o.hin('diameter','d1',yt-26,cx-26,cx+26,yt);
+ o.vd('totalLength','l1',cx+62,yt,yb,cx+26,cx+26,1);
  return yb+30;
 }
 function insert(o,t){
@@ -187,18 +187,18 @@ function insert(o,t){
  return cy+90;
 }
 const ROWS={
- mill:[['diameter','DC','Schneiden-Ø','mm'],['shaftDiameter','DCONMS','Schaft-Ø','mm'],['totalLength','LF','Gesamtlänge','mm'],['cuttingLength','APMX','Schneidenlänge','mm'],['projection','LPR','Auskragung (Montagemaß)','mm']],
- radius:[['diameter','DC','Schneiden-Ø','mm'],['shaftDiameter','DCONMS','Schaft-Ø','mm'],['totalLength','LF','Gesamtlänge','mm'],['cuttingLength','APMX','Schneidenlänge','mm'],['cornerRadius','RE','Eckenradius','mm'],['projection','LPR','Auskragung (Montagemaß)','mm']],
- lolli:[['diameter','DC','Kugel-Ø','mm'],['shaftDiameter','DCONMS','Schaft-Ø','mm'],['neckDiameter','DN','Hals-Ø','mm'],['totalLength','LF','Gesamtlänge','mm'],['neckLength','LU','Halslänge','mm'],['projection','LPR','Auskragung (Montagemaß)','mm']],
- drill:[['diameter','DC','Bohrer-Ø','mm'],['shaftDiameter','DCONMS','Schaft-Ø','mm'],['totalLength','LF','Gesamtlänge','mm'],['cuttingLength','LU','Nutenlänge','mm'],['pointAngle','SIG','Spitzenwinkel','°'],['projection','LPR','Auskragung (Montagemaß)','mm']],
- tap:[['diameter','DC','Gewinde-Ø','mm'],['shaftDiameter','DCONMS','Schaft-Ø','mm'],['totalLength','LF','Gesamtlänge','mm'],['cuttingLength','LU','Gewindelänge','mm'],['projection','LPR','Auskragung (Montagemaß)','mm']],
- turn:[['shaftDiameter','B','Vierkantschaft','mm'],['diameter','WF','Bearbeitungsmaß','mm'],['totalLength','LF','Gesamtlänge','mm'],['inSize','Platte','Passende Wendeplatte','']],
- millhead:[['diameter','DC','Außen-Ø','mm'],['shaftDiameter','DMM','Aufnahmebohrung','mm'],['totalLength','LF','Höhe','mm'],['outSize','Platte','Passende Wendeplatte','']],
- erchuck:[['interface','Anschluss','Maschinenaufnahme',''],['outSize','ER','Spannzangengröße',''],['totalLength','LF','Länge ab Messebene','mm']],
- bore:[['interface','Anschluss','Maschinenaufnahme',''],['minDiameter','BD','Aufnahme-Ø','mm'],['totalLength','LF','Länge ab Messebene','mm']],
- collet:[['interface','ER','Spannzangentyp',''],['minDiameter','BD','Spannbereich','mm'],['totalLength','LF','Länge','mm']],
- reducer:[['shaftDiameter','DCONMS','Außen-Ø','mm'],['minDiameter','BD','Innen-Ø','mm'],['totalLength','LF','Länge','mm']],
- extension:[['diameter','D','Außen-Ø','mm'],['totalLength','LF','Länge','mm']],
+ mill:[['diameter','d1','Schneiden-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l2','Schneidenlänge','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
+ radius:[['diameter','d1','Schneiden-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l2','Schneidenlänge','mm'],['cornerRadius','r1','Eckenradius','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
+ lolli:[['diameter','d1','Kugel-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['neckDiameter','d3','Hals-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['neckLength','l3','Halslänge','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
+ drill:[['diameter','d1','Bohrer-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l3','Nutenlänge','mm'],['pointAngle','a1','Spitzenwinkel','°'],['projection','l4','Auskragung (Montagemaß)','mm']],
+ tap:[['diameter','d1','Gewinde-Ø','mm'],['shaftDiameter','d2','Schaft-Ø','mm'],['totalLength','l1','Gesamtlänge','mm'],['cuttingLength','l3','Gewindelänge','mm'],['projection','l4','Auskragung (Montagemaß)','mm']],
+ turn:[['shaftDiameter','b1','Vierkantschaft','mm'],['diameter','f1','Bearbeitungsmaß','mm'],['totalLength','l1','Gesamtlänge','mm'],['inSize','Platte','Passende Wendeplatte','']],
+ millhead:[['diameter','d1','Außen-Ø','mm'],['shaftDiameter','d4','Aufnahmebohrung','mm'],['totalLength','l1','Höhe','mm'],['outSize','Platte','Passende Wendeplatte','']],
+ erchuck:[['interface','Anschluss','Maschinenaufnahme',''],['outSize','ER','Spannzangengröße',''],['totalLength','l1','Länge ab Messebene','mm']],
+ bore:[['interface','Anschluss','Maschinenaufnahme',''],['minDiameter','d4','Aufnahme-Ø','mm'],['totalLength','l1','Länge ab Messebene','mm']],
+ collet:[['interface','ER','Spannzangentyp',''],['minDiameter','d4','Spannbereich','mm'],['totalLength','l1','Länge','mm']],
+ reducer:[['shaftDiameter','d2','Außen-Ø','mm'],['minDiameter','d4','Innen-Ø','mm'],['totalLength','l1','Länge','mm']],
+ extension:[['diameter','d1','Außen-Ø','mm'],['totalLength','l1','Länge','mm']],
  insert:[['inSize','Form','Plattenform und Größe','']]
 };
 function type(k,t){
