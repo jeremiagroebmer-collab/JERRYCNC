@@ -58,10 +58,16 @@ function cataloguePart(k,cx,y){
    +[-15,-7,7,15].map(x=>rect(x-1,43,2,8,'#48535c',.6)).join('')
    +ellipse(0,57,16,3,steel)+ellipse(0,57,8,1.6,'#263640');h=60;w=44;
  }else if(k==='collet'){
-  svg=path('M-10 3H10L18 30L16 39H-16L-18 30Z',steel)+rect(-15,39,30,3,'#4e5b64',.3)+rect(-16,42,32,6,steel,1)
-   +ellipse(0,48,16,4,steel)+ellipse(0,48,7,2,'#25343c')
-   +[-11,-5,5,11].map((x,i)=>'<path d="M'+(x*.58)+' 6L'+x+' 31V'+(i%2?38:46)+'" fill="none" stroke="#34434b" stroke-width="1.2"/>').join('')
-   +ln(0,19,0,45,.85)+ellipse(0,3,10,2.2,steel)+ellipse(0,3,4,1,'#34434b');h=53;w=38;
+  // ER collet: shallow taper, extraction groove and alternating open-ended slots.
+  svg=path('M-12 4H12L18 35H-18Z',steel)
+   +path('M-18 35H18V38H-18Z','#52616b')
+   +path('M-16 38H16V41H-16Z','#273640')
+   +path('M-18 41H18V46Q0 55 -18 46Z',steel)
+   +ellipse(0,46,18,5,steel)+ellipse(0,46,8,2.7,'#101d25')
+   +'<path d="M-7 5L-10.5 34M0 5V33M7 5L10.5 34M-14 46L-11 20M-5 48L-4 19M5 48L4 19M14 46L11 20" fill="none" stroke="#23343f" stroke-width=".85" stroke-linecap="butt"/>'
+   +ellipse(0,4,12,2.5,steel)+ellipse(0,4,5.3,1.3,'#263640')
+   +'<path d="M-7 2.1V5M0 1.5V6.5M7 2.1V5M-17 46L-8 46M17 46L8 46M-4 50.8L-2 48.6M4 50.8L2 48.6" fill="none" stroke="#23343f" stroke-width=".85"/>';
+  h=52;w=38;
  }else if(k==='extension'){
   svg=ellipse(0,3,7,2,steel)+rect(-7,3,14,28,steel,.7)+path('M-7 31H7L13 35V56H-13V35Z',steel)
    +ellipse(0,56,13,3,steel)+ellipse(0,56,6,1.6,'#25343c')+ln(-13,39,13,39,.35)
