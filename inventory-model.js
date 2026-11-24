@@ -20,5 +20,6 @@ else if(k==='Verlängerung')Object.assign(x,{componentType:'Verlängerung',role:
 else if(k==='Zubehör')Object.assign(x,{componentType:'Sonstiges',role:'Zubehör'});
 return x}
 function stockRolls(m,amount,remove){if(amount===''||amount===undefined)return m.rolls;const n=Number(amount);if(!Number.isInteger(n)||n<0)throw Error('Rollen als ganze Zahl ab 0 eingeben.');if(m.rolls===null||m.rolls===undefined||m.rolls==='')throw Error('Zuerst die vorhandenen Rollen erfassen.');const next=Number(m.rolls)+(remove?-n:n);if(next<0)throw Error('Nicht genügend Rollen vorhanden.');return next}
-const api={groups,kinds,shaftKinds,polymers,supplies,group,kind,normalize,materialCategory,stockRolls};if(typeof module!=='undefined')module.exports=api;root.CncStock=api;
+const plates=['CNMG 120404','CNMG 120408','CNMG 120412','DNMG 150404','DNMG 150408','DNMG 150608','SNMG 120408','TNMG 160404','TNMG 160408','VNMG 160404','VNMG 160408','WNMG 080404','WNMG 080408','CCMT 09T304','CCMT 09T308','DCMT 11T304','DCMT 11T308','VBMT 160404','TCMT 16T304','RCMT 1204M0','SCMT 120408'];
+const api={plates,groups,kinds,shaftKinds,polymers,supplies,group,kind,normalize,materialCategory,stockRolls};if(typeof module!=='undefined')module.exports=api;root.CncStock=api;
 })(typeof window!=='undefined'?window:globalThis);
