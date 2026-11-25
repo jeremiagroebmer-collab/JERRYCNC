@@ -39,24 +39,50 @@ function analyze(db,today,wf){
       const h=hoursOf(db,o,p,wf);
       const booked=list(db.time).filter(t=>t.stepId===p.id).reduce((n,t)=>n+(Number(t.hours)||0),0);
       const due=p.date||'';
-      const reasons=[];let light=done?'done':'green';
-      if(!done){
+      const checks={},C=(key,light,text)=>{checks[key]={light,text}};
+      let reasons=[],light='green';
+      if(done){light='done'}
+      else{
+        const urgent=!!due&&due<=today;
+        // Termin
         const late=(due&&due<today)||(o&&o.due&&o.due<today&&!['Ausgeliefert','Bezahlt'].includes(o.status));
-        if(late){light='red';reasons.push('Termin überschritten')}
-        if(machine&&machine.status==='Störung'){light='red';reasons.push('Maschine gestört')}
+        if(late)C('date','red','Termin überschritten');else if(!due)C('date','yellow','Kein Termin');else C('date','green','Termin ok');
+        // Material (Verfügbarkeit)
         const mats=list(p.materialIds).map(id=>list(db.materials).find(m=>m.id===id)).filter(Boolean);
         const empty=mats.filter(m=>known(m.qty)&&Number(m.qty)<=0);
-        if(empty.length){light='red';reasons.push('Material leer: '+empty.map(m=>m.title).join(', '))}
-        if(/^Wartet auf Vorarbeiten/.test(state)){light=worst(light,'yellow');reasons.push('Wartet auf Vorarbeit')}
-        else if(/NC-Freigabe/.test(state)){light=worst(light,'yellow');reasons.push('NC-Programm nicht freigegeben')}
-        else if(/Noch nicht freigegeben/.test(state)){light=worst(light,'yellow');reasons.push('Plan noch nicht freigegeben')}
-        else if(/Plan prüfen/.test(state)){light=worst(light,'yellow');reasons.push('Plan prüfen')}
-        const miss=missingOf(db,o,p,isMachine);
-        if(miss.length){const urgent=due&&due<=today;light=worst(light,urgent?'red':'yellow');reasons.push('Fehlt noch: '+miss.join(', '))}
-        if(!h){light=worst(light,'yellow');reasons.push('Zeit nicht geplant')}
-        if(!due&&!o)reasons.push('Kein Termin');
+        if(empty.length)C('material','red','Material leer: '+empty.map(m=>m.title).join(', '));
+        else if(mats.length||(o&&o.quoteMaterialId))C('material','green','Material zugeordnet');
+        else C('material',urgent?'red':'yellow','Material nicht zugeordnet');
+        // Zeichnung
+        const hasDrawing=list(p.drawingIds).length>0||(o&&o.partNumber&&list(db.pdm).some(x=>x.number===o.partNumber));
+        C('drawing',hasDrawing?'green':(urgent?'red':'yellow'),hasDrawing?'Zeichnung zugeordnet':'Zeichnung fehlt');
+        // Werkzeug (nur Maschinen)
+        if(!isMachine)C('tool','na','Kein Werkzeug nötig');
+        else{const hasTool=list(p.assemblyIds).length>0||(o&&(list(o.assemblyIds).length>0||list(db.toolassemblies).some(a=>a.order===o.number)));C('tool',hasTool?'green':(urgent?'red':'yellow'),hasTool?'Werkzeug zugeordnet':'Werkzeug fehlt')}
+        // NC-Programm
+        const progs=o&&wf&&wf.programIds?wf.programIds(db,o,p):[];
+        if(!p.requiresProgram&&!progs.length)C('nc','na','Kein NC-Programm nötig');
+        else if(!progs.length)C('nc','yellow','NC-Programm fehlt');
+        else if(progs.some(id=>!list(db.cam).some(c=>c.id===id&&c.status==='Freigegeben')))C('nc','yellow','NC-Programm nicht freigegeben');
+        else C('nc','green','NC-Programm freigegeben');
+        // Vorarbeiten
+        const waitFor=list(p.dependsOn).map(id=>list(db.planning).find(x=>x.id===id)).filter(x=>x&&x.status!=='Abgeschlossen');
+        if(!list(p.dependsOn).length)C('pred','na','Keine Vorarbeit nötig');
+        else if(waitFor.length)C('pred','yellow','Wartet auf: '+waitFor.map(x=>x.title).join(', '));
+        else C('pred','green','Vorarbeiten fertig');
+        // Freigabe
+        if(o&&o.workflowVersion){if(!o.productionReleased)C('release','yellow','Plan noch nicht freigegeben');else if(/Plan prüfen/.test(state))C('release','yellow','Plan prüfen');else C('release','green','Plan freigegeben')}
+        else C('release','na','Keine Freigabe nötig');
+        // Zeit
+        C('time',h?'green':'yellow',h?'Zeit geplant':'Zeit nicht geplant');
+        // Maschine
+        if(machine&&machine.status==='Störung')C('machine','red','Maschine gestört');
+        else if(machine&&machine.status==='Wartung')C('machine','yellow','Maschine in Wartung');
+        else C('machine',isMachine?'green':'na',isMachine?'Maschine verfügbar':'Kein Maschinenstatus');
+        Object.values(checks).forEach(c=>{if(c.light!=='na'){light=worst(light,c.light);if(c.light!=='green')reasons.push(c.text)}});
       }
-      rows.push({p,order:o,state,hours:h,booked,due,done,light,reasons,missing:done?[]:missingOf(db,o,p,isMachine)});
+      const waiting=Object.values(checks).filter(c=>c.light==='yellow'||c.light==='red').map(c=>c.text);
+      rows.push({place:name,p,order:o,state,hours:h,booked,due,done,light,reasons,checks,waiting,missing:done?[]:Object.entries(checks).filter(([k,c])=>['material','drawing','tool'].includes(k)&&(c.light==='yellow'||c.light==='red')).map(([k])=>({material:'Material',drawing:'Zeichnung',tool:'Werkzeug'}[k]))});
     });
     const open=rows.filter(r=>!r.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||(Number(a.p.sequence)||0)-(Number(b.p.sequence)||0));
     const doneRows=rows.filter(r=>r.done);
@@ -77,7 +103,7 @@ function analyze(db,today,wf){
     if(weekH>40){light=worst(light,'yellow');reasons.push('Woche überbucht ('+Math.round(weekH)+' h von 40 h)')}
     if(!reasons.length)reasons.push(open.length?'Alles bereit':'Nichts eingeplant');
     return {name,machine,isMachine,light,reasons,steps:open,doneSteps:doneRows,
-      counts:{total:rows.length,done:doneRows.length,open:open.length,red:nRed,yellow:nYel,green:open.length-nRed-nYel,overdue:open.filter(r=>r.reasons.includes('Termin überschritten')).length,running:open.filter(r=>r.p.status==='Läuft'||r.state==='Läuft').length},
+      counts:{total:rows.length,done:doneRows.length,open:open.length,red:nRed,yellow:nYel,green:open.length-nRed-nYel,overdue:open.filter(r=>r.checks.date&&r.checks.date.text==='Termin überschritten').length,running:open.filter(r=>r.p.status==='Läuft'||r.state==='Läuft').length},
       hours:{planOpen,planDone,booked,today:todayH,week:weekH},
       progress:rows.length?doneRows.length/rows.length:0,
       hourProgress:planOpen+planDone>0?planDone/(planOpen+planDone):0,
