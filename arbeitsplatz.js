@@ -68,8 +68,8 @@ function analyze(db,today,wf){
     const reasons=[];let light=open.length?'green':'idle';
     open.forEach(r=>{light=worst(light,r.light)});
     const nRed=open.filter(r=>r.light==='red').length,nYel=open.filter(r=>r.light==='yellow').length;
-    if(nRed)reasons.push(nRed+' Arbeitsgang'+(nRed===1?'':'änge')+' kritisch');
-    if(nYel)reasons.push(nYel+' Arbeitsgang'+(nYel===1?'':'änge')+' wartet oder unvollständig');
+    if(nRed)reasons.push(nRed+(nRed===1?' Arbeitsgang':' Arbeitsgänge')+' kritisch');
+    if(nYel)reasons.push(nYel+(nYel===1?' Arbeitsgang wartet':' Arbeitsgänge warten')+' oder '+(nYel===1?'ist':'sind')+' unvollständig');
     if(machine&&machine.status==='Störung'){light='red';reasons.unshift('Maschine gestört')}
     else if(machine&&machine.status==='Wartung'){light=worst(light==='idle'?'green':light,'yellow');reasons.unshift('Maschine in Wartung')}
     if(maint.length&&maint[0].due<today){light='red';reasons.push('Wartung überfällig: '+maint[0].title)}
