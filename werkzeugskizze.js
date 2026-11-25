@@ -6,7 +6,7 @@
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>v!==''&&v!==null&&v!==undefined&&Number.isFinite(Number(v))?Number(v):null;
 const fmt=n=>String(Math.round(n*100)/100).replace('.',',');
-const INK='#33434b',HIT='#b76b00',W=340;
+const INK='var(--drawing-ink,#172129)',HIT='var(--accent,#126b62)',W=340;
 const FILL={cutter:['#dbe8e3',1],holder:['#e0e5e9',1],collet:['#eee4cf',1],insert:['#e3c98c',1],spindle:['#e6eaec',1]};
 const CSS='<style>.t3d .dim{cursor:pointer}.t3d .dim line,.t3d .dim path{stroke:'+INK+';stroke-width:1;fill:none}.t3d .dim polygon{fill:'+INK+';stroke:none}.t3d .dim text{fill:'+INK+';font-size:14.5px;font-weight:500}.t3d .dim tspan.sb{font-size:10px}.t3d .hl{display:none;pointer-events:none}.t3d[data-on] .dim{opacity:.45}.t3d[data-on] .dim.on{opacity:1}.t3d .dim.on line,.t3d .dim.on path{stroke:'+HIT+';stroke-width:2.2}.t3d .dim.on polygon{fill:'+HIT+'}.t3d .dim.on text{fill:'+HIT+';font-weight:700}.t3d .hl.on{display:inline}</style>';
 const lab=s=>{s=String(s);const m=/^([a-zα]+)(\d)$/.exec(s);return m?m[1]+'<tspan class="sb" dy="3">'+m[2]+'</tspan>':esc(s)};
@@ -14,7 +14,7 @@ function kit(){
  const o={out:[],dims:[],hl:{}};
  const reg=(keys,el)=>(keys||[]).forEach(k=>(o.hl[k]=o.hl[k]||[]).push(el));
  const ps=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
- const fl=t=>'fill="'+FILL[t][0]+'" fill-opacity="'+FILL[t][1]+'"';
+ const fl=t=>'fill="'+'var(--drawing-fill,#e6efeb)'+'" fill-opacity="'+FILL[t][1]+'"';
  const hlf='fill="'+HIT+'" fill-opacity=".6" stroke="'+HIT+'" stroke-width="1.6"';
  o.poly=(p,t,keys)=>{o.out.push('<polygon points="'+ps(p)+'" '+fl(t)+' stroke="'+INK+'" stroke-width="1.2" stroke-linejoin="round"/>');reg(keys,'<polygon points="'+ps(p)+'" '+hlf+'/>')};
  o.path=(d,t,keys)=>{o.out.push('<path d="'+d+'" '+fl(t)+' stroke="'+INK+'" stroke-width="1.2" stroke-linejoin="round"/>');reg(keys,'<path d="'+d+'" '+hlf+'/>')};
@@ -28,7 +28,7 @@ function kit(){
  o.hin=(key,label,y,xl,xr,yext)=>{const s=y<yext?-1:1;o.dims.push('<g class="dim" data-dim="'+key+'"><line x1="'+xl+'" y1="'+yext+'" x2="'+xl+'" y2="'+(y+s*6)+'"/><line x1="'+xr+'" y1="'+yext+'" x2="'+xr+'" y2="'+(y+s*6)+'"/><line x1="'+(xl-22)+'" y1="'+y+'" x2="'+xl+'" y2="'+y+'"/><line x1="'+xr+'" y1="'+y+'" x2="'+(xr+22)+'" y2="'+y+'"/>'+arr(xl,y,'r')+arr(xr,y,'l')+'<text x="'+(xr+28)+'" y="'+(y+5)+'">'+lab(label)+'</text>'+hit(xl-24,y-12,xr-xl+90,24)+'</g>')};
  o.vd=(key,label,x,y1,y2,xs1,xs2,side)=>{const e=x+side*5;o.dims.push('<g class="dim" data-dim="'+key+'"><line x1="'+xs1+'" y1="'+y1+'" x2="'+e+'" y2="'+y1+'"/><line x1="'+xs2+'" y1="'+y2+'" x2="'+e+'" y2="'+y2+'"/><line x1="'+x+'" y1="'+y1+'" x2="'+x+'" y2="'+y2+'"/>'+arr(x,y1,'u')+arr(x,y2,'d')+'<text x="'+(x+side*9)+'" y="'+(((y1+y2)/2)+5).toFixed(1)+'" text-anchor="'+(side>0?'start':'end')+'">'+lab(label)+'</text>'+hit(side>0?x-8:x-60,y1,68,y2-y1)+'</g>')};
  o.tag=(key,text,x,y,tx,ty,anchor)=>{const dx=x-tx,dy=y-ty,l=Math.hypot(dx,dy)||1,ux=dx/l,uy=dy/l,bx=x-ux*8,by=y-uy*8;o.dims.push('<g class="dim" data-dim="'+key+'"><line x1="'+tx+'" y1="'+ty+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'"/><polygon points="'+x+','+y+' '+(bx-uy*2.6).toFixed(1)+','+(by+ux*2.6).toFixed(1)+' '+(bx+uy*2.6).toFixed(1)+','+(by-ux*2.6).toFixed(1)+'"/><text x="'+tx+'" y="'+(ty-4)+'" text-anchor="'+(anchor||'middle')+'">'+lab(text)+'</text>'+hit(tx-40,ty-18,80,24)+'</g>')};
- o.svg=H=>{const hl=Object.entries(o.hl).map(([k,v])=>'<g class="hl" data-dim="'+k+'">'+v.join('')+'</g>').join('');return '<svg class="t3d catalogue-sketch" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Technische Werkzeugzeichnung mit anklickbaren Maßlinien" style="max-height:'+H+'px">'+CSS+'<rect width="100%" height="100%" rx="12" fill="#f7f9f8"/>'+o.out.join('')+hl+o.dims.join('')+'</svg>'};
+ o.svg=H=>{const hl=Object.entries(o.hl).map(([k,v])=>'<g class="hl" data-dim="'+k+'">'+v.join('')+'</g>').join('');return '<svg class="t3d catalogue-sketch" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Technische Werkzeugzeichnung mit anklickbaren Maßlinien" style="max-height:'+H+'px">'+CSS+'<rect width="100%" height="100%" rx="12" fill="var(--drawing-bg,#fff)"/>'+o.out.join('')+hl+o.dims.join('')+'</svg>'};
  return o;
 }
 // Schaft und Schneide im Verhältnis der eingegebenen Durchmesser (grob, begrenzt); ohne Werte: Schaft größer
@@ -59,7 +59,7 @@ function mill(o,k,t){
    const dx=66,dy=ye+50,R=40;
    o.out.push('<clipPath id="skc"><circle cx="'+dx+'" cy="'+dy+'" r="'+R+'"/></clipPath>');
    o.out.push('<circle cx="'+dx+'" cy="'+dy+'" r="'+R+'" fill="none" stroke="'+INK+'" stroke-width="1.2"/>');
-   o.out.push('<path clip-path="url(#skc)" d="M'+(dx-R)+' '+(dy-R)+'H'+(dx+14)+'V'+(dy+6)+'Q'+(dx+14)+' '+(dy+24)+' '+(dx-6)+' '+(dy+24)+'H'+(dx-R)+'Z" fill="'+FILL.cutter[0]+'" fill-opacity="'+FILL.cutter[1]+'" stroke="'+INK+'" stroke-width="1.2"/>');
+   o.out.push('<path clip-path="url(#skc)" d="M'+(dx-R)+' '+(dy-R)+'H'+(dx+14)+'V'+(dy+6)+'Q'+(dx+14)+' '+(dy+24)+' '+(dx-6)+' '+(dy+24)+'H'+(dx-R)+'Z" fill="'+'var(--drawing-fill,#e6efeb)'+'" fill-opacity="'+FILL.cutter[1]+'" stroke="'+INK+'" stroke-width="1.2"/>');
    o.line(dx+R-8,dy-22,cx-hc+2,ye-2,.7);o.out.push('<circle cx="'+(cx-hc+4)+'" cy="'+(ye-4)+'" r="6" fill="none" stroke="'+INK+'"/>');
    o.tag('cornerRadius','r1',dx+10,dy+20,dx+64,dy+36,'start');
   }
@@ -70,6 +70,31 @@ function mill(o,k,t){
  o.line(cx-hs-8,yf,cx+hs+8,yf,.7,'6 3');
  o.vd('projection','l4',cx+100,yf,ye,cx+hs+8,cx+3,1);
  return k==='radius'?ye+100:ye+52;
+}
+function specialCut(o,t,variant){
+ const cx=150,yt=46,ye=246,hs=16,hc=variant==='Senker'?30:18,y2=variant==='Senker'?184:140;
+ o.axis(cx,yt-10,ye+10);
+ o.poly([[cx-hs,yt],[cx+hs,yt],[cx+hs,y2-12],[cx-hs,y2-12]],'cutter',['shaftDiameter']);
+ o.poly([[cx-hs,y2-12],[cx+hs,y2-12],[cx+hc,y2],[cx-hc,y2]],'cutter',[]);
+ if(variant==='Senker'){
+  o.poly([[cx-hc,y2],[cx+hc,y2],[cx+5,ye],[cx-5,ye]],'cutter',['diameter','cuttingLength','pointAngle']);
+  o.line(cx-16,y2+4,cx-3,ye-5,.85);o.line(cx+15,y2+4,cx+3,ye-5,.85);
+ }else{
+  o.poly([[cx-hc,y2],[cx+hc,y2],[cx+hc,ye-5],[cx+hc-4,ye],[cx-hc+4,ye],[cx-hc,ye-5]],'cutter',['diameter','cuttingLength']);
+  if(variant==='Reibahle')[-12,-5,5,12].forEach(x=>o.line(cx+x,y2+2,cx+x,ye-7,.85));
+  else{
+   for(let y=y2+7;y<ye-6;y+=7)o.line(cx-hc,y,cx+hc,y,.8);
+   if(variant==='Gewindefräser')[-9,9].forEach(x=>o.line(cx+x,y2,cx+x,ye-5,1));
+   else o.line(cx,y2+5,cx,ye-9,.25);
+  }
+ }
+ o.hin('shaftDiameter','d2',yt-24,cx-hs,cx+hs,yt);
+ o.hin('diameter','d1',ye+26,cx-hc,cx+hc,variant==='Senker'?y2:ye);
+ o.vd('cuttingLength','l3',cx-60,y2,ye,cx-hc,cx-4,-1);
+ o.vd('totalLength','l1',cx+58,yt,ye,cx+hs,cx+4,1);
+ o.line(cx-hs-8,112,cx+hs+8,112,.7,'6 3');o.vd('projection','l4',cx+100,112,ye,cx+hs+8,cx+4,1);
+ if(variant==='Senker')o.tag('pointAngle','a1',cx+16,ye-28,cx+56,ye-8,'start');
+ return ye+52;
 }
 function drill(o,t){
  const yc=232,pa=Math.min(170,Math.max(60,num(t.pointAngle)||118))/2,P=prop(t,18,[18,12]),hs=P[0],hc=P[1],cx=150,yt=46,y1=118,y2=130,ya=yc+hc/Math.tan(pa*Math.PI/180),yf=yt+60;
@@ -248,11 +273,11 @@ function draw(t,kindKey){
  const o=kit();let H;
  switch(ty){
   case 'mill':H=mill(o,'endmill',t);break;case 'ball':case 'radius':case 'lolli':H=mill(o,ty,t);break;
-  case 'drill':H=drill(o,t);break;case 'tap':H=tap(o,t);break;case 'turn':H=turn(o);break;case 'millhead':H=millhead(o);break;
+  case 'drill':H=['Senker','Reibahle'].includes(t.toolKind)?specialCut(o,t,t.toolKind):drill(o,t);break;case 'tap':H=['Gewindeformer','Gewindefräser'].includes(t.toolKind)?specialCut(o,t,t.toolKind):tap(o,t);break;case 'turn':H=turn(o);break;case 'millhead':H=millhead(o);break;
   case 'erchuck':H=erchuck(o,t);break;case 'bore':H=(t&&t.toolKind==='Bohrfutter')?chuck(o,t):boreHolder(o,t,kindKey);break;case 'arbor':H=arbor(o,t);break;case 'collet':H=collet(o,t);break;case 'reducer':H=reducer(o);break;
   case 'extension':H=extension(o);break;case 'insert':H=insert(o,t);break;
  }
- const rows=ROWS[ty==='ball'?'mill':ty].map(([key,abbr,name,unit])=>({key,abbr,name,value:value(t,key,unit)}));
+ const rows=ROWS[ty==='ball'?'mill':ty].filter(r=>!(t.toolKind==='Reibahle'&&r[0]==='pointAngle')).map(([key,abbr,name,unit])=>({key,abbr,name,value:value(t,key,unit)}));
  return {svg:o.svg(H),rows,type:ty};
 }
 function legend(rows,on){

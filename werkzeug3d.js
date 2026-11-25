@@ -7,7 +7,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=n=>String(Math.round(n*100)/100).replace('.',',');
 const Art=()=>root.CncToolArt||(typeof require==='function'?require('./werkzeugbild.js'):null);
 const COL={holder:'#5f7f9f',collet:'#d4a03a',cutter:'#2fb5a3',other:'#8795a3',iface:'#7c8a99',nut:'#7393b3'};
-const HIT='#ffb020',INK='var(--ink,#cfe0ee)';
+const HIT='var(--accent,#126b62)',INK='var(--ink,#cfe0ee)';
 // Normmaße ER-Spannsystem (Richtwerte, echtes Teil nachmessen): Länge Spannzange, Außen-Ø Mutter, Außen-Ø Spannzange
 const ER={ER11:{l:18,nut:19,od:11.5},ER16:{l:27.5,nut:28,od:17},ER20:{l:31.5,nut:34,od:21},ER25:{l:34,nut:42,od:26},ER32:{l:40,nut:50,od:33},ER40:{l:46,nut:63,od:41},ER50:{l:60,nut:78,od:52}};
 function erOf(s){const m=String(s||'').toUpperCase().match(/ER[- ]?(\d+)/);return m&&ER['ER'+m[1]]?ER['ER'+m[1]]:null}
@@ -220,7 +220,7 @@ function view3d(canvas,getModel){
    const [A,B,C,D]=p,area=(A[0]*B[1]-B[0]*A[1])+(B[0]*C[1]-C[0]*B[1])+(C[0]*D[1]-D[0]*C[1])+(D[0]*A[1]-A[0]*D[1]);if(area<=1e-7)continue;
    const u=[B[0]-A[0],B[1]-A[1],B[2]-A[2]],v=[D[0]-A[0],D[1]-A[1],D[2]-A[2]];let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];const nl=Math.hypot(...n)||1;n=n.map(x=>x/nl);if(n[2]>0)n=n.map(x=>-x);
    const lit=Math.max(0,(n[0]*L[0]+n[1]*L[1]+n[2]*L[2])/ll),on=st.hl&&hit(st.hl,q.band);
-   list.push({p,d:(A[2]+B[2]+C[2]+D[2])/4,b:0.38+0.62*lit,col:on?hex(HIT):hex(bandColor(q.band))});
+   list.push({p,d:(A[2]+B[2]+C[2]+D[2])/4,b:0.38+0.62*lit,col:on?hex('#77cfb5'):hex(bandColor(q.band))});
   }
   list.sort((a,b)=>b.d-a.d);
   for(const f of list){const col='rgb('+f.col.map(x=>Math.round(Math.min(255,x*f.b))).join(',')+')';c.beginPath();f.p.forEach((v,i)=>{const X=W/2+v[0]*sc,Y=H/2+v[1]*sc;i?c.lineTo(X,Y):c.moveTo(X,Y)});c.closePath();c.fillStyle=col;c.fill();c.strokeStyle=col;c.lineWidth=0.6;c.stroke()}
@@ -258,8 +258,8 @@ function mount(el,getModel,o={}){
   else if(cur==='draw'){v3=null;view.innerHTML=drawing(m,{h:o.h});const svg=view.querySelector('svg');highlight(svg,key)}
   else{let cv=view.querySelector('canvas');if(!cv){view.innerHTML='<canvas style="width:100%;height:300px;display:block"></canvas>';cv=view.querySelector('canvas');v3=view3d(cv,()=>m)}v3.set();const d=m.dims.find(x=>x.key===key);v3.setHl(d?d.hl:null)}
   const seen=new Set(),list=m.dims.filter(d=>!seen.has(d.key)&&seen.add(d.key));
-  if(cur==='sketch'){const wasOpen=!!chips.querySelector('details[open]');chips.innerHTML=el.classList.contains('sticky')?'<details class="t3d-det"'+(wasOpen?' open':'')+'><summary>Was bedeuten die Kürzel?</summary>'+root.CncSketch.legend(sk.rows,key)+'</details>':root.CncSketch.legend(sk.rows,key)}else chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');
-  const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));if(cur==='sketch')bits.unshift('Schematische Darstellung · Maße in mm · Maßlinie antippen zum Hervorheben.');note.textContent=bits.join(' ');
+  if(cur==='sketch'){chips.innerHTML='';chips.hidden=true}else {chips.hidden=false;chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');}
+  const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));if(cur==='sketch')bits.unshift('Schematisch · mm');note.textContent=bits.join(' ');
   note.className='t3d-note small '+((m.warn||[]).length?'warn':'muted');
  }
  el.addEventListener('click',e=>{
