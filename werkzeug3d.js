@@ -259,7 +259,7 @@ function mount(el,getModel,o={}){
   else{let cv=view.querySelector('canvas');if(!cv){view.innerHTML='<canvas style="width:100%;height:300px;display:block"></canvas>';cv=view.querySelector('canvas');v3=view3d(cv,()=>m)}v3.set();const d=m.dims.find(x=>x.key===key);v3.setHl(d?d.hl:null)}
   const seen=new Set(),list=m.dims.filter(d=>!seen.has(d.key)&&seen.add(d.key));
   if(cur==='sketch'){chips.innerHTML='';chips.hidden=true}else {chips.hidden=false;chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');}
-  const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));if(cur==='sketch')bits.unshift('Schematisch · mm');note.textContent=bits.join(' ');
+  const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));note.hidden=!!m.single;note.textContent=m.single?'':bits.join(' ');
   note.className='t3d-note small '+((m.warn||[]).length?'warn':'muted');
  }
  el.addEventListener('click',e=>{
