@@ -72,7 +72,31 @@ function simple(t,k){
  if(!(D>0)){D=16;est.push('Durchmesser')}if(!(L>0)){L=40;est.push('Länge')}
  return {kind:k,group:'other',pts:[[0,D/2,'body'],[L,D/2,'body']],L,rMax:D/2,dims:[{key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}},{key:'diameter',type:'dia',z:L/2,r:D/2,text:'Ø'+fmt(D),hl:{tags:['body']}}],est,simpleShape:true};
 }
-function buildPart(t,o={}){const A=Art(),k=A?A.kind(t):'generic';if(CUT.includes(k))return cutter(t,k);if(HOLD.includes(k))return holder(t,k,o);if(k==='collet'||k==='reducer')return collet(t,k);return simple(t,k)}
+// Eigenes Profil aus einer hochgeladenen STL-Datei (Radius je Position, in mm)
+function custom(t,k,o){
+ const pr=t&&t.profile3d;if(!pr||!Array.isArray(pr.pts)||pr.pts.length<2)return null;
+ const raw=pr.pts.filter(q=>Number.isFinite(q[0])&&Number.isFinite(q[1])&&q[1]>=0);if(raw.length<2)return null;
+ const g=GROUP(k),L=raw[raw.length-1][0],rMax=Math.max(...raw.map(q=>q[1])),f=Math.min(14,Math.max(1,L*0.3)),dims=[],est=[];
+ const rAt=z=>{for(let i=1;i<raw.length;i++)if(raw[i][0]>=z){const a=raw[i-1],b=raw[i],t_=(z-a[0])/((b[0]-a[0])||1);return a[1]+(b[1]-a[1])*t_}return raw[raw.length-1][1]};
+ if(g==='holder'){
+  const pts=raw.map((q,i)=>[q[0],q[1],q[0]<=f?'iface':'body']);dims.push({key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}});
+  if(t.interface)dims.push({key:'interface',type:'dia',z:f/2,r:rAt(f/2),text:String(t.interface),hl:{tags:['iface']}});
+  const bore=num(t.minDiameter)||num(t.diameter);if(bore)dims.push({key:'minDiameter',type:'dia',z:L,r:bore/2,text:'Aufnahme Ø'+fmt(bore),hl:{tags:['body'],bore:true}});
+  const er=k==='erchuck'?erOf(t.outSize):null;if(er)dims.push({key:'outSize',type:'dia',z:L-er.l*0.4,r:rAt(L-er.l*0.4),text:'Spannzange '+(t.outSize||'ER'),hl:{tags:['body']}});
+  return {kind:k,group:'holder',pts,L,rMax,dims,est,custom:true,bore:bore?{r:bore/2,depth:Math.max(8,Math.min(L-f-2,bore*3))}:null};
+ }
+ if(g==='cutter'){
+  let l=num(t.cuttingLength);if(!(l>0)){l=Math.min(L*0.4,Math.max(rMax*5,5));est.push('Schneidenlänge')}
+  const zc=Math.max(0,L-l),pts=raw.map(q=>[q[0],q[1],q[0]>zc?'flute':'shank']),D=num(t.diameter)||rAt(L-l/2)*2,S=num(t.shaftDiameter)||rAt(zc/2)*2;
+  dims.push({key:'shaftDiameter',type:'dia',z:zc*0.5,r:S/2,text:'Schaft Ø'+fmt(S),hl:{tags:['shank']}},{key:'diameter',type:'dia',z:zc+l*0.5,r:D/2,text:'Schneide Ø'+fmt(D),hl:{tags:['flute']}},{key:'cuttingLength',type:'len',z0:zc,z1:L,text:'Schneide '+fmt(l),hl:{tags:['flute']}},{key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}});
+  return {kind:k,group:'cutter',pts,L,rMax,dims,est,flute:false,teeth:4,D,S,l,custom:true};
+ }
+ const pts=raw.map(q=>[q[0],q[1],g==='collet'?'collet':'body']);dims.push({key:'totalLength',type:'len',z0:0,z1:L,text:'Länge '+fmt(L),hl:{}});
+ const minD=num(t.minDiameter);if(minD)dims.push({key:'minDiameter',type:'dia',z:L*0.5,r:rMax,text:'Spannbereich Ø'+fmt(minD),hl:{tags:[g==='collet'?'collet':'body']}});
+ if(t.interface)dims.push({key:'interface',type:'dia',z:L*0.2,r:rAt(L*0.2),text:String(t.interface),hl:{tags:[g==='collet'?'collet':'body']}});
+ return {kind:k,group:g,pts,L,rMax,dims,est,custom:true};
+}
+function buildPart(t,o={}){const A=Art(),k=A?A.kind(t):'generic';{const c=custom(t,k,o);if(c)return c}if(CUT.includes(k))return cutter(t,k);if(HOLD.includes(k))return holder(t,k,o);if(k==='collet'||k==='reducer')return collet(t,k);return simple(t,k)}
 const shift=(p,dz,id,t,drop)=>({...p,id,title:t?.title||t?.number||'',pts:p.pts.map(q=>[q[0]+dz,q[1],q[2]]),z0:p.pts[0][0]+dz,z1:p.pts[p.pts.length-1][0]+dz,dims:p.dims.filter(d=>!(drop||[]).includes(d.key)).map(d=>({...d,part:id,z:d.z===undefined?undefined:d.z+dz,z0:d.z0===undefined?undefined:d.z0+dz,z1:d.z1===undefined?undefined:d.z1+dz,hl:{...d.hl,part:id}})),dz});
 function finish(m){
  const all=m.parts.flatMap(p=>p.pts);
@@ -276,6 +300,7 @@ function mountAll(ctx){
  document.querySelectorAll('[data-t3d-tool]').forEach(el=>{if(el._mounted)return;el._mounted=true;const t=ctx.db.tools.find(x=>x.id===el.dataset.t3dTool);if(!t)return;mount(el,()=>single(t),{name:t.number||'werkzeug'})});
  document.querySelectorAll('[data-t3d-asm]').forEach(el=>{if(el._mounted)return;el._mounted=true;const a=ctx.db.toolassemblies.find(x=>x.id===el.dataset.t3dAsm);if(!a)return;mount(el,()=>assembly(ctx.db,a,ctx.Tooling),{name:(a.number||'baugruppe')+'-werkzeug'})});
 }
-const api={buildPart,single,assembly,union,mesh,stl,drawing,highlight,view3d,panelHtml,mount,mountAll,erOf,flangeOf,ER,KEYS};
+function groupOf(t){const A=Art(),k=A?A.kind(t):'generic';return GROUP(k)==='cutter'?'cutter':GROUP(k)==='holder'?'holder':GROUP(k)==='collet'?'collet':'other'}
+const api={groupOf,buildPart,single,assembly,union,mesh,stl,drawing,highlight,view3d,panelHtml,mount,mountAll,erOf,flangeOf,ER,KEYS};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.CncTool3D=api;
 })(typeof window!=='undefined'?window:globalThis);

@@ -67,3 +67,34 @@ console.log('werkzeug3d ok');
  if(st){const x=st({stockGroup:'holders'});if('subtype' in x&&x.subtype===undefined&&false)throw 1}
  console.log('paket23 ok');
 }
+
+// Paket 26: eigenes STL-Profil, Zusammenstellen bleibt automatisch
+{
+const S=require('../stlprofil.js'),D=require('../werkzeug3d.js');
+// synthetische STL: Drehkörper entlang Y (nicht Z!) aus Profil [(y,r)]
+function revolve(prof,N=48){const tris=[];for(let i=0;i<prof.length-1;i++)for(let k=0;k<N;k++){const a=k/N*2*Math.PI,b=(k+1)/N*2*Math.PI,P=(p,t)=>[p[1]*Math.cos(t)+5,p[0],p[1]*Math.sin(t)-3];const A=P(prof[i],a),B=P(prof[i],b),C=P(prof[i+1],b),Dd=P(prof[i+1],a);tris.push([A,B,C],[A,C,Dd])}
+ const buf=Buffer.alloc(84+50*tris.length);buf.writeUInt32LE(tris.length,80);tris.forEach((t,i)=>{let o=84+i*50+12;t.flat().forEach(x=>{buf.writeFloatLE(x,o);o+=4})});return buf}
+// Halter: Kegel 0..20 (r 10->20), Flansch 20..30 r=25, Körper 30..100 r=15
+const holder=revolve([[0,10],[20,20],[20,25],[30,25],[30,15],[100,15]]);
+const v=S.parse(holder),a=S.analyze(v,{axis:'auto',group:'holder'});
+void ('axis',a.axis,'L',a.L,'rMax',a.rMax.toFixed(1),'pts',a.pts.length,'tris',a.triangles);
+if(a.axis!=='y')throw Error('Achse');
+if(Math.abs(a.rMax-25)>0.6)throw Error('rMax '+a.rMax);
+const St0=require('../inventory-model.js');const t={...St0.normalize({interface:'SK40',toolKind:'Spannzangenfutter',stockGroup:'holders',outSize:'ER32',totalLength:70,projection:70}),profile3d:{pts:a.pts}};
+const p=D.buildPart(t,{asm:true});if(!p||!p.custom||p.group!=='holder')throw Error('custom holder '+JSON.stringify(p&&p.group));
+void ('holder L',p.L,'rMax',p.rMax.toFixed(1));
+const flip=S.analyze(v,{flip:true,group:'cutter'});if(flip.pts[0][1]<flip.pts[flip.pts.length-1][1])throw Error('flip');
+const fit=S.analyze(v,{unit:'fit',fitLength:200,group:'cutter'});if(Math.abs(fit.L-200)>0.5)throw Error('fit '+fit.L);
+// Zusammenbau mit eigenem Halter
+const Tl=require('../tooling.js'),St=require('../inventory-model.js');
+const db={machines:[{id:'m',title:'M',spindle:'SK40'}],tools:[{id:'h',...St.normalize(t),projection:70,totalLength:70,profile3d:{pts:a.pts}},{id:'z',...St.normalize({toolKind:'Spannzange',interface:'ER32',minDiameter:6,maxDiameter:20,stockGroup:'holders',totalLength:40,projection:2})},{id:'c',...St.normalize({toolKind:'Schaftfräser',shaftDiameter:12,diameter:12,cuttingLength:26,totalLength:83,projection:45,stockGroup:'cutting',shaftType:'glatt'})}]};
+const asm={machineId:'m',machine:'M',components:[{id:'h',qty:1},{id:'z',qty:1},{id:'c',qty:1}]};
+const m=D.assembly(db,asm,Tl);if(!m||!m.parts.length)throw Error('asm');
+void ('Zusammenbau Spitze',m.tipZ,'Teile',m.parts.length,'fit',Tl.chain(db,asm).reason);
+const q=D.mesh(m,24);if(!q.length||q.some(k=>k.v.flat().some(x=>!Number.isFinite(x))))throw Error('mesh');
+void ('stl ok');
+{const db2=JSON.parse(JSON.stringify(db));delete db2.tools[0].profile3d;const a1=Tl.chain(db,asm),a2=Tl.chain(db2,asm);
+ if(a1.ok!==a2.ok||a1.reason!==a2.reason||Tl.length(db,asm).value!==Tl.length(db2,asm).value)throw Error('Zusammenstellen ändert sich durch STL');if(!a1.ok)throw Error('Kette nicht ok: '+a1.reason)}
+
+ console.log('paket26 ok');
+}
