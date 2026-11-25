@@ -67,6 +67,17 @@ console.log('werkzeug3d ok');
  if(st){const x=st({stockGroup:'holders'});if('subtype' in x&&x.subtype===undefined&&false)throw 1}
  console.log('paket23 ok');
 }
+// Assembly: lollipop variants retain their neck and spherical head; selected dimensions stay isolated.
+const lolliDb={...db,tools:db.tools.map(t=>t.id==='c'?{...t,toolKind:'Lollipopfräser',subtype:'Lollipopfräser',diameter:12,neckDiameter:5,neckLength:20,totalLength:83}:t)};
+const lm=W.assembly(lolliDb,a,T);
+assert.equal(lm.cut.kind,'lolli');
+assert.ok(lm.cut.pts.some(p=>p[2]==='neck'&&p[1]===2.5));
+assert.ok(lm.cut.pts.filter(p=>p[2]==='flute').length>=12);
+assert.equal(A.kind({role:'Schneidwerkzeug',subtype:'Schaftfräser',title:'Lollipop Ø12'}),'lolli');
+const focused=W.drawing(lm,{focus:'assemblyLength'});
+assert.ok(focused.includes('data-dim="assemblyLength"'));
+assert.ok(!focused.includes('data-dim="insert"'));
+assert.ok(!focused.includes('NaN'));
 
 // Paket 26: eigenes STL-Profil, Zusammenstellen bleibt automatisch
 {

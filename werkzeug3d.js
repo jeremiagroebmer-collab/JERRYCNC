@@ -107,7 +107,7 @@ function finish(m){
 function single(t){
  const p=buildPart(t,{});if(!p)return null;const m={parts:[shift(p,0,'p0',t)],warn:[],est:[],single:true,tool:t,title:t?.title||''};return finish(m);
 }
-// Zusammenbau: Messebene z=0, Schneide unten. Auspannlänge = wie weit das Werkzeug aus der Spannzange / dem Futter steht.
+// Zusammenbau: Messebene z=0, Schneide unten. Ausspannlänge = wie weit das Werkzeug aus der Spannzange / dem Futter steht.
 function assembly(db,a,Tooling,opts={}){
  const c=Tooling.chain(db,a),rows=c.rows.filter(r=>r.part);if(!rows.length)return null;
  const m={parts:[],warn:[],est:[],extraDims:[],title:a.title||''};let zNose=0,holderNose=null,carrierNose=0,first=true,holderT=null;const so0=num(opts.stickout!==undefined?opts.stickout:a.stickout),so=so0>0?so0:null;
@@ -118,14 +118,14 @@ function assembly(db,a,Tooling,opts={}){
   if(g==='collet'){const p=buildPart(t,{});if(!p)return;let pc=num(t.projection);if(pc===null){pc=2;m.est.push('Spannzange ragt ca. 2 mm heraus')}const x=shift(p,zNose+pc-p.L,id,t,['totalLength','interface','minDiameter']);x.hiddenTo=holderNose??zNose;m.parts.push(x);zNose+=pc;carrierNose=zNose;return}
   if(g==='cutter'){
    const p=buildPart(t,{});if(!p)return;let A_=so;const pr=num(t.projection);
-   if(A_===null)A_=pr;if(A_===null){A_=Math.min(p.L-Math.min(p.L*0.4,2.5*p.S),p.l*1.2+p.S);if(!(A_>0))A_=p.L*0.6;m.est.push('Auspannlänge geschätzt')}
-   if(A_>p.L){m.warn.push('Auspannlänge ist größer als die Werkzeuglänge ('+fmt(p.L)+' mm).');A_=p.L}
+   if(A_===null)A_=pr;if(A_===null){A_=Math.min(p.L-Math.min(p.L*0.4,2.5*p.S),p.l*1.2+p.S);if(!(A_>0))A_=p.L*0.6;m.est.push('Ausspannlänge geschätzt')}
+   if(A_>p.L){m.warn.push('Ausspannlänge ist größer als die Werkzeuglänge ('+fmt(p.L)+' mm).');A_=p.L}
    const x=shift(p,zNose+A_-p.L,id,t,['totalLength']);x.hiddenTo=carrierNose;m.parts.push(x);
    const ins=p.L-A_,tip=zNose+A_;m.A=A_;m.I=ins;m.tipZ=tip;m.noseZ=zNose;m.cut=p;
-   m.extraDims.push({key:'stickout',type:'len',z0:zNose,z1:tip,text:'Auspannlänge '+fmt(A_),part:id,hl:{part:id,fromZ:zNose}},{key:'insert',type:'len',z0:tip-p.L,z1:zNose,text:'Eingespannt '+fmt(ins),part:id,hl:{tags:['shank'],part:id,toZ:zNose}});
+   m.extraDims.push({key:'stickout',type:'len',z0:zNose,z1:tip,text:'Ausspannlänge '+fmt(A_),part:id,hl:{part:id,fromZ:zNose}},{key:'insert',type:'len',z0:tip-p.L,z1:zNose,text:'Eingespannt '+fmt(ins),part:id,hl:{tags:['shank'],part:id,toZ:zNose}});
    {const MINF={Spannzangenfutter:2.5,Schrumpffutter:2,Hydrodehnspannfutter:2,Weldon:2,Bohrfutter:2.5},f=MINF[holderT&&holderT.system]||2.5;if(ins<f*p.S)m.warn.push('Nur '+fmt(ins)+' mm eingespannt = '+fmt(ins/p.S)+' × Schaft-Ø. Richtwert'+(holderT&&MINF[holderT.system]?' für '+holderT.system:'')+': mindestens '+fmt(f).replace('.',',')+' × Ø einspannen. Bitte mit Herstellerangabe vergleichen.')}
-   {const idp=holderT?num(holderT.insertDepth):null;if(idp>0&&ins>idp+0.01)m.warn.push('Eingespannt '+fmt(ins)+' mm, aber das Futter nimmt nur '+fmt(idp)+' mm auf. Auspannlänge erhöhen oder ein kürzeres Werkzeug nehmen.')}
-   if(A_<p.l)m.warn.push('Auspannlänge '+fmt(A_)+' mm ist kleiner als die Schneidenlänge '+fmt(p.l)+' mm: die Schneide steckt noch im Futter.');
+   {const idp=holderT?num(holderT.insertDepth):null;if(idp>0&&ins>idp+0.01)m.warn.push('Eingespannt '+fmt(ins)+' mm, aber das Futter nimmt nur '+fmt(idp)+' mm auf. Ausspannlänge erhöhen oder ein kürzeres Werkzeug nehmen.')}
+   if(A_<p.l)m.warn.push('Ausspannlänge '+fmt(A_)+' mm ist kleiner als die Schneidenlänge '+fmt(p.l)+' mm: die Schneide steckt noch im Futter.');
    if(A_/p.D>4)m.warn.push('Lange Auskragung ('+fmt(A_/p.D)+' × Ø). Schnittwerte senken oder kürzer ausspannen.');
    return;
   }
@@ -190,7 +190,7 @@ function regions(part,hl){
  let run=null;pts.forEach((p,i)=>{if(i>0&&hl.tags.includes(p[2])){if(!run)run=[pts[i-1]];run.push(p)}else if(run){out.push(run);run=null}});if(run)out.push(run);return out;
 }
 function drawing(m,o={}){
- if(!m)return '';const W=340,Hm=o.h||(m.parts.length>1?390:330),id=++uid;
+ if(!m)return '';if(o.focus){m={...m,dims:m.dims.filter(d=>d.key===o.focus)}}const W=340,Hm=o.h||(m.parts.length>1?390:330),id=++uid;
  const lens=m.dims.filter(d=>d.type==='len'),lanes=[];
  for(const d of lens){const lo=Math.min(d.z0,d.z1),hi=Math.max(d.z0,d.z1);let i=lanes.findIndex(l=>l.every(e=>hi<=e.lo+0.5||lo>=e.hi-0.5));if(i<0){i=lanes.length;lanes.push([])}lanes[i].push({lo,hi});d.lane=i}
  const dl=m.dims.filter(d=>d.type==='dia'),rw=Math.max(60,...dl.map(d=>d.text.length*5.6+16)),nl=Math.max(1,lanes.length),ml=14+nl*19,zr=Math.max(1,m.zMax-m.zMin);
@@ -261,7 +261,7 @@ function view3d(canvas,getModel){
  return {st,set:()=>{set();frame()},draw:frame,setHl:h=>{st.hl=h;frame()},zoom:f=>{st.zoom=Math.max(0.5,Math.min(8,st.zoom*f));frame()},focus:f=>{st.focus=f;st.zoom=1;frame()},spin:on=>{st.spin=on;clearInterval(spinTimer);if(on)spinTimer=setInterval(()=>{if(!canvas.isConnected){clearInterval(spinTimer);return}st.yaw+=0.03;frame()},40)},reset:()=>{st.yaw=0.6;st.pitch=0.42;st.zoom=1;st.focus='all';frame()}};
 }
 // ---------- Bedienfeld (Zeichnung / 3D umschalten, Maße antippen)
-const chipText={shaftDiameter:'Schaft Ø',diameter:'Schneiden Ø',cuttingLength:'Schneidenlänge',totalLength:'Länge',stickout:'Auspannlänge',insert:'Eingespannt',holderLength:'Futterlänge',assemblyLength:'Gesamtlänge',minDiameter:'Aufnahme / Spannbereich',interface:'Anschluss',outSize:'Spannzange'};
+const chipText={shaftDiameter:'Schaft Ø',diameter:'Schneiden Ø',cuttingLength:'Schneidenlänge',totalLength:'Länge',neckDiameter:'Hals Ø',neckLength:'Halslänge',stickout:'Ausspannlänge',insert:'Eingespannt',holderLength:'Futterlänge',assemblyLength:'Gesamtlänge',minDiameter:'Aufnahme / Spannbereich',interface:'Anschluss',outSize:'Spannzange'};
 function panelHtml(o={}){
  return '<div class="t3d-panel'+(o.sticky?' sticky':'')+'" data-t3d="1"'+(o.asm?' data-t3d-asm="'+esc(o.asm)+'"':'')+(o.tool?' data-t3d-tool="'+esc(o.tool)+'"':'')+'><div class="t3d-tabs">'+(o.single?'<button type="button" data-t3d-tab="sketch" class="on">Zeichnung</button>':'<button type="button" data-t3d-tab="draw" class="on">Zeichnung</button>')+'<button type="button" data-t3d-tab="3d">3D</button></div><div class="t3d-view"></div><div class="t3d-tools" hidden><button type="button" class="secondary" data-t3d-act="all">Ganz</button><button type="button" class="secondary" data-t3d-act="tip">Schneide</button><button type="button" class="secondary" data-t3d-act="spin">Drehen</button><button type="button" class="secondary" data-t3d-act="stl">STL laden</button></div><div class="t3d-chips"></div><p class="t3d-note muted small"></p></div>';
 }
@@ -277,12 +277,13 @@ function mount(el,getModel,o={}){
   const sk=m&&m.single&&root.CncSketch?root.CncSketch.draw(m.tool,m.parts[0].kind):null,skb=el.querySelector('[data-t3d-tab="sketch"]');if(skb)skb.hidden=!sk;const cur=tab==='sketch'&&!sk?'draw':tab;
   el.querySelectorAll('[data-t3d-tab]').forEach(b=>b.classList.toggle('on',b.dataset.t3dTab===cur));
   if(!m){view.innerHTML='<p class="muted small">Wähle zuerst die Art. Dann erscheint hier die Zeichnung.</p>';tools.hidden=true;chips.innerHTML='';note.textContent='';v3=null;return}
+  const activeKey=key||(!m.single?(m.dims.some(d=>d.key==='assemblyLength')?'assemblyLength':m.dims[0]?.key):null);
   tools.hidden=cur!=='3d';
   if(cur==='sketch'){v3=null;view.innerHTML=sk.svg;highlight(view.querySelector('svg'),key)}
-  else if(cur==='draw'){v3=null;view.innerHTML=drawing(m,{h:o.h});const svg=view.querySelector('svg');highlight(svg,key)}
+  else if(cur==='draw'){v3=null;view.innerHTML=drawing(m,{h:o.h,focus:m.single?null:activeKey});const svg=view.querySelector('svg');highlight(svg,key)}
   else{let cv=view.querySelector('canvas');if(!cv){view.innerHTML='<canvas style="width:100%;height:300px;display:block"></canvas>';cv=view.querySelector('canvas');v3=view3d(cv,()=>m)}v3.set();const d=m.dims.find(x=>x.key===key);v3.setHl(d?d.hl:null)}
   const seen=new Set(),list=m.dims.filter(d=>!seen.has(d.key)&&seen.add(d.key));
-  if(cur==='sketch'){chips.innerHTML='';chips.hidden=true}else {chips.hidden=false;chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===key?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(chipText[d.key]||d.key)+'</button>').join('');}
+  if(cur==='sketch'){chips.innerHTML='';chips.hidden=true}else {chips.hidden=false;chips.innerHTML=list.map(d=>'<button type="button" class="chip'+(d.key===activeKey?' on':'')+'" data-t3d-key="'+esc(d.key)+'">'+esc(m.single?(chipText[d.key]||d.key):d.text+(/Ø|\d/.test(d.text)&&!['interface','outSize'].includes(d.key)?' mm':''))+'</button>').join('');}
   const bits=[];if(m.est&&m.est.length)bits.push('Geschätzt, bitte ergänzen: '+m.est.join(', ')+'.');(m.warn||[]).forEach(w=>bits.push(w));note.hidden=!!m.single;note.textContent=m.single?'':bits.join(' ');
   note.className='t3d-note small '+((m.warn||[]).length?'warn':'muted');
  }

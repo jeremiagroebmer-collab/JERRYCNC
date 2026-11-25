@@ -8,7 +8,7 @@ const INK='var(--ink,#cfe0ee)';
 // Welche Zeichnung gehört zu einem Teil?
 function kind(t){
  if(!t)return 'generic';
- const role=t.role||'',sys=t.system||'',sub=norm([t.subtype,t.toolKind,t.type].join(' '));
+ const role=t.role||'',sys=t.system||'',sub=norm([t.subtype,t.toolKind,t.type,t.variant].join(' '));
  if(role==='Maschinenanschluss')return 'adapter';
  if(role==='Aufnahme/Futter'||t.componentType==='Halter'){if(sys==='Spannzangenfutter')return 'erchuck';if(sys==='Schrumpffutter')return 'shrink';if(sys==='Hydrodehnspannfutter')return 'hydro';if(sys==='Weldon')return 'weldon';if(sys==='Bohrfutter')return 'erchuck';return 'weldon'}
  if(role==='Spannmittel'||t.componentType==='Spannzange'){return sys==='Reduzierhülse'?'reducer':'collet'}
@@ -17,7 +17,7 @@ function kind(t){
  if(role==='Wendeschneidplatte'||t.componentType==='Wendeplatte')return 'insert';
  if(/drehmeissel|drehwerkzeug/.test(sub))return 'turn';
  if(/gewindebohr|gewindeform|gewindefras/.test(sub))return 'tap';
- if(/lolli/.test(sub))return 'lolli';
+ if(/loll?[iy][ -]?pop|lolli/.test(sub)||(!/kugel|radius|bohr/.test(sub)&&/loll?[iy][ -]?pop|lolli/.test(norm(t.title||''))))return 'lolli';
  if(/radiusfr|eckradius|torus/.test(sub))return 'radius';
  if(/kugel/.test(sub))return 'ball';
  if(/bohrer|reibahle|senker/.test(sub))return 'drill';
