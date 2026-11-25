@@ -146,6 +146,21 @@ function stack(db,a,Tooling){
  y+=10;
  return '<svg class="tool-stack" viewBox="0 0 '+W+' '+y+'" width="100%" role="img" aria-label="Aufbau des Werkzeugs von der Maschine bis zur Schneide">'+DEFS+out.join('')+joints.join('')+'</svg>';
 }
+// Responsive HTML labels keep long component names readable on small screens.
+function assemblyView(db,a,Tooling){
+ const c=Tooling.chain(db,a);
+ const row=(art,title,meta,index,ok,reason,remove)=>'<li class="assembly-part'+(ok===false?' needs-check':'')+'"><div class="assembly-part-art">'+art+'</div><div class="assembly-part-copy"><div class="assembly-part-meta"><span>'+esc(index)+'</span><span>'+esc(meta)+'</span></div><h3>'+esc(title)+'</h3>'+(reason?'<p class="assembly-part-status">'+(ok?'✓ ':'')+esc(reason)+'</p>':'')+(remove||'')+'</div></li>';
+ let html='<ol class="assembly-visual-list">';
+ html+=row(kindIcon('adapter',56),c.machine?.title||'Maschine wählen',c.machine?(c.machine.spindle||c.machine.turret||'Anschluss fehlt'):'Maschinenanschluss','START',null,'','');
+ c.rows.forEach((r,i)=>{
+  const part=r.part,k=kind(part),id=part&&part.id;
+  const qty=(a.components||[]).find(x=>x.id===id)?.qty||1;
+  const remove=id?'<button type="button" class="assembly-part-remove" data-tms-remove="'+esc(a.id+':'+id)+'">Entfernen</button>':'';
+  html+=row(kindIcon(k,56),part?(part.title||part.number||'Bauteil'):'Bauteil fehlt',(part?.number?part.number+' · ':'')+(LABEL[k]||'Bauteil')+' · '+qty+' Stück',String(i+1).padStart(2,'0'),r.ok,r.ok?'Anschluss passt':r.reason,remove);
+ });
+ if(!c.complete)html+='<li class="assembly-next"><span>+</span><div><b>Nächstes Bauteil</b><p>'+esc(nextHint(c.up))+'</p></div></li>';
+ return html+'</ol>';
+}
 // Kacheln für "Was legst du an?"
 const tiles=[
  {k:'endmill',label:'Fräser',kind:'Schaftfräser',group:'cutting'},
@@ -162,6 +177,6 @@ const tiles=[
  {k:'insert',label:'Wendeplatte',kind:'Wendeschneidplatte',group:'cutting'},
  {k:'insertholder',label:'Messerkopf',kind:'Messerkopf',group:'cutting'}
 ];
-const api={kind,shape,icon,kindIcon,stack,nextHint,tiles,LABEL};
+const api={kind,shape,icon,kindIcon,stack,assemblyView,nextHint,tiles,LABEL};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.CncToolArt=api;
 })(typeof window!=='undefined'?window:globalThis);
