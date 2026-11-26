@@ -25,7 +25,12 @@ function checks(db,o){
   else add('pdm','Zeichnung im System','green','Zeichnung passt'+(part.revision?' (Rev. '+part.revision+')':''));
   const progs=list(db.cam).filter(c=>c.order===o.number||(c.partNumber&&norm(c.partNumber)===norm(o.partNumber)));
   const badProg=progs.filter(c=>rev&&c.revision&&!sameRev(c.revision,rev));
+  const prevOrders=previous(db,o),prevNums=new Set(prevOrders.map(x=>x.number));
+  // Programm stammt aus einem früheren Auftrag und die Revision hat sich geändert, ohne dass es geprüft wurde
+  const carried=progs.filter(c=>rev&&!c.revision&&c.order&&c.order!==o.number&&prevNums.has(c.order)&&prevOrders.some(x=>x.number===c.order&&x.revision&&!sameRev(x.revision,rev)));
+  const ncIds=[...badProg,...carried].map(c=>c.id);
   if(badProg.length)add('nc','NC-Programm','red','NC-Programm '+(badProg[0].number||badProg[0].title)+' hat Revision '+badProg[0].revision+', Auftrag hat '+rev+'.');
+  else if(carried.length)add('nc','NC-Programm','yellow','NC-Programm '+(carried[0].number||carried[0].title)+' stammt aus '+carried[0].order+' (andere Revision). Für Revision '+rev+' prüfen und neu freigeben.');
   else add('nc','NC-Programm','green',progs.length?'NC-Programm passt':'Noch kein Programm');
   const mine=steps(db,o),planRevs=[...new Set(mine.map(p=>p.planRevision).filter(Boolean))];
   const badPlan=planRevs.filter(r=>rev&&!sameRev(r,rev));
@@ -36,7 +41,7 @@ function checks(db,o){
   let light='green';out.forEach(c=>{light=worst(light,c.light)});
   const sig=out.filter(c=>c.light==='red').map(c=>c.text).join('|');
   const ack=!!(sig&&o.revisionAck&&o.revisionAck.sig===sig);
-  return {light:ack&&light==='red'?'yellow':light,checks:out,ack,sig,raw:light,list:prev};
+  return {light:ack&&light==='red'?'yellow':light,checks:out,ack,sig,raw:light,list:prev,ncIds};
 }
 // Kopiert den Arbeitsplan von "from" nach "to". newId liefert neue IDs.
 function copyPlan(db,from,to,newId,nextNumber){
@@ -47,6 +52,8 @@ function copyPlan(db,from,to,newId,nextNumber){
     return {...c,id:map.get(p.id),number:nextNumber?nextNumber():c.number,order:to.number,orderId:to.id,status:'Geplant',date:to.due||'',dependsOn:list(p.dependsOn).map(id=>map.get(id)).filter(Boolean),planRevision:to.revision||from.revision||'',copiedFrom:from.number,startedAt:undefined,finishedAt:undefined};
   });
 }
-const api={norm,key,previous,checks,copyPlan,steps};
+// Programme für die neue Revision übernehmen: Revision setzen, Freigabe zurücknehmen
+function adoptPrograms(db,o,day){const c=checks(db,o),done=[];c.ncIds.forEach(id=>{const p=list(db.cam).find(x=>x.id===id);if(!p)return;const old=p.revision||'ohne';p.revision=o.revision;if(p.status==='Freigegeben')p.status='Freigabe offen';p.notes=(p.notes?p.notes+'\n':'')+(day||'')+' Revision '+old+' → '+o.revision+' für '+o.number+' geprüft. Neu freigeben.';done.push(p)});return done}
+const api={norm,key,previous,checks,copyPlan,steps,adoptPrograms};
 if(typeof module!=='undefined')module.exports=api;root.CncRepeat=api;
 })(typeof window!=='undefined'?window:globalThis);

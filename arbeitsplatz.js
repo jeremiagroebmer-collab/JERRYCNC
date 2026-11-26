@@ -5,8 +5,15 @@ const list=v=>Array.isArray(v)?v:[];
 const RANK={red:3,yellow:2,green:1,idle:0};
 const worst=(a,b)=>RANK[b]>RANK[a]?b:a;
 const dayAdd=(day,n)=>{const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
-const isWork=day=>{const w=new Date(day+'T12:00:00Z').getUTCDay();return w!==0&&w!==6};
-function workBack(day,n){let d=day;while(!isWork(d))d=dayAdd(d,-1);let k=n;while(k>0){d=dayAdd(d,-1);if(isWork(d))k--}return d}
+function easter(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return y+'-'+String(mo).padStart(2,'0')+'-'+String(da).padStart(2,'0')}
+const holCache=new Map();
+function holidays(y){if(holCache.has(y))return holCache.get(y);const f=['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'].map(x=>y+'-'+x);f.push(dayAdd(easter(y),1));const s=new Set(f);holCache.set(y,s);return s}
+const isHoliday=day=>holidays(Number(day.slice(0,4))).has(day);
+// Betriebsurlaub: Liste aus Einzeltagen "2026-12-24" oder Bereichen "2026-12-24..2026-12-31"
+function closedSet(text){const s=new Set();String(text||'').split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean).forEach(t=>{const m=t.match(/^(\d{4}-\d{2}-\d{2})(?:\s*(?:\.\.|bis|–|-{1,2})\s*(\d{4}-\d{2}-\d{2}))?$/);if(!m)return;let d=m[1];const e=m[2]||m[1];for(let i=0;i<400&&d<=e;i++){s.add(d);d=dayAdd(d,1)}});return s}
+function calendar(cfg,name){const g=(cfg&&cfg.places&&cfg.places[name])||{},days=Math.min(7,Math.max(1,Number(g.weekDays)||5)),hours=Math.min(24,Math.max(0.5,Number(g.dayHours)||8)),closed=closedSet(cfg&&cfg.closed);
+  const isWork=day=>{const w=new Date(day+'T12:00:00Z').getUTCDay()||7;return w<=days&&!isHoliday(day)&&!closed.has(day)};return {dayHours:hours,weekDays:days,week:hours*days,isWork}}
+function workBack(day,n,isWork){isWork=isWork||(d=>{const w=new Date(d+'T12:00:00Z').getUTCDay();return w!==0&&w!==6&&!isHoliday(d)});let d=day,g=0;while(!isWork(d)&&g++<800)d=dayAdd(d,-1);let k=n;while(k>0&&g++<2000){d=dayAdd(d,-1);if(isWork(d))k--}return d}
 const dde=d=>d?d.slice(8,10)+'.'+d.slice(5,7)+'.':'';
 function hoursOf(db,o,p,wf){const w=o&&wf&&wf.hours?wf.hours(p,o):null;const h=w!==null&&w!==undefined?w:Number(p.hours);return Number.isFinite(h)&&h>0?h:0}
 function orderOf(db,p){return list(db.orders).find(o=>o.id===p.orderId||(!p.orderId&&p.order&&o.number===p.order))||null}
@@ -18,15 +25,15 @@ function classify(text){const t=String(text||'').toLowerCase();
 function placeType(name,rowsSteps){const n=classify(name);if(n)return n;const c={};rowsSteps.forEach(p=>{const k=classify(p.kind||p.title);if(k)c[k]=(c[k]||0)+1});const best=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];return best?best[0]:'default'}
 const MACHINE_TYPES=['fraesen','drehen','schleifen'];
 // Spätester Start je Arbeitsgang: vom Liefertermin des Auftrags rückwärts über die Vorgänger
-function latestStarts(db,o,wf,steps){
+function latestStarts(db,o,wf,steps,capOf){
   const map=new Map();if(!o||!o.due)return map;
   const by=new Map(steps.map(p=>[p.id,p])),succ=new Map(steps.map(p=>[p.id,[]]));
   steps.forEach(p=>list(p.dependsOn).forEach(id=>{if(succ.has(id))succ.get(id).push(p.id)}));
   const visiting=new Set();
   function ls(p){if(map.has(p.id))return map.get(p.id);if(visiting.has(p.id))return '';visiting.add(p.id);
-    const h=hoursOf(db,o,p,wf),d=Math.max(1,Math.ceil(h/8));let lf=o.due;
-    succ.get(p.id).forEach(id=>{const s=ls(by.get(id));if(s){const e=workBack(s,1);if(e<lf)lf=e}});
-    const v=workBack(workBack(lf,0),d-1);visiting.delete(p.id);map.set(p.id,v);return v}
+    const h=hoursOf(db,o,p,wf),cp=capOf?capOf(p):{dayHours:8,isWork:null},d=Math.max(1,Math.ceil(h/cp.dayHours));let lf=o.due;
+    const wd=Math.ceil((Number(p.waitHours)||0)/24);succ.get(p.id).forEach(id=>{const s=ls(by.get(id));if(s){const e=workBack(s,1+wd,cp.isWork);if(e<lf)lf=e}});
+    const v=workBack(workBack(lf,0,cp.isWork),d-1,cp.isWork);visiting.delete(p.id);map.set(p.id,v);return v}
   steps.forEach(p=>ls(p));return map;
 }
 function analyze(db,today,wf){
@@ -36,13 +43,15 @@ function analyze(db,today,wf){
   const names=[];
   machines.forEach(m=>{if(m.title&&!names.includes(m.title))names.push(m.title)});
   steps.forEach(p=>{const n=placeName(db,p);if(!names.includes(n))names.push(n)});
+  const cfgRow=list(db.settings).find(x=>x.id==='workplace-config'),cfg=cfgRow||{};
+  const calOf=name=>calendar(cfg,name),capOf=p=>calOf(placeName(db,p));
   const horizon=dayAdd(today,6),lsCache=new Map();
   const orderSteps=o=>list(db.planning).filter(p=>p.orderId===o.id||(!p.orderId&&p.order===o.number));
-  const lsFor=o=>{if(!o)return new Map();if(!lsCache.has(o.id))lsCache.set(o.id,latestStarts(db,o,wf,orderSteps(o)));return lsCache.get(o.id)};
+  const lsFor=o=>{if(!o)return new Map();if(!lsCache.has(o.id))lsCache.set(o.id,latestStarts(db,o,wf,orderSteps(o),capOf));return lsCache.get(o.id)};
   const places=names.map(name=>{
     const machine=machines.find(m=>m.title===name)||null,isMachine=!!machine;
     const mine=steps.filter(p=>placeName(db,p)===name);
-    const type=placeType(name,mine);
+    const type=placeType(name,mine),cap=calOf(name);
     const rows=[];
     mine.forEach(p=>{
       const o=orderOf(db,p);
@@ -158,11 +167,11 @@ function analyze(db,today,wf){
     else if(machine&&machine.status==='Wartung'){light=worst(light==='idle'?'green':light,'yellow');reasons.unshift('Maschine in Wartung')}
     if(maint.length&&maint[0].due<today){light='red';reasons.push('Wartung überfällig: '+maint[0].title)}
     else if(maint.length&&maint[0].due<=horizon){light=worst(light==='idle'?'green':light,'yellow');reasons.push('Wartung bald fällig: '+maint[0].title)}
-    if(weekH>40){light=worst(light,'yellow');reasons.push('Woche überbucht ('+Math.round(weekH)+' h von 40 h)')}
+    if(weekH>cap.week){light=worst(light,'yellow');reasons.push('Woche überbucht ('+Math.round(weekH)+' h von '+cap.week+' h)')}
     if(!reasons.length)reasons.push(open.length?'Alles bereit':'Nichts eingeplant');
     return {name,type,machine,isMachine,light,reasons,steps:open,doneSteps:doneRows,
       counts:{total:rows.length,done:doneRows.length,open:open.length,red:nRed,yellow:nYel,green:open.length-nRed-nYel,overdue:open.filter(r=>r.checks.date&&r.checks.date.text==='Termin überschritten').length,running:open.filter(r=>r.p.status==='Läuft'||r.state==='Läuft').length},
-      hours:{planOpen,planDone,booked,today:todayH,week:weekH},
+      hours:{planOpen,planDone,booked,today:todayH,week:weekH},cap:{dayHours:cap.dayHours,weekDays:cap.weekDays,week:cap.week},
       progress:rows.length?doneRows.length/rows.length:0,
       hourProgress:planOpen+planDone>0?planDone/(planOpen+planDone):0,
       maintenance:maint,next:open[0]||null,
@@ -171,6 +180,6 @@ function analyze(db,today,wf){
   const order=(a,b)=>RANK[b.light]-RANK[a.light]||a.name.localeCompare(b.name,'de');
   return {places:places.sort(order),today};
 }
-const api={analyze,hoursOf,placeName,classify,latestStarts,workBack};
+const api={analyze,hoursOf,placeName,classify,latestStarts,workBack,easter,isHoliday,closedSet,calendar};
 if(typeof module!=='undefined')module.exports=api;root.CncWorkplace=api;
 })(typeof window!=='undefined'?window:globalThis);

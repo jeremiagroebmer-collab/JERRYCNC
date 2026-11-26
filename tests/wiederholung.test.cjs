@@ -21,4 +21,10 @@ db.planning.push({...st('z',{orderId:'o2',order:'A-2',planRevision:'B'})});c=R.c
 assert.equal(R.checks({...db,pdm:[{number:'4433478',revision:'C',status:'Entwurf'}]},neu).checks.find(x=>x.id==='pdm').light,'red');assert.equal(R.checks({...db,pdm:[]},neu).checks.find(x=>x.id==='pdm').light,'yellow');
 // ohne Bauteilnummer: nichts zu prüfen
 assert.equal(R.checks(db,{id:'q',number:'Q',customer:'x'}).checks.length,0);
+// Programm aus altem Auftrag bei geänderter Revision: gelb, übernehmen setzt Revision und nimmt Freigabe zurück
+{const o1={id:'p1',number:'P-1',customer:'Koller',partNumber:'012-0193-012',revision:'A',status:'Ausgeliefert',acceptedAt:'2026-01-01'},o2={id:'p2',number:'P-2',customer:'Koller',partNumber:'012-0193-012',revision:'B',status:'Anfrage'};
+ const d={orders:[o1,o2],planning:[{id:'a',orderId:'p1',order:'P-1',title:'Fräsen'}],pdm:[],cam:[{id:'k1',order:'P-1',partNumber:'012-0193-012',number:'NC-9',status:'Freigegeben'}]};
+ const c=R.checks(d,o2);assert.equal(c.checks.find(x=>x.id==='nc').light,'yellow');assert.deepEqual(c.ncIds,['k1']);
+ const done=R.adoptPrograms(d,o2,'2026-11-26');assert.equal(done.length,1);assert.equal(d.cam[0].revision,'B');assert.equal(d.cam[0].status,'Freigabe offen');assert.ok(/A|ohne/.test(d.cam[0].notes));
+ assert.equal(R.checks(d,o2).checks.find(x=>x.id==='nc').light,'green');assert.deepEqual(R.checks(d,o2).ncIds,[]);}
 console.log('wiederholung ok');
