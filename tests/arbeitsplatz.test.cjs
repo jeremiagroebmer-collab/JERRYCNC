@@ -28,4 +28,8 @@ assert.equal(W.analyze({...ok,orders:[{...o,status:'Storniert'}]},today,wf).plac
 {const s2=by('Fräse 1'),row=s2.steps[0];assert.equal(row.checks.pred.light,'green');assert.equal(row.checks.drawing.light,'green');assert.equal(row.checks.material.light,'green');
  const w=W.analyze({...db,planning:[...db.planning,mk('s5',{machineId:'f',machine:'Fräse 1',date:'2026-11-29',dependsOn:['s2'],requiresProgram:true})]},today,wf).places.find(p=>p.name==='Fräse 1').steps.find(r=>r.p.id==='s5');
  assert.equal(w.checks.pred.light,'yellow');assert.ok(/s2/.test(w.checks.pred.text));assert.equal(w.checks.nc.light,'yellow');assert.ok(w.waiting.length>=2);assert.equal(w.checks.tool.light,'green');}
+// Revisionsspalte
+{const d2={...db,orders:[{...o,customer:'Leitner',partNumber:'Z1',revision:'B'}],pdm:[{number:'Z1',revision:'C',status:'Freigegeben'}],planning:[mk('r1',{machineId:'f',machine:'Fräse 1',date:'2026-11-28',assemblyIds:['t']})]};
+ const row=W.analyze(d2,today,wf).places.find(p=>p.name==='Fräse 1').steps[0];assert.equal(row.checks.rev.light,'red');assert.ok(/Revision/.test(row.waiting.join(' ')));
+ const d3={...d2,pdm:[{number:'Z1',revision:'B',status:'Freigegeben'}]};assert.equal(W.analyze(d3,today,wf).places.find(p=>p.name==='Fräse 1').steps[0].checks.rev.light,'green');}
 console.log('arbeitsplatz ok');
