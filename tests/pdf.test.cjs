@@ -11,3 +11,9 @@ fs.mkdirSync('/tmp/cncos-pdf-qa',{recursive:true});
 for(const t of engine.targets(db)){const model=engine.model(db,t.kind,t.id,base);const {pdf}=engine.render(model,{jsPDF,qrcode,fonts,createdAt:'2026-11-17T12:00:00Z'});const bytes=Buffer.from(pdf.output('arraybuffer'));assert.equal(bytes.subarray(0,4).toString(),'%PDF');fs.writeFileSync('/tmp/cncos-pdf-qa/'+t.kind+'.pdf',bytes);if(t.kind==='instruction')assert.ok(pdf.getNumberOfPages()>1)}
 fs.writeFileSync('/tmp/cncos-pdf-qa/fixture.json',JSON.stringify(db));
 console.log('PASS: document headers, customer metadata, linked workflow PDFs, component codes, explicit selections, stale source changes, missing records and multipage PDF generation.');
+
+// Tagesliste Arbeitsplatz
+{const P=require('../pdf-engine.js'),assert2=require('node:assert/strict');
+ const db={machines:[{id:'f',title:'Fräse X',status:'Produktion'}],orders:[{id:'o',number:'A1',customer:'Leitner',partNumber:'4433478',revision:'B',partKind:'Platte',title:'Montageplatte',qty:5,due:'2030-12-10',status:'Bestätigt',workflowVersion:2,productionReleased:true}],planning:[{id:'s',orderId:'o',order:'A1',title:'Fräsen',kind:'Fräsen',machineId:'f',machine:'Fräse X',setupMin:30,runMin:60,timeBasis:'lot',status:'Geplant',date:'2030-12-05'}],settings:[],pdm:[],cam:[],materials:[],toolassemblies:[],time:[],maintenance:[]};
+ const m=P.model(db,'workday','Fräse X','https://x.test/app/');assert2.equal(m.title,'Tagesliste Arbeitsplatz');assert2.equal(m.rows.length,1);assert2.ok(/Leitner/.test(m.rows[0].lines.join(' '))&&/4433478/.test(m.rows[0].lines.join(' ')));assert2.ok(/#pdf=step/.test(m.rows[0].url));
+ assert2.throws(()=>P.model(db,'workday','Gibt es nicht','https://x.test/'),/nicht gefunden/);console.log('tagesliste ok');}

@@ -3,7 +3,7 @@
 'use strict';
 const workflow=root.CncWorkflow||(typeof require==='function'?require('./workflow.js'):null);
 const tooling=root.CncTooling||(typeof require==='function'?require('./tooling.js'):null);
-const kinds={workplan:'Arbeitsplan',step:'Arbeitsgangblatt',tools:'Werkzeugliste','step-tools':'Werkzeuge zum Arbeitsgang',assembly:'Werkzeugbaugruppe',instruction:'Arbeitsanleitung'};
+const kinds={workplan:'Arbeitsplan',step:'Arbeitsgangblatt',tools:'Werkzeugliste','step-tools':'Werkzeuge zum Arbeitsgang',assembly:'Werkzeugbaugruppe',instruction:'Arbeitsanleitung',workday:'Tagesliste Arbeitsplatz'};
 const collections={workplan:'orders',step:'planning',tools:'orders','step-tools':'planning',assembly:'toolassemblies',instruction:'knowledge'};
 const dateText=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?String(v).slice(8,10)+'.'+String(v).slice(5,7)+'.'+String(v).slice(0,4):text(v);
 const list=v=>Array.isArray(v)?v:[];
@@ -13,7 +13,22 @@ function profile(db){return {appName:'CNC OS',company:'Eigene Firma noch nicht e
 function target(db,kind,id){if(!collections[kind])throw Error('Unbekannte Dokumentart.');const x=list(db[collections[kind]]).find(x=>x.id===id);if(!x)throw Error('Datensatz für dieses PDF fehlt auf diesem Gerät. Bitte passenden Datenstand laden.');return x}
 function oneByName(rows,name){const found=list(rows).filter(x=>name&&x.title===name);return found.length===1?found[0]:null}
 function stepContext(db,p){const order=list(db.orders).find(o=>p.order&&o.number===p.order);const explicit=(field,rows,fallback)=>Array.isArray(p[field])?p[field].map(id=>list(rows).find(x=>x.id===id)).filter(Boolean):fallback;const machine=p.machineId?list(db.machines).find(x=>x.id===p.machineId):oneByName(db.machines,p.machine);return {order,machine,drawings:explicit('drawingIds',db.pdm,list(db.pdm).filter(x=>order?.partNumber&&x.number===order.partNumber)),materials:explicit('materialIds',db.materials,list(db.materials).filter(x=>x.id===order?.quoteMaterialId)),assemblies:explicit('assemblyIds',db.toolassemblies,list(db.toolassemblies).filter(x=>(list(order?.assemblyIds).includes(x.id)||(order?.number&&x.order===order.number))&&(!p.machine||x.machine===p.machine))),instructions:explicit('instructionIds',db.knowledge,[])}}
-function model(db,kind,id,base){const x=target(db,kind,id),p=profile(db),context=['step','step-tools'].includes(kind)?stepContext(db,x):null;const o=['workplan','tools'].includes(kind)?x:context?.order||list(db.orders).find(o=>x.order&&o.number===x.order);const rows=[],add=(title,lines=[],link='',tag='')=>rows.push({title:String(title||'Ohne Bezeichnung'),lines:lines.map(String),url:link,tag});const record=(k,r,lines=[])=>add((r.number?r.number+' · ':'')+text(r.title),lines,url(base,k,r.id),k==='pdm'?'ZEICHNUNG ÖFFNEN':'DATENSATZ ÖFFNEN');
+function workday(db,id,base){const W=root.CncWorkplace||(typeof require==='function'?require('./arbeitsplatz.js'):null);if(!W)throw Error('Arbeitsplatz-Modul fehlt.');
+const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Rome'}),A=W.analyze(db,today,workflow),pl=A.places.find(p=>p.name===id);if(!pl)throw Error('Arbeitsplatz nicht gefunden.');
+const p=profile(db),L={red:'ROT',yellow:'GELB',green:'GRÜN'},rows=[];
+const add=(title,lines,link,tag)=>rows.push({title,lines:lines.map(String),url:link,tag});
+pl.steps.forEach((r,i)=>{const o=r.order,c=r.checks||{},open=Object.values(c).filter(x=>x.light==='red'||x.light==='yellow').map(x=>x.text);
+add(String(i+1).padStart(2,'0')+' · '+text(o?o.number:'Ohne Auftrag')+' · '+text(r.p.title),['Ampel: '+(L[r.light]||'')+' · Spätestens starten: '+(r.ls?dateText(r.ls):'kein Liefertermin')+' · Geplant: '+dateText(r.due),
+'Kunde: '+text(o&&o.customer)+' · Zeichnung/Material-Nr.: '+text(o&&o.partNumber)+(o&&o.revision?' · Rev. '+o.revision:'')+(o&&o.partKind?' · '+o.partKind:''),'Bezeichnung: '+text(o&&o.title)+' · Stück: '+text(o&&o.qty),
+'Vorgabe: '+Math.round(r.hours*60)+' Min'+(r.booked?' · gebucht '+Math.round(r.booked*60)+' Min':''),
+open.length?'Wartet auf / offen: '+open.join(' · '):'Alles bereit: kann starten.'+(r.repeat?' Wiederholteil.':'')+(r.info&&r.info.progNew&&/^Neues/.test(r.info.progNew.text)?' ACHTUNG neues Teil, Programm neu.':''),
+...(r.nextText?['Danach: '+r.nextText]:[])],url(base,'step',r.p.id,true),'ARBEITSGANG-PDF')});
+if(!rows.length)add('Nichts offen',['Für diesen Arbeitsplatz ist keine Arbeit eingeplant.']);
+const m=pl.machine,nm=pl.maintenance[0];
+const doc={schema:4,kind:'workday',id,profile:p,title:kinds.workday,subtitle:pl.name,number:'TL-'+today,
+meta:[['Arbeitsplatz',pl.name],['Datum',dateText(today)],['Offene Arbeitsgänge',String(pl.counts.open)],['Ampel',pl.counts.red+' rot · '+pl.counts.yellow+' gelb · '+pl.counts.green+' grün'],['Kapazität',pl.cap.dayHours+' h pro Tag · '+pl.cap.weekDays+' Tage pro Woche'],['Nächste Wartung',nm?text(nm.title)+' · '+dateText(nm.due):'Keine geplant']],rows,rootUrl:url(base,'workday',id,true),status:'Stand '+dateText(today)};
+return doc}
+function model(db,kind,id,base){if(kind==='workday')return workday(db,id,base);const x=target(db,kind,id),p=profile(db),context=['step','step-tools'].includes(kind)?stepContext(db,x):null;const o=['workplan','tools'].includes(kind)?x:context?.order||list(db.orders).find(o=>x.order&&o.number===x.order);const rows=[],add=(title,lines=[],link='',tag='')=>rows.push({title:String(title||'Ohne Bezeichnung'),lines:lines.map(String),url:link,tag});const record=(k,r,lines=[])=>add((r.number?r.number+' · ':'')+text(r.title),lines,url(base,k,r.id),k==='pdm'?'ZEICHNUNG ÖFFNEN':'DATENSATZ ÖFFNEN');
 const meta=o?[['Kunde',text(o.customer)],['Auftrag',text(o.number)],['Bauteil',text(o.title)],['Stückzahl',text(o.qty)],['Revision',text(o.revision)],['Liefertermin',dateText(o.due)]]:[['Nummer',text(x.number)],['Revision',text(x.revision)],['Status',text(x.status)],['Bereich',kinds[kind]]];
 const doc={schema:4,kind,id,profile:p,title:kinds[kind],subtitle:text(x.title),number:text(x.number),meta,rows,rootUrl:url(base,kind,id,true),status:String(x.status||o?.status||'Nicht erfasst')};
 if(p.generalNote)add('Allgemeine Hinweise',[p.generalNote]);if(o?.notes)add('Auftragskommentar',[o.notes]);

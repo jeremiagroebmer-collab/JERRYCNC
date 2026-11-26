@@ -49,4 +49,18 @@ assert.equal(W.analyze({...ok,orders:[{...o,status:'Storniert'}]},today,wf).plac
  const late=W.analyze(d,'2026-12-03',wf).places.find(p=>p.name==='Programmieren').steps[0];assert.equal(late.checks.start.light,'red');assert.ok(/Hätte bis 02\.12\./.test(late.checks.start.text));
  // Wiederholteil mit altem Programm
  assert.equal(W.classify('Entgraten'),'entgraten');assert.equal(W.workBack('2026-12-07',1),'2026-12-04');}
+// Kapazität, Feiertage, Betriebsurlaub, Wartezeit
+{assert.equal(W.easter(2026),'2026-04-05');assert.ok(W.isHoliday('2026-04-06'));assert.ok(W.isHoliday('2026-12-08'));assert.ok(!W.isHoliday('2026-12-09'));
+ assert.equal(W.workBack('2026-12-09',1),'2026-12-07');// 8.12. Feiertag
+ assert.equal(W.closedSet('2026-12-24..2026-12-26, 2027-01-08').size,4);
+ const o2={...o,id:'o8',number:'C8',due:'2026-12-11',partNumber:'',productionReleased:true};
+ const S=(id,kind,extra)=>({id,orderId:'o8',order:'C8',title:kind,kind,setupMin:0,runMin:960,timeBasis:'lot',status:'Geplant',sequence:0,...extra});// 16 h
+ const base={machines:[{id:'f',title:'Fräse Y',status:'Produktion'}],orders:[o2],materials:[],pdm:[],cam:[],toolassemblies:[],time:[],settings:[],planning:[S('fr','Fräsen',{machineId:'f',machine:'Fräse Y'})]};
+ const ls=d=>W.analyze(d,'2026-11-26',wf).places.find(p=>p.name==='Fräse Y').steps[0].ls;
+ assert.equal(ls(base),'2026-12-10');// 16 h = 2 Tage bei 8 h, Fr 11.12. -> Do 10.12.
+ assert.equal(ls({...base,settings:[{id:'workplace-config',places:{'Fräse Y':{dayHours:4}}}]}),'2026-12-08'.replace('08','07')); // 4 Tage: Fr, Do, Mi, Di... 
+ assert.equal(ls({...base,settings:[{id:'workplace-config',closed:'2026-12-10'}]}),'2026-12-09');
+ const wait={...base,planning:[S('fr','Fräsen',{machineId:'f',machine:'Fräse Y',runMin:480}),S('pk','Prüfen',{machine:'Messplatz',runMin:60,dependsOn:['fr']})]};wait.planning[0].waitHours=24;
+ const a1=W.analyze(wait,'2026-11-26',wf).places.find(p=>p.name==='Fräse Y').steps[0].ls;wait.planning[0].waitHours=0;const a0=W.analyze(wait,'2026-11-26',wf).places.find(p=>p.name==='Fräse Y').steps[0].ls;assert.ok(a1<a0);
+ assert.equal(W.analyze({...base,settings:[{id:'workplace-config',places:{'Fräse Y':{dayHours:10,weekDays:6}}}]},'2026-11-26',wf).places.find(p=>p.name==='Fräse Y').cap.week,60);}
 console.log('arbeitsplatz ok');
