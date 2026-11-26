@@ -3,7 +3,7 @@ const today='2026-11-25';
 const o={id:'o1',number:'A1',title:'Platte',qty:5,status:'Bestätigt',workflowVersion:2,productionReleased:true,due:'2026-12-10',quoteMaterialId:'m1',partNumber:'Z1'};
 const mk=(id,extra)=>({id,orderId:'o1',order:'A1',title:id,setupMin:30,runMin:6,timeBasis:'piece',status:'Geplant',...extra});
 const db={machines:[{id:'f',title:'Fräse 1',status:'Produktion'},{id:'d',title:'Drehbank',status:'Störung'}],
- orders:[o],pdm:[{id:'z',number:'Z1'}],materials:[{id:'m1',title:'Alu',qty:3}],toolassemblies:[{id:'t',order:'A1'}],time:[{stepId:'s1',hours:1.5}],maintenance:[{machine:'Fräse 1',title:'Ölwechsel',due:'2026-11-20',status:'Offen'}],
+ orders:[o],pdm:[{id:'z',number:'Z1'}],materials:[{id:'m1',title:'Alu',qty:3}],toolassemblies:[{id:'t',order:'A1',status:'Einsatzbereit'}],time:[{stepId:'s1',hours:1.5}],maintenance:[{machine:'Fräse 1',title:'Ölwechsel',due:'2026-11-20',status:'Offen'}],
  planning:[mk('s1',{machineId:'f',machine:'Fräse 1',date:'2026-11-26',status:'Abgeschlossen'}),mk('s2',{machineId:'f',machine:'Fräse 1',date:'2026-11-27',dependsOn:['s1']}),mk('s3',{machine:'Säge',date:'2026-11-20'}),mk('s4',{machineId:'d',machine:'Drehbank',date:'2026-12-01'})]};
 const r=W.analyze(db,today,wf),by=n=>r.places.find(p=>p.name===n);
 // Fräse: Wartung überfällig -> rot, 1 von 2 fertig
@@ -16,7 +16,7 @@ const saw=by('Säge');assert.equal(saw.light,'red');assert.ok(saw.steps[0].reaso
 // Sortierung: rot zuerst
 assert.equal(r.places[0].light,'red');
 // grün, wenn alles passt; grau, wenn nichts offen
-const ok={...db,maintenance:[],machines:[{id:'f',title:'Fräse 1',status:'Produktion'}],planning:[mk('a',{machineId:'f',machine:'Fräse 1',date:'2026-11-28',assemblyIds:['t']})]};
+const ok={...db,cam:[{id:'c1',order:'A1',status:'Freigegeben'}],maintenance:[],machines:[{id:'f',title:'Fräse 1',status:'Produktion'}],planning:[mk('a',{machineId:'f',machine:'Fräse 1',date:'2026-11-28',assemblyIds:['t']})]};
 assert.equal(W.analyze(ok,today,wf).places[0].light,'green');
 const none={...ok,planning:[mk('a',{machineId:'f',machine:'Fräse 1',status:'Abgeschlossen'})]};assert.equal(W.analyze(none,today,wf).places[0].light,'idle');
 // fehlendes Material (Bestand 0) -> rot
@@ -27,9 +27,26 @@ assert.equal(W.analyze({...ok,orders:[{...o,status:'Storniert'}]},today,wf).plac
 // Spalten-Ampeln und Wartet-auf
 {const s2=by('Fräse 1'),row=s2.steps[0];assert.equal(row.checks.pred.light,'green');assert.equal(row.checks.drawing.light,'green');assert.equal(row.checks.material.light,'green');
  const w=W.analyze({...db,planning:[...db.planning,mk('s5',{machineId:'f',machine:'Fräse 1',date:'2026-11-29',dependsOn:['s2'],requiresProgram:true})]},today,wf).places.find(p=>p.name==='Fräse 1').steps.find(r=>r.p.id==='s5');
- assert.equal(w.checks.pred.light,'yellow');assert.ok(/s2/.test(w.checks.pred.text));assert.equal(w.checks.nc.light,'yellow');assert.ok(w.waiting.length>=2);assert.equal(w.checks.tool.light,'green');}
+ assert.equal(w.checks.pred.light,'yellow');assert.ok(/s2/.test(w.checks.pred.text));assert.equal(w.checks.prog.light,'yellow');assert.ok(w.waiting.length>=2);assert.equal(w.checks.tool.light,'green');}
 // Revisionsspalte
 {const d2={...db,orders:[{...o,customer:'Leitner',partNumber:'Z1',revision:'B'}],pdm:[{number:'Z1',revision:'C',status:'Freigegeben'}],planning:[mk('r1',{machineId:'f',machine:'Fräse 1',date:'2026-11-28',assemblyIds:['t']})]};
  const row=W.analyze(d2,today,wf).places.find(p=>p.name==='Fräse 1').steps[0];assert.equal(row.checks.rev.light,'red');assert.ok(/Revision/.test(row.waiting.join(' ')));
  const d3={...d2,pdm:[{number:'Z1',revision:'B',status:'Freigegeben'}]};assert.equal(W.analyze(d3,today,wf).places.find(p=>p.name==='Fräse 1').steps[0].checks.rev.light,'green');}
+// Arbeitsbereiche: Art, spätester Start, Fräse-Spalten, Säge vor Programm vor Fräse
+{const o2={...o,id:'o9',number:'B9',due:'2026-12-04',partNumber:'',productionReleased:true};
+ const S=(id,kind,extra)=>({id,orderId:'o9',order:'B9',title:kind,kind,setupMin:0,runMin:480,timeBasis:'lot',status:'Geplant',sequence:0,...extra});
+ const d={machines:[{id:'f',title:'Fräse X',status:'Produktion'}],orders:[o2],materials:[],pdm:[],cam:[],toolassemblies:[{id:'ta',order:'B9',status:'Montage offen'},{id:'tb',order:'B9',status:'Einsatzbereit'}],time:[],
+  planning:[S('sg','Sägen',{machine:'Säge'}),S('cm','CAM-Programmierung',{machine:'Programmieren'}),S('fr','Fräsen',{machineId:'f',machine:'Fräse X',dependsOn:['sg','cm'],assemblyIds:['ta','tb']}),S('pr','Prüfen',{machine:'Messplatz',dependsOn:['fr']})]};
+ const A=W.analyze(d,'2026-11-26',wf),pl=n=>A.places.find(p=>p.name===n),row=n=>pl(n).steps[0];
+ assert.equal(pl('Fräse X').type,'fraesen');assert.equal(pl('Säge').type,'saege');assert.equal(pl('Programmieren').type,'cam');assert.equal(pl('Messplatz').type,'pruefen');
+ // je 1 Tag: Liefertermin Fr 04.12. -> Prüfen 04.12., Fräsen 03.12., Säge und CAM 02.12.
+ assert.equal(row('Messplatz').ls,'2026-12-04');assert.equal(row('Fräse X').ls,'2026-12-03');assert.equal(row('Säge').ls,'2026-12-02');assert.equal(row('Programmieren').ls,'2026-12-02');
+ // Fräse: Werkzeuge nur 1 von 2 hergerichtet, Zuschnitt und Programm noch offen mit Startdatum der Vorarbeit
+ const f=row('Fräse X').checks;assert.equal(f.tool.light,'yellow');assert.ok(/1 von 2/.test(f.tool.text));assert.equal(f.cut.light,'yellow');assert.ok(/02\.12\./.test(f.cut.text));assert.equal(f.prog.light,'yellow');assert.ok(/02\.12\./.test(f.prog.text));
+ assert.ok(/Neues Teil/.test(row('Fräse X').info.progNew.text));assert.ok(/Fräse X ab 03\.12\./.test(row('Säge').nextText));
+ // Säge fertig, Werkzeuge ok -> Fräse: Zuschnitt grün; Versäumter Start -> rot
+ d.planning[0].status='Abgeschlossen';d.toolassemblies[0].status='Einsatzbereit';let g=W.analyze(d,'2026-11-26',wf).places.find(p=>p.name==='Fräse X').steps[0].checks;assert.equal(g.cut.light,'green');assert.equal(g.tool.light,'green');
+ const late=W.analyze(d,'2026-12-03',wf).places.find(p=>p.name==='Programmieren').steps[0];assert.equal(late.checks.start.light,'red');assert.ok(/Hätte bis 02\.12\./.test(late.checks.start.text));
+ // Wiederholteil mit altem Programm
+ assert.equal(W.classify('Entgraten'),'entgraten');assert.equal(W.workBack('2026-12-07',1),'2026-12-04');}
 console.log('arbeitsplatz ok');
