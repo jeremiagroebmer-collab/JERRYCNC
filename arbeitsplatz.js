@@ -75,6 +75,9 @@ function analyze(db,today,wf){
         else C('release','na','Keine Freigabe nötig');
         // Zeit
         C('time',h?'green':'yellow',h?'Zeit geplant':'Zeit nicht geplant');
+        // Revision (nur wenn im Auftrag eine Revision steht)
+        const Rp=root.CncRepeat||(typeof require!=='undefined'?require('./wiederholung.js'):null);
+        if(Rp&&o&&o.partNumber&&o.revision){const rc=Rp.checks(db,o),bad=rc.checks.filter(x=>x.light!=='green');if(!bad.length)C('rev','green','Revision '+o.revision+' passt');else C('rev',rc.light==='red'?'red':'yellow','Revision: '+bad.map(x=>x.text).join(' '))}else C('rev','na','Keine Revision');
         // Maschine
         if(machine&&machine.status==='Störung')C('machine','red','Maschine gestört');
         else if(machine&&machine.status==='Wartung')C('machine','yellow','Maschine in Wartung');
@@ -82,7 +85,7 @@ function analyze(db,today,wf){
         Object.values(checks).forEach(c=>{if(c.light!=='na'){light=worst(light,c.light);if(c.light!=='green')reasons.push(c.text)}});
       }
       const waiting=Object.values(checks).filter(c=>c.light==='yellow'||c.light==='red').map(c=>c.text);
-      rows.push({place:name,p,order:o,state,hours:h,booked,due,done,light,reasons,checks,waiting,missing:done?[]:Object.entries(checks).filter(([k,c])=>['material','drawing','tool'].includes(k)&&(c.light==='yellow'||c.light==='red')).map(([k])=>({material:'Material',drawing:'Zeichnung',tool:'Werkzeug'}[k]))});
+      rows.push({place:name,repeat:(()=>{const Rp=root.CncRepeat||(typeof require!=='undefined'?require('./wiederholung.js'):null);return Rp&&o?Rp.previous(db,o).length:0})(),p,order:o,state,hours:h,booked,due,done,light,reasons,checks,waiting,missing:done?[]:Object.entries(checks).filter(([k,c])=>['material','drawing','tool'].includes(k)&&(c.light==='yellow'||c.light==='red')).map(([k])=>({material:'Material',drawing:'Zeichnung',tool:'Werkzeug'}[k]))});
     });
     const open=rows.filter(r=>!r.done).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')||(Number(a.p.sequence)||0)-(Number(b.p.sequence)||0));
     const doneRows=rows.filter(r=>r.done);
