@@ -10,14 +10,14 @@ create table if not exists public.workspace_snapshots (
 alter table public.workspace_snapshots enable row level security;
 drop policy if exists "workspace_admin_read" on public.workspace_snapshots;
 create policy "workspace_admin_read" on public.workspace_snapshots for select to authenticated
- using (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role='admin'));
+ using (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role in ('admin','geschaeftsfuehrer')));
 drop policy if exists "workspace_admin_insert" on public.workspace_snapshots;
 create policy "workspace_admin_insert" on public.workspace_snapshots for insert to authenticated
- with check (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role='admin') and updated_by=auth.uid());
+ with check (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role in ('admin','geschaeftsfuehrer')) and updated_by=auth.uid());
 drop policy if exists "workspace_admin_update" on public.workspace_snapshots;
 create policy "workspace_admin_update" on public.workspace_snapshots for update to authenticated
- using (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role='admin'))
- with check (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role='admin') and updated_by=auth.uid());
+ using (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role in ('admin','geschaeftsfuehrer')))
+ with check (exists(select 1 from public.memberships m where m.organization_id=workspace_snapshots.organization_id and m.user_id=auth.uid() and m.role in ('admin','geschaeftsfuehrer')) and updated_by=auth.uid());
 create or replace function public.save_workspace(expected_revision bigint, new_payload jsonb)
 returns bigint language plpgsql security invoker set search_path=public as $$
 declare org uuid; rev bigint;
@@ -29,3 +29,7 @@ begin
  if rev is null then raise exception 'Versionskonflikt: Cloud wurde auf anderem Gerät geändert'; end if;
  return rev;
 end $$;
+
+-- Rollen: admin (Administrator/Gründer) und geschaeftsfuehrer dürfen den Datenstand laden und speichern.
+-- alter table public.memberships add column if not exists titel text;
+-- Konto zuordnen: insert into public.memberships(organization_id,user_id,role,titel) values (...,'geschaeftsfuehrer','Geschäftsführer');
