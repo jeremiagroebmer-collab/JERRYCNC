@@ -163,6 +163,17 @@ button.primary,button.secondary{min-height:44px;border-radius:12px}
 }
 @media(min-width:1100px){main{max-width:1560px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style><style id="design-polish-2">
+main{min-width:0}
+.shell{overflow-x:clip}
+.wp-table-wrap{overflow-x:auto;contain:paint}
+:root[data-theme=dark] header .icon-button,:root[data-theme=dark] header .header-search{background:var(--surface);color:var(--ink);border-color:var(--line)}
+:root[data-theme=dark] header .icon-button svg,:root[data-theme=dark] .header-search svg{color:var(--ink);stroke:currentColor}
+.wp-filter button,.wp-chips button,.wp-chips .chip{min-height:44px}
+.wp-table th,.wp-table td{padding:10px 12px}
+.wp-table thead th{position:sticky;top:0;background:var(--surface-2);z-index:1}
+.wp-table tbody tr:hover{background:var(--surface-2)}
+.breadcrumb,.crumbs{gap:8px}
 </style></head><body><header><div class="brand">CNC <span>OS</span></div><div class="cloud-status" id="cloudStatus"><button type="button" id="cloudOpen">Anmelden</button></div></header><div class="shell"><aside id="sidebar"></aside><main id="app"><h1>CNC OS wird geladen …</h1></main></div><nav class="bottom" id="bottom"></nav><dialog id="modal"><h2 id="modalTitle">Eintrag</h2><form id="entryForm"><div class="formgrid" id="fields"></div><div class="actions" style="margin-top:20px"><button class="primary" type="submit">Speichern</button><button class="secondary" type="button" id="closeModal">Abbrechen</button></div></form></dialog><div class="toast" id="toast" role="status" aria-live="polite"></div><div class="cloud-auth" id="cloudAuth" hidden><div class="cloud-auth-card"><h2>CNC OS anmelden</h2><p>Ein Konto für iPhone, PC und Tablet. Deine bisherigen Daten bleiben zunächst nur auf diesem Gerät.</p><form id="cloudForm"><label>E-Mail<input type="email" id="cloudEmail" autocomplete="username" required></label><label>Passwort<input type="password" id="cloudPassword" autocomplete="current-password" required></label><div class="cloud-auth-msg" id="cloudMsg" role="status"></div><div class="cloud-auth-actions"><button type="button" class="secondary" id="cloudCancel">Später</button><button type="submit" class="primary" id="cloudSubmit">Anmelden</button></div></form></div></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script><script src="vendor/jsQR-1.4.0.js" defer></script><script src="vendor/jspdf-4.2.1.min.js" defer></script><script src="vendor/qrcode-generator-1.4.4.js" defer></script><script src="vendor/pdf-fonts.js" defer></script><script src="pdf-engine.js" defer></script><script src="tooling.js"></script><script src="inventory-model.js"></script><script src="app-guide.js"></script><script src="disciplines.js"></script><script src="workflow.js"></script><script src="wiederholung.js"></script><script src="arbeitsplatz.js"></script><script src="firma.js"></script><script src="belege.js"></script><script src="lager.js"></script><script src="blaetter.js"></script><script src="sicherung.js"></script><script src="werkzeugbild.js?v=32"></script>
 <script src="stlprofil.js?v=31"></script><script src="werkzeugskizze.js?v=31"></script>
 <script src="werkzeug3d.js?v=32"></script><script src="camfiles.js"></script><script src="pwa.js" defer></script><script src="demo-data.js"></script><script src="practice.js"></script><script>
