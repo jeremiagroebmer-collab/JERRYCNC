@@ -1,0 +1,104 @@
+/* CNC OS: neues Design (Test). Gilt nur, wenn <html data-design="neu"> gesetzt ist.
+   Das alte Design bleibt unverändert und ist jederzeit umschaltbar (Einstellungen & Daten, oder ?design=alt). */
+
+:root[data-design=neu]{
+ --bg:#e8ebed;--surface:#ffffff;--surface-2:#f3f5f6;--ink:#111f2a;--muted:#485a66;--line:#ccd4d9;
+ --accent:#b3410a;--accent-soft:#fdeee2;--accent-ink:#ffffff;--accent-lift:#ff9a57;--nav:#0f1922;
+ --warning:#8a4b06;--warning-bg:#fff3dc;--danger:#a3302a;--danger-bg:#fdebe9;
+ --radius:10px;--radius-s:8px;--shadow:0 1px 0 rgba(17,31,42,.04);
+ --font:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+ font-family:var(--font);font-size:15px;letter-spacing:-.005em;
+}
+:root[data-design=neu][data-theme=dark]{
+ --bg:#0c1319;--surface:#141e26;--surface-2:#1b2731;--ink:#e9eff3;--muted:#9fb0bb;--line:#293844;
+ --accent:#ff9a57;--accent-soft:#33210f;--accent-ink:#1b0d03;--accent-lift:#ff9a57;--nav:#080e13;
+ --warning:#ffcd89;--warning-bg:#3a2d1b;--danger:#ffb4ab;--danger-bg:#3d2727;--shadow:none;
+}
+:root[data-design=neu] body{background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+
+/* Schrift */
+:root[data-design=neu] h1{font-size:clamp(26px,3vw,34px);font-weight:700;letter-spacing:-.025em;line-height:1.15}
+:root[data-design=neu] h2{font-size:17px;font-weight:650;letter-spacing:-.012em}
+:root[data-design=neu] h3{font-size:15px;font-weight:650}
+:root[data-design=neu] p{line-height:1.55}
+:root[data-design=neu] .muted,:root[data-design=neu] .small{color:var(--muted)}
+:root[data-design=neu] a{color:var(--accent)}
+
+/* Kopfzeile */
+:root[data-design=neu] header{background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 18px}
+:root[data-design=neu] .brand{font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:9px;color:var(--ink)}
+:root[data-design=neu] .brand::before{content:"";width:12px;height:12px;border-radius:3px;background:var(--accent);box-shadow:5px 5px 0 -1px var(--ink)}
+:root[data-design=neu] .brand span{color:var(--accent)}
+:root[data-design=neu] .icon-button,:root[data-design=neu] .header-search{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-s);color:var(--ink)}
+:root[data-design=neu] .icon-button:hover,:root[data-design=neu] .header-search:hover{border-color:var(--accent)}
+
+/* Seitenleiste und untere Leiste */
+:root[data-design=neu] #sidebar{background:var(--nav);padding:20px 12px}
+:root[data-design=neu] .navbtn{border-radius:var(--radius-s);color:#aebdc7;font-weight:500;box-shadow:none}
+:root[data-design=neu] .navbtn:hover{background:rgba(255,255,255,.06);color:#fff}
+:root[data-design=neu] .navbtn.active{background:rgba(255,255,255,.09);color:#fff;box-shadow:inset 3px 0 var(--accent-lift)}
+:root[data-design=neu] .local-note{color:#9fb0bb;border-top:1px solid rgba(255,255,255,.1)}
+:root[data-design=neu] .local-note i{background:var(--accent-lift)}
+:root[data-design=neu] .bottom{background:var(--surface);border-top:1px solid var(--line)}
+:root[data-design=neu] .bottom button{color:var(--muted);background:none;border-radius:var(--radius-s)}
+:root[data-design=neu] .bottom button.active{color:var(--accent);background:var(--accent-soft);font-weight:650}
+
+/* Karten, Kacheln */
+:root[data-design=neu] .card,:root[data-design=neu] section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);color:var(--ink)}
+:root[data-design=neu] .module{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);box-shadow:none;transition:border-color .12s,transform .12s}
+:root[data-design=neu] .module:hover{border-color:var(--accent);transform:translateY(-1px)}
+:root[data-design=neu] .module .muted,:root[data-design=neu] .module small{color:var(--muted)}
+:root[data-design=neu] .practice-coach{background:var(--accent-soft);border:1px solid var(--accent);border-radius:var(--radius)}
+:root[data-design=neu] .notice{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius-s);color:var(--ink)}
+:root[data-design=neu] .record-thumb,:root[data-design=neu] .illustration{background:var(--accent-soft);color:var(--accent);border-radius:var(--radius-s)}
+:root[data-design=neu] .quick-order{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-s);color:var(--ink)}
+:root[data-design=neu] .quick-order:hover{border-color:var(--accent)}
+
+/* Knöpfe */
+:root[data-design=neu] button.primary,:root[data-design=neu] .primary{background:var(--accent);color:var(--accent-ink);border:1px solid var(--accent);border-radius:var(--radius-s);font-weight:650;letter-spacing:0}
+:root[data-design=neu] button.primary:hover{filter:brightness(1.08)}
+:root[data-design=neu] button.secondary,:root[data-design=neu] .secondary{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius-s);font-weight:600}
+:root[data-design=neu] button.secondary:hover{border-color:var(--accent);color:var(--accent)}
+:root[data-design=neu] button.danger,:root[data-design=neu] .danger{color:var(--danger)}
+:root[data-design=neu] :focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 65%,#2f7dd1);outline-offset:2px}
+
+/* Felder */
+:root[data-design=neu] input,:root[data-design=neu] select,:root[data-design=neu] textarea{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius-s);padding:11px 12px;transition:border-color .12s,box-shadow .12s}
+:root[data-design=neu] input:hover,:root[data-design=neu] select:hover,:root[data-design=neu] textarea:hover{border-color:color-mix(in srgb,var(--ink) 35%,var(--line))}
+:root[data-design=neu] input:focus,:root[data-design=neu] select:focus,:root[data-design=neu] textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent);outline:none}
+:root[data-design=neu] input[type=checkbox],:root[data-design=neu] input[type=radio]{accent-color:var(--accent)}
+:root[data-design=neu] label{color:var(--ink);font-weight:550}
+:root[data-design=neu] ::placeholder{color:color-mix(in srgb,var(--muted) 75%,transparent)}
+
+/* Schilder, Status */
+:root[data-design=neu] .tag,:root[data-design=neu] .pill,:root[data-design=neu] .badge{background:var(--accent-soft);color:var(--accent);border-radius:6px;font-weight:650;padding:3px 8px}
+:root[data-design=neu] .status,:root[data-design=neu] .status-pill{border-radius:6px}
+
+/* Tabellen */
+:root[data-design=neu] table{border-collapse:collapse}
+:root[data-design=neu] th{background:var(--surface-2);color:var(--muted);font-weight:650;border-bottom:1px solid var(--line)}
+:root[data-design=neu] td{border-bottom:1px solid var(--line)}
+:root[data-design=neu] tbody tr:hover{background:var(--surface-2)}
+:root[data-design=neu] .wp-table-wrap{border-radius:var(--radius);border-color:var(--line)}
+:root[data-design=neu] .wp-chips button,:root[data-design=neu] .wp-filter button{border-radius:999px}
+
+/* Dialoge */
+:root[data-design=neu] dialog{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 60px rgba(8,14,19,.35)}
+:root[data-design=neu] dialog::backdrop{background:rgba(8,14,19,.55);backdrop-filter:blur(3px)}
+:root[data-design=neu] .cloud-auth-card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+:root[data-design=neu] details>summary{border-radius:var(--radius-s)}
+:root[data-design=neu] .toast{background:var(--ink);color:var(--surface);border-radius:var(--radius-s)}
+
+/* Mobil */
+@media(max-width:700px){
+ :root[data-design=neu] header .primary{white-space:nowrap;padding:8px 12px}
+ :root[data-design=neu] .brand{gap:6px;font-size:18px}
+ :root[data-design=neu] main{padding-left:14px;padding-right:14px}
+ :root[data-design=neu] h1{font-size:26px}
+}
+@media(prefers-reduced-motion:reduce){:root[data-design=neu] *{transition:none!important}}
+
+/* Feinschliff */
+:root[data-design=neu] .money-hero>div{border-top:1px solid var(--line);border-radius:var(--radius);box-shadow:inset 0 3px 0 var(--accent)}
+:root[data-design=neu] #sidebar>*{flex-shrink:0}
+:root[data-design=neu] #sidebar{overflow-y:auto}
