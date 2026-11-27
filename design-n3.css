@@ -1,0 +1,209 @@
+/* CNC OS: Design "Atelier" (Test). Gilt nur mit <html data-design="n3">. Umschalten: Menü, Einstellungen, Seitenleiste oder ?design=alt|neu|n2|n3.
+   Konzept: stille Luxus-Optik. Viel Raum, feine Haarlinien, helle Serifen-Titel, Kapitälchen-Beschriftungen mit weiter Laufweite,
+   ein einziger Metallton (Bronze hell, Champagner dunkel), Listen statt Kästen, Felder nur mit Linie. */
+
+:root[data-design=n3]{
+ --bg:#f1f0ed;--surface:#ffffff;--surface-2:#f7f6f3;--ink:#16161a;--muted:#5d5b56;--line:rgba(22,22,26,.13);--line-strong:rgba(22,22,26,.34);
+ --accent:#8a6a2c;--accent-2:#b48f4a;--accent-ink:#ffffff;--accent-soft:var(--surface-2);--nav:transparent;--rule:var(--line);--bd:var(--line);--sd:transparent;
+ --danger:#a8281f;--danger-bg:#fbe9e7;--warning:#8a5a00;--warning-bg:#fbf0d4;
+ --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Hoefler Text",Georgia,serif;
+ --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+ --lift:0 1px 0 rgba(255,255,255,.9) inset,0 24px 50px -28px rgba(40,34,20,.35),0 2px 6px -2px rgba(40,34,20,.08);
+ font-family:var(--sans);font-size:16px;color-scheme:light;
+}
+:root[data-design=n3][data-theme=dark]{
+ --bg:#0a0a0c;--surface:#131316;--surface-2:#1a1a1f;--ink:#f3efe6;--muted:#a09c92;--line:rgba(243,239,230,.12);--line-strong:rgba(243,239,230,.32);
+ --accent:#d8bf8a;--accent-2:#f1dfb4;--accent-ink:#17130a;--danger:#ff9d92;--danger-bg:#3a1a18;--warning:#f0c777;--warning-bg:#33270c;
+ --lift:0 1px 0 rgba(255,255,255,.07) inset,0 30px 60px -30px rgba(0,0,0,.9);color-scheme:dark;
+}
+:root[data-design=n3] body{background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"kern","liga"}
+:root[data-design=n3] body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(1100px 620px at 78% -12%,color-mix(in srgb,var(--accent-2) 22%,transparent),transparent 62%),radial-gradient(800px 500px at -8% 108%,color-mix(in srgb,var(--accent) 12%,transparent),transparent 60%)}
+:root[data-design=n3] body::after{content:"";position:fixed;inset:0;z-index:1000;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+:root[data-design=n3] ::selection{background:var(--accent);color:var(--accent-ink)}
+
+/* Schrift */
+:root[data-design=n3] h1{font-family:var(--serif);font-size:clamp(38px,4.6vw,66px);font-weight:400;letter-spacing:-.03em;line-height:1.02;margin:.1em 0 .3em}
+:root[data-design=n3] h1::after{content:"";display:block;width:56px;height:1px;background:var(--accent);margin-top:22px}
+:root[data-design=n3] h2{font-family:var(--serif);font-size:26px;font-weight:500;letter-spacing:-.015em;line-height:1.15}
+:root[data-design=n3] h3{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:-.005em}
+:root[data-design=n3] p{line-height:1.7}
+:root[data-design=n3] .muted,:root[data-design=n3] .small{color:var(--muted)}
+:root[data-design=n3] a{color:var(--accent);text-underline-offset:4px;text-decoration-thickness:1px}
+:root[data-design=n3] .eyebrow,:root[data-design=n3] .tag{background:none;border:0;padding:0;color:var(--accent);font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase}
+:root[data-design=n3] .metric{font-family:var(--serif);font-weight:300}
+:root[data-design=n3] label{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+
+/* Kopfzeile */
+:root[data-design=n3] header{background:color-mix(in srgb,var(--bg) 72%,transparent);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border-bottom:1px solid var(--line);padding:12px 40px;min-height:72px}
+:root[data-design=n3] .brand{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:.32em;text-transform:uppercase;color:var(--ink);display:flex;align-items:center;gap:14px}
+:root[data-design=n3] .brand::before{content:"";width:28px;height:1px;background:var(--accent)}
+:root[data-design=n3] .brand span{color:var(--accent)}
+:root[data-design=n3] .icon-button,:root[data-design=n3] .header-search{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:2px;box-shadow:none;font-size:12px;letter-spacing:.06em}
+:root[data-design=n3] .header-search{padding-left:16px}
+:root[data-design=n3] .header-search kbd{border:1px solid var(--line);border-radius:2px;background:none;color:var(--muted)}
+:root[data-design=n3] .icon-button:hover,:root[data-design=n3] .header-search:hover{border-color:var(--accent);color:var(--accent)}
+:root[data-design=n3] header .secondary{background:transparent;border:1px solid var(--line)}
+
+/* Navigation: Textliste mit Nummern */
+@media(min-width:900px){
+ :root[data-design=n3] .shell{grid-template-columns:230px minmax(0,1fr);max-width:none}
+ :root[data-design=n3] #sidebar{background:none;border:0;border-right:1px solid var(--line);padding:48px 22px 26px 40px;gap:0;top:72px;height:calc(100dvh - 72px);counter-reset:nv;align-items:stretch;overflow-y:auto}
+ :root[data-design=n3] .nav-caption,:root[data-design=n3] .local-note,:root[data-design=n3] .navbtn.discipline-trigger{display:none!important}
+ :root[data-design=n3] .navbtn{counter-increment:nv;display:flex;flex-direction:row;align-items:baseline;gap:14px;width:100%;padding:13px 0;margin:0;min-height:44px;font-size:14px;font-weight:500;letter-spacing:.01em;color:var(--muted);background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;text-align:left;position:relative;transition:color .2s,padding .2s}
+ :root[data-design=n3] .navbtn::before{content:counter(nv,decimal-leading-zero);font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--accent);min-width:20px}
+ :root[data-design=n3] .navbtn svg{display:none}
+ :root[data-design=n3] .navbtn span{flex:1}
+ :root[data-design=n3] .navbtn small{background:none;color:var(--accent);padding:0;font-size:12px;font-weight:600}
+ :root[data-design=n3] .navbtn:hover{color:var(--ink);padding-left:8px}
+ :root[data-design=n3] .navbtn.active{color:var(--ink);font-weight:600;box-shadow:none}
+ :root[data-design=n3] .navbtn.active::after{content:"";position:absolute;left:-22px;top:50%;width:14px;height:1px;background:var(--accent)}
+ :root[data-design=n3] .sidebar-bottom{margin-top:auto;padding-top:36px}
+ :root[data-design=n3] .sidebar-bottom .navbtn{font-size:12px;padding:10px 0}
+ :root[data-design=n3] .design-switch{margin-top:20px;background:none;border:1px solid var(--line);border-radius:2px;color:var(--muted);font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:10px;min-height:44px;cursor:pointer}
+ :root[data-design=n3] .design-switch:hover{color:var(--accent);border-color:var(--accent)}
+}
+:root[data-design=n3] .bottom{background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border:0;border-top:1px solid var(--line);border-radius:0;left:0;right:0;bottom:0;padding:4px 6px calc(6px + env(safe-area-inset-bottom));box-shadow:none}
+:root[data-design=n3] .bottom button{color:var(--muted);background:none;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;border-radius:0;border-top:2px solid transparent}
+:root[data-design=n3] .bottom button.active{color:var(--accent);border-top-color:var(--accent);background:none}
+:root[data-design=n3] .bottom button strong,:root[data-design=n3] .bottom button.active strong{background:none!important;color:inherit}
+
+/* Inhalt: großzügig */
+:root[data-design=n3] main{max-width:1240px;margin:0 auto;width:100%;padding:48px 56px 120px}
+:root[data-design=n3] .page-head,:root[data-design=n3] .hero{background:none;border:0;box-shadow:none;border-radius:0;padding:0;margin-bottom:44px;color:var(--ink)}
+:root[data-design=n3] .page-head p,:root[data-design=n3] .hero p{color:var(--muted);font-size:17px;max-width:620px}
+:root[data-design=n3] .card,:root[data-design=n3] section.card,:root[data-design=n3] .workflow-strip,:root[data-design=n3] .order-list,:root[data-design=n3] .next-action,:root[data-design=n3] .welcome-card,:root[data-design=n3] .stock-alert{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--line);border-radius:18px;box-shadow:var(--lift);padding:30px 32px;color:var(--ink)}
+:root[data-design=n3] .card .card,:root[data-design=n3] .card section.card{background:var(--surface-2);box-shadow:none;border-radius:12px;padding:18px 20px}
+:root[data-design=n3] .practice-coach{padding:18px 26px;background:color-mix(in srgb,var(--accent) 9%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:none}
+:root[data-design=n3] .practice-coach .section-title{margin:0 0 6px}
+:root[data-design=n3] .practice-coach p{margin:0 0 12px;font-size:14px}
+:root[data-design=n3] .notice{background:var(--surface-2);border:0;border-left:1px solid var(--accent);border-radius:0;color:var(--ink);padding:14px 18px}
+:root[data-design=n3] .module,:root[data-design=n3] .quick-order,:root[data-design=n3] .guide-links button,:root[data-design=n3] .compact-row,:root[data-design=n3] .linked-row,:root[data-design=n3] .item,:root[data-design=n3] .tms-item{background:transparent;color:var(--ink);border:0;border-bottom:1px solid var(--line);border-radius:0;box-shadow:none;padding:22px 4px;transition:padding .25s,color .25s,background .25s}
+:root[data-design=n3] .guide-links button{position:relative;padding-right:40px}
+:root[data-design=n3] .guide-links button::after{content:"→";position:absolute;right:6px;top:50%;transform:translateY(-50%) translateX(-6px);opacity:0;color:var(--accent);font-size:20px;transition:opacity .25s,transform .25s}
+:root[data-design=n3] .guide-links button:hover::after{opacity:1;transform:translateY(-50%)}
+:root[data-design=n3] .module:hover,:root[data-design=n3] .quick-order:hover,:root[data-design=n3] .guide-links button:hover,:root[data-design=n3] .compact-row:hover{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 8%,transparent),transparent);padding-left:14px;border-bottom-color:var(--accent)}
+:root[data-design=n3] .guide-links button b,:root[data-design=n3] .module b{font-family:var(--serif);font-size:19px;font-weight:500;letter-spacing:-.005em}
+:root[data-design=n3] .guide-links button small,:root[data-design=n3] .module small,:root[data-design=n3] .module .muted{color:var(--muted)}
+:root[data-design=n3] .quick-order{min-height:88px}
+:root[data-design=n3] .order-list{padding:6px 32px}
+:root[data-design=n3] .order-list .quick-order:last-child{border-bottom:0}
+:root[data-design=n3] .record-thumb,:root[data-design=n3] .illustration,:root[data-design=n3] .module-icon{background:transparent;color:var(--accent);border:1px solid var(--line-strong);border-radius:50%}
+:root[data-design=n3] .money-hero>div,:root[data-design=n3] .home-stats .card{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--line);border-radius:18px;box-shadow:var(--lift);padding:26px}
+:root[data-design=n3] .overview-numbers{gap:0;margin-bottom:40px}
+:root[data-design=n3] .overview-numbers button{background:none;border:0;border-left:1px solid var(--line);border-radius:0;box-shadow:none;padding:6px 30px;min-height:0;color:var(--ink);display:flex;flex-direction:column;align-items:flex-start}
+:root[data-design=n3] .overview-numbers button:first-child{border-left:0;padding-left:0}
+:root[data-design=n3] .overview-numbers button b{font-family:var(--serif);font-weight:300;font-size:58px;letter-spacing:-.04em;color:var(--ink);margin:8px 0}
+:root[data-design=n3] .overview-numbers button span{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+:root[data-design=n3] .overview-numbers button small{color:var(--muted);font-size:13px}
+:root[data-design=n3] .overview-numbers button:hover{background:none}
+:root[data-design=n3] .overview-numbers button:hover b{color:var(--accent)}
+:root[data-design=n3] .guide-group{background:none;border:0;box-shadow:none;padding:0;margin:0 0 44px}
+:root[data-design=n3] .guide-group>h2{display:block;font-size:11px;font-family:var(--sans);font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);padding:0 0 14px;margin:0;border-bottom:1px solid var(--line-strong)}
+:root[data-design=n3] .guide-links{gap:0 48px}
+:root[data-design=n3] .section-visual{display:flex;align-items:center;gap:14px;margin:0 0 20px}
+:root[data-design=n3] .section-visual .illustration,:root[data-design=n3] .section-visual .record-photo{width:48px;height:48px;padding:10px}
+:root[data-design=n3] .section-visual details>summary{color:var(--muted);min-height:0;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+:root[data-design=n3] .location-bar{gap:10px;margin-bottom:30px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+:root[data-design=n3] .location-bar button{min-height:34px;padding:4px 14px;font-size:11px}
+
+/* Knöpfe */
+:root[data-design=n3] button,:root[data-design=n3] .file-upload{font-family:var(--sans)}
+:root[data-design=n3] button.primary,:root[data-design=n3] .primary{background:linear-gradient(135deg,var(--accent-2),var(--accent));color:var(--accent-ink);border:0;border-radius:2px;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;min-height:52px;padding:0 30px;box-shadow:0 14px 34px -14px color-mix(in srgb,var(--accent) 80%,transparent),0 1px 0 rgba(255,255,255,.35) inset;transition:transform .2s,filter .2s,box-shadow .2s}
+:root[data-design=n3] button.primary:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 20px 40px -14px color-mix(in srgb,var(--accent) 85%,transparent),0 1px 0 rgba(255,255,255,.35) inset}
+:root[data-design=n3] button.primary:active{transform:translateY(0)}
+:root[data-design=n3] button.secondary,:root[data-design=n3] .secondary,:root[data-design=n3] .file-upload{background:transparent;color:var(--ink);border:1px solid var(--line-strong);border-radius:2px;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;min-height:48px;padding:0 22px;box-shadow:none;transition:border-color .2s,color .2s,background .2s}
+:root[data-design=n3] button.secondary:hover,:root[data-design=n3] .secondary:hover{border-color:var(--accent);color:var(--accent);background:transparent}
+:root[data-design=n3] button.danger,:root[data-design=n3] .danger{color:var(--danger);border-color:var(--danger)}
+:root[data-design=n3] button:disabled{opacity:.4}
+:root[data-design=n3] :focus-visible{outline:1px solid var(--accent);outline-offset:4px}
+
+/* Felder: nur eine Linie, Beschriftung klein darüber */
+:root[data-design=n3] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),:root[data-design=n3] select{background:transparent;color:var(--ink);border:0;border-bottom:1px solid var(--line-strong);border-radius:0;padding:12px 0 10px;min-height:50px;font-family:var(--sans);font-size:17px;font-weight:400;box-shadow:none;transition:border-color .2s,box-shadow .2s}
+:root[data-design=n3] textarea{background:transparent;color:var(--ink);border:1px solid var(--line-strong);border-radius:4px;padding:14px;min-height:110px;font-family:var(--sans);font-size:16px;line-height:1.6;box-shadow:none;transition:border-color .2s,box-shadow .2s}
+:root[data-design=n3] input:hover:not(:focus),:root[data-design=n3] select:hover:not(:focus),:root[data-design=n3] textarea:hover:not(:focus){border-color:var(--ink)}
+:root[data-design=n3] input:focus,:root[data-design=n3] select:focus{outline:none;border-bottom-color:var(--accent);box-shadow:0 1px 0 var(--accent)}
+:root[data-design=n3] textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+:root[data-design=n3] select{appearance:none;-webkit-appearance:none;padding-right:28px;background-image:linear-gradient(45deg,transparent 50%,var(--accent) 50%),linear-gradient(135deg,var(--accent) 50%,transparent 50%);background-position:calc(100% - 10px) 55%,calc(100% - 4px) 55%;background-size:6px 6px,6px 6px;background-repeat:no-repeat}
+:root[data-design=n3] input[type=checkbox],:root[data-design=n3] input[type=radio]{appearance:none;-webkit-appearance:none;width:22px;height:22px;min-height:0;padding:0;margin:0;flex:none;border:1px solid var(--line-strong);background:transparent;border-radius:2px;display:inline-grid;place-content:center;vertical-align:middle;cursor:pointer;box-shadow:none;transition:border-color .2s}
+:root[data-design=n3] input[type=radio]{border-radius:50%}
+:root[data-design=n3] input[type=checkbox]:checked,:root[data-design=n3] input[type=radio]:checked{border-color:var(--accent)}
+:root[data-design=n3] input[type=checkbox]:checked::after{content:"";width:5px;height:10px;border:solid var(--accent);border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+:root[data-design=n3] input[type=radio]:checked::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+:root[data-design=n3] input[type=range]{accent-color:var(--accent);min-height:0}
+:root[data-design=n3] ::placeholder{color:var(--muted);opacity:.55}
+:root[data-design=n3] .formgrid{gap:28px 32px}
+:root[data-design=n3] .upload-zone{border:1px dashed var(--line-strong);background:transparent;border-radius:4px}
+
+/* Filter, Reiter, Status: Text mit Linie */
+:root[data-design=n3] .filter-chips{gap:26px;padding:2px 0 22px}
+:root[data-design=n3] .filter-chips button,:root[data-design=n3] .wp-chips button,:root[data-design=n3] .wp-filter button,:root[data-design=n3] .tms-tabs button{background:none;border:0;border-bottom:1px solid transparent;border-radius:0;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;min-height:42px;padding:8px 0;box-shadow:none}
+:root[data-design=n3] .filter-chips button span{background:none;color:var(--accent);padding:0;margin-left:7px;font-weight:600}
+:root[data-design=n3] .filter-chips button:hover{color:var(--ink)}
+:root[data-design=n3] .filter-chips button.active,:root[data-design=n3] .tms-tabs button.active{background:none;color:var(--ink);border-bottom-color:var(--accent)}
+:root[data-design=n3] .order-tabs{border-bottom:1px solid var(--line);gap:30px}
+:root[data-design=n3] .order-tabs button{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border:0;border-bottom:1px solid transparent;border-radius:0;padding:12px 0;margin-bottom:-1px}
+:root[data-design=n3] .order-tabs button.active{background:none;color:var(--ink);border-bottom-color:var(--accent)}
+:root[data-design=n3] .phase,:root[data-design=n3] .compact-status,:root[data-design=n3] .pill,:root[data-design=n3] .badge,:root[data-design=n3] .status{display:inline-flex;align-items:center;gap:8px;background:none;color:var(--ink);border:0;border-radius:0;padding:0;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+:root[data-design=n3] .phase::before,:root[data-design=n3] .compact-status::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+:root[data-design=n3] .phase.overdue{color:var(--danger);background:none}
+:root[data-design=n3] .phase.overdue::before{background:var(--danger);box-shadow:0 0 10px var(--danger)}
+:root[data-design=n3] .phase.warning,:root[data-design=n3] .stock-low{color:var(--warning);background:none}
+:root[data-design=n3] .phase.warning::before{background:var(--warning);box-shadow:none}
+:root[data-design=n3] .order-progress span{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;border-top:1px solid var(--line-strong);border-radius:0;color:var(--muted);padding-top:10px}
+:root[data-design=n3] .order-progress span.reached{border-top:2px solid var(--accent);color:var(--accent)}
+:root[data-design=n3] .stat-bar-track{background:var(--line);border-radius:0;height:2px}
+:root[data-design=n3] .stat-bar-track div{background:var(--accent)}
+:root[data-design=n3] .price-proposal{background:color-mix(in srgb,var(--accent) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);border-radius:4px}
+:root[data-design=n3] .price-proposal strong{font-family:var(--serif);font-weight:400;color:var(--ink)}
+:root[data-design=n3] .price-proposal small{color:var(--accent);letter-spacing:.16em}
+:root[data-design=n3] .record-detail>div{background:var(--surface-2);border:0;border-radius:4px}
+
+/* Tabellen */
+:root[data-design=n3] table{border-collapse:collapse}
+:root[data-design=n3] th{background:none;color:var(--accent);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;text-align:left;padding:14px 14px;border-bottom:1px solid var(--line-strong)}
+:root[data-design=n3] td{border-bottom:1px solid var(--line);padding:18px 14px}
+:root[data-design=n3] tbody tr:hover td{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+:root[data-design=n3] .wp-table-wrap{border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--lift)}
+:root[data-design=n3] .wp-table thead th{background:var(--surface)}
+
+/* Fenster */
+:root[data-design=n3] dialog{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:20px;box-shadow:0 50px 140px -30px rgba(0,0,0,.6),var(--lift);padding:36px}
+:root[data-design=n3] dialog::backdrop{background:rgba(8,8,10,.55);backdrop-filter:blur(10px)}
+:root[data-design=n3] .modal-heading h2{font-size:30px;font-weight:400}
+:root[data-design=n3] .cloud-auth-card,:root[data-design=n3] .profile-menu{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--lift)}
+:root[data-design=n3] .modal-footer{border-top:1px solid var(--line)}
+:root[data-design=n3] details>summary{cursor:pointer;color:var(--ink);font-weight:500}
+:root[data-design=n3] .toast{background:var(--ink);color:var(--bg);border:0;border-radius:2px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:16px 26px;box-shadow:0 20px 50px -10px rgba(0,0,0,.5)}
+
+/* Eine ruhige Einblendung beim Seitenwechsel */
+@keyframes n3In{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+:root[data-design=n3] #app{animation:n3In .5s cubic-bezier(.2,.7,.2,1)}
+
+@media(max-width:899px){:root[data-design=n3] .design-switch{display:none}}
+@media(max-width:700px){
+ :root[data-design=n3] header{padding:8px 14px;min-height:60px}
+ :root[data-design=n3] header .primary{white-space:nowrap;padding:0 14px;min-height:44px;font-size:11px;letter-spacing:.1em}
+ :root[data-design=n3] .brand{font-size:16px;letter-spacing:.2em;gap:8px}
+ :root[data-design=n3] .brand::before{width:14px}
+ :root[data-design=n3] main{padding:28px 20px 120px}
+ :root[data-design=n3] h1{font-size:38px}
+ :root[data-design=n3] .card,:root[data-design=n3] section.card{padding:22px 20px}
+ :root[data-design=n3] .overview-numbers button{padding:6px 16px}
+ :root[data-design=n3] .overview-numbers button b{font-size:38px}
+ :root[data-design=n3] .page-head{margin-bottom:30px}
+}
+@media(prefers-reduced-motion:reduce){:root[data-design=n3] *,:root[data-design=n3] #app{transition:none!important;animation:none!important}}
+
+/* Kennzahlen: große Ziffern, nur Trennlinien */
+:root[data-design=n3] .money-hero{gap:0}
+:root[data-design=n3] .money-hero>div{background:none;border:0;border-left:1px solid var(--line);border-radius:0;box-shadow:none;padding:6px 30px;display:flex;flex-direction:column;align-items:flex-start}
+:root[data-design=n3] .money-hero>div:first-child{border-left:0;padding-left:0}
+:root[data-design=n3] .money-hero>div span{font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+:root[data-design=n3] .money-hero>div strong{font-family:var(--serif);font-weight:300;font-size:clamp(34px,4vw,58px);letter-spacing:-.04em;color:var(--ink);margin:8px 0;line-height:1.05}
+:root[data-design=n3] .money-hero>div small{color:var(--muted);font-size:13px}
+:root[data-design=n3] .money-hero>div.neg strong{color:var(--danger)}
+:root[data-design=n3] header .secondary,:root[data-design=n3] header .secondary *{color:var(--ink)!important}
+:root[data-design=n3] header button{transition:none!important}
+@media(max-width:700px){:root[data-design=n3] .money-hero>div{padding:10px 14px}:root[data-design=n3] .money-hero>div strong{font-size:30px}}
+:root[data-design=n3] .money-hero>div strong{white-space:nowrap;font-size:clamp(28px,3vw,46px)}
+@media(max-width:700px){:root[data-design=n3] header .primary{font-size:10px;letter-spacing:.06em;padding:0 10px}:root[data-design=n3] .brand{letter-spacing:.14em;font-size:15px}:root[data-design=n3] .icon-button{min-width:40px}}
